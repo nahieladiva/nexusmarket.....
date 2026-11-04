@@ -4,13 +4,13 @@ import application.domain.models.TokenClaims;
 import java.util.Optional;
 
 /**
- * Puerto de salida 9/15 — firma y lectura de JSON Web Tokens.
+ * Output port 9/15 — signing and reading of JSON Web Tokens.
  */
 public interface TokenProviderPort {
 
-    /** Firma un JWT con los datos dados. */
+    /** Signs a JWT with the given data. */
     String issue(TokenClaims claims);
 
-    /** Lee y verifica la firma de un JWT; vacío si es inválido o expiró. */
+    /** Reads a JWT and verifies its signature; empty if it is invalid or expired. */
     Optional<TokenClaims> parse(String token);
 }

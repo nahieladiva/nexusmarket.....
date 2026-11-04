@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Puerto de salida 14/15 — hora actual. Permite pruebas deterministas.
+ * Output port 14/15 — current time. Enables deterministic tests.
  */
 public interface ClockPort {
 

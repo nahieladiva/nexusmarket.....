@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Resultado de un inicio de sesión exitoso.
+ * Result of a successful login.
  */
 public record AuthSession(String token, LocalDateTime expiresAt, User user) {
 
     public AuthSession {
-        Objects.requireNonNull(token, "token es obligatorio");
-        Objects.requireNonNull(expiresAt, "expiresAt es obligatorio");
-        Objects.requireNonNull(user, "user es obligatorio");
+        Objects.requireNonNull(token, "token is required");
+        Objects.requireNonNull(expiresAt, "expiresAt is required");
+        Objects.requireNonNull(user, "user is required");
     }
 }

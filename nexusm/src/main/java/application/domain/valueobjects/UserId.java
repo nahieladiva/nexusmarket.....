@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Identificador de usuario (UUID).
+ * Identifier of a user (UUID).
  */
 public final class UserId {
 
     private final UUID value;
 
     public UserId(UUID value) {
-        this.value = Objects.requireNonNull(value, "El id de usuario no puede ser nulo");
+        this.value = Objects.requireNonNull(value, "User id cannot be null");
     }
 
     public static UserId of(UUID value) {

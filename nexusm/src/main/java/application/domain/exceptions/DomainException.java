@@ -1,8 +1,8 @@
 package application.domain.exceptions;
 
 /**
- * Excepción base del dominio. Todas las reglas de negocio violadas
- * se representan mediante subclases de esta excepción.
+ * Base domain exception. Every violated business rule
+ * is represented by a subclass of this exception.
  */
 public class DomainException extends RuntimeException {
 

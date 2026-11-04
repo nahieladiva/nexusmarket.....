@@ -3,7 +3,7 @@ package application.domain.ports.out;
 import application.domain.valueobjects.UserId;
 
 /**
- * Puerto de salida 13/15 — avisos a usuarios (stock bajo, cambios de estado de pedidos).
+ * Output port 13/15 — user notifications (low stock, order status changes).
  */
 public interface NotificationPort {
 

@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Evento emitido cuando el inventario cae por debajo del punto de reorden.
+ * Event raised when inventory falls below the reorder threshold.
  */
 public record LowStockEvent(ProductId productId, WarehouseId warehouseId,
                             Quantity onHand, Quantity reorderThreshold,
                             LocalDateTime occurredAt) implements DomainEvent {
 
     public LowStockEvent {
-        Objects.requireNonNull(productId, "productId es obligatorio");
-        Objects.requireNonNull(warehouseId, "warehouseId es obligatorio");
-        Objects.requireNonNull(onHand, "onHand es obligatorio");
-        Objects.requireNonNull(reorderThreshold, "reorderThreshold es obligatorio");
-        Objects.requireNonNull(occurredAt, "occurredAt es obligatorio");
+        Objects.requireNonNull(productId, "productId is required");
+        Objects.requireNonNull(warehouseId, "warehouseId is required");
+        Objects.requireNonNull(onHand, "onHand is required");
+        Objects.requireNonNull(reorderThreshold, "reorderThreshold is required");
+        Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 }

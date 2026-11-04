@@ -11,7 +11,7 @@ import application.domain.valueobjects.WarehouseId;
 import java.util.Objects;
 
 /**
- * Servicio de dominio para la gestión y reserva de inventario.
+ * Domain service for inventory management and reservation.
  */
 public final class InventoryDomainService {
 
@@ -19,11 +19,11 @@ public final class InventoryDomainService {
 
     public InventoryDomainService(InventoryRepository inventoryRepository) {
         this.inventoryRepository = Objects.requireNonNull(inventoryRepository,
-            "inventoryRepository es obligatorio");
+            "inventoryRepository is required");
     }
 
     /**
-     * Verifica la disponibilidad de una cantidad de un producto en un almacén.
+     * Checks the availability of a quantity of a product in a warehouse.
      */
     public boolean checkAvailability(ProductId productId, WarehouseId warehouseId,
                                      Quantity requested) {
@@ -33,7 +33,7 @@ public final class InventoryDomainService {
     }
 
     /**
-     * Reserva stock de un producto en un almacén (decrementa el disponible).
+     * Reserves stock of a product in a warehouse (decreases the available stock).
      */
     public Inventory reserve(ProductId productId, WarehouseId warehouseId, Quantity quantity) {
         Inventory inventory = findInventoryOrThrow(productId, warehouseId);
@@ -46,7 +46,7 @@ public final class InventoryDomainService {
     }
 
     /**
-     * Reabastece stock de un producto en un almacén (incrementa el disponible).
+     * Restocks a product in a warehouse (increases the available stock).
      */
     public Inventory restock(ProductId productId, WarehouseId warehouseId, Quantity quantity) {
         Inventory inventory = findInventoryOrThrow(productId, warehouseId);
@@ -57,7 +57,7 @@ public final class InventoryDomainService {
     private Inventory findInventoryOrThrow(ProductId productId, WarehouseId warehouseId) {
         return inventoryRepository.findByProductIdAndWarehouseId(productId, warehouseId)
             .orElseThrow(() -> new ResourceNotFoundException(
-                "Inventario para el producto " + productId + " en el almacén " + warehouseId,
+                "Inventory for product " + productId + " in warehouse " + warehouseId,
                 productId + "|" + warehouseId));
     }
 }

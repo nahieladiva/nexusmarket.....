@@ -3,9 +3,9 @@ package application.domain.valueobjects;
 import java.util.Objects;
 
 /**
- * Value Object de dirección postal.
+ * Postal address value object.
  *
- * <p>Componentes: calle, ciudad, estado, código postal y país.</p>
+ * <p>Components: street, city, state, zip code and country.</p>
  */
 public final class Address {
 
@@ -16,11 +16,11 @@ public final class Address {
     private final String country;
 
     public Address(String street, String city, String state, String zipCode, String country) {
-        this.street = requireNotBlank(street, "La calle es obligatoria");
-        this.city = requireNotBlank(city, "La ciudad es obligatoria");
-        this.state = requireNotBlank(state, "El estado es obligatorio");
-        this.zipCode = requireNotBlank(zipCode, "El código postal es obligatorio");
-        this.country = requireNotBlank(country, "El país es obligatorio");
+        this.street = requireNotBlank(street, "Street is required");
+        this.city = requireNotBlank(city, "City is required");
+        this.state = requireNotBlank(state, "State is required");
+        this.zipCode = requireNotBlank(zipCode, "Zip code is required");
+        this.country = requireNotBlank(country, "Country is required");
     }
 
     public static Address of(String street, String city, String state, String zipCode, String country) {

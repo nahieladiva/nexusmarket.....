@@ -5,9 +5,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 /**
- * Value Object de rango de fechas.
+ * Date range value object.
  *
- * <p>Operaciones: contención, traslape (overlap) y duración en días.</p>
+ * <p>Operations: containment, overlap and duration in days.</p>
  */
 public final class DateRange {
 
@@ -16,11 +16,11 @@ public final class DateRange {
 
     public DateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("Las fechas de inicio y fin son obligatorias");
+            throw new IllegalArgumentException("Start and end dates are required");
         }
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException(
-                "La fecha de fin no puede ser anterior a la fecha de inicio");
+                "End date cannot be before start date");
         }
         this.startDate = startDate;
         this.endDate = endDate;
@@ -31,11 +31,11 @@ public final class DateRange {
     }
 
     /**
-     * Rango inclusivo que comienza en {@code start} y dura {@code days} días.
+     * Inclusive range that begins on {@code start} and lasts {@code days} days.
      */
     public static DateRange startingAt(LocalDate start, long days) {
         if (days < 1) {
-            throw new IllegalArgumentException("La duración debe ser de al menos 1 día");
+            throw new IllegalArgumentException("Duration must be at least 1 day");
         }
         return new DateRange(start, start.plusDays(days - 1));
     }
@@ -46,13 +46,13 @@ public final class DateRange {
 
     public boolean overlaps(DateRange other) {
         if (other == null) {
-            throw new IllegalArgumentException("El rango a comparar no puede ser nulo");
+            throw new IllegalArgumentException("Range to compare cannot be null");
         }
         return !this.endDate.isBefore(other.startDate) && !other.endDate.isBefore(this.startDate);
     }
 
     /**
-     * Número de días del rango (inclusivo).
+     * Number of days in the range (inclusive).
      */
     public long durationInDays() {
         return ChronoUnit.DAYS.between(startDate, endDate) + 1;

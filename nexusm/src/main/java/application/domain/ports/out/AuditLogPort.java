@@ -3,7 +3,7 @@ package application.domain.ports.out;
 import application.domain.events.DomainEvent;
 
 /**
- * Puerto de salida 6/15 — bitácora de eventos de dominio (MongoDB).
+ * Output port 6/15 — domain event log (MongoDB).
  */
 public interface AuditLogPort {
 

@@ -1,7 +1,7 @@
 package application.domain.exceptions;
 
 /**
- * Se lanza cuando una operación viola una regla de negocio del marketplace.
+ * Thrown when an operation violates a marketplace business rule.
  */
 public class BusinessRuleException extends DomainException {
 

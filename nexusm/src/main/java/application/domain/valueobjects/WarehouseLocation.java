@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Value Object de ubicación física dentro de un almacén (pasillo, estante y cajón).
+ * Value object for a physical location inside a warehouse (aisle, shelf and bin).
  */
 public final class WarehouseLocation {
 
@@ -13,9 +13,9 @@ public final class WarehouseLocation {
     private final String bin;
 
     public WarehouseLocation(String aisle, String shelf, String bin) {
-        this.aisle = requireNotBlank(aisle, "El pasillo es obligatorio");
-        this.shelf = requireNotBlank(shelf, "El estante es obligatorio");
-        this.bin = requireNotBlank(bin, "El cajón (bin) es obligatorio");
+        this.aisle = requireNotBlank(aisle, "Aisle is required");
+        this.shelf = requireNotBlank(shelf, "Shelf is required");
+        this.bin = requireNotBlank(bin, "Bin is required");
     }
 
     public static WarehouseLocation of(String aisle, String shelf, String bin) {

@@ -4,9 +4,9 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Value Object de código de producto (SKU).
+ * Product code (SKU) value object.
  *
- * <p>Formato: 2 a 5 letras mayúsculas, guion y 4 a 8 dígitos, p. ej. {@code ELE-000123}.</p>
+ * <p>Format: 2 to 5 uppercase letters, a hyphen and 4 to 8 digits, e.g. {@code ELE-000123}.</p>
  */
 public final class ProductCode {
 
@@ -17,12 +17,12 @@ public final class ProductCode {
 
     public ProductCode(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("El código de producto (SKU) no puede ser nulo o vacío");
+            throw new IllegalArgumentException("Product code (SKU) cannot be null or blank");
         }
         String normalized = value.trim().toUpperCase();
         if (!SKU_PATTERN.matcher(normalized).matches()) {
             throw new IllegalArgumentException(
-                "Formato de SKU inválido: " + value + ". Formato esperado: XXX-0000");
+                "Invalid SKU format: " + value + ". Expected format: XXX-0000");
         }
         this.value = normalized;
     }
@@ -32,18 +32,18 @@ public final class ProductCode {
     }
 
     /**
-     * Regla de generación: código de categoría + guion + secuencia.
+     * Generation rule: category code + hyphen + sequence.
      *
-     * @param categoryCode 2 a 5 letras, p. ej. {@code ELEC}
-     * @param sequence     número de secuencia
+     * @param categoryCode 2 to 5 letters, e.g. {@code ELEC}
+     * @param sequence     sequence number
      */
     public static ProductCode generate(String categoryCode, int sequence) {
         if (categoryCode == null || !CATEGORY_PATTERN.matcher(categoryCode.toUpperCase()).matches()) {
             throw new IllegalArgumentException(
-                "Código de categoría inválido: " + categoryCode + ". Formato esperado: 2-5 letras");
+                "Invalid category code: " + categoryCode + ". Expected format: 2-5 letters");
         }
         if (sequence < 0) {
-            throw new IllegalArgumentException("La secuencia no puede ser negativa");
+            throw new IllegalArgumentException("Sequence cannot be negative");
         }
         return new ProductCode(String.format("%s-%04d", categoryCode.toUpperCase(), sequence));
     }

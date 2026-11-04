@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida 3/15 — bodegas (MySQL).
+ * Output port 3/15 — warehouses (MySQL).
  */
 public interface WarehouseRepository {
 

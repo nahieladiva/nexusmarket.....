@@ -18,10 +18,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Decide desde qué bodega se despacha cada ítem de una orden.
+ * Decides which warehouse ships each item of an order.
  *
- * <p>Regla: solo se consideran bodegas activas, y entre las que tienen stock suficiente
- * se elige la que tiene más unidades disponibles (para no agotar bodegas pequeñas).</p>
+ * <p>Rule: only active warehouses are considered, and among those with enough stock
+ * the one with the most available units is chosen (to avoid draining small warehouses).</p>
  */
 public final class WarehouseAllocationService {
 
@@ -31,14 +31,14 @@ public final class WarehouseAllocationService {
     public WarehouseAllocationService(InventoryRepository inventoryRepository,
                                       WarehouseRepository warehouseRepository) {
         this.inventoryRepository = Objects.requireNonNull(inventoryRepository,
-            "inventoryRepository es obligatorio");
+            "inventoryRepository is required");
         this.warehouseRepository = Objects.requireNonNull(warehouseRepository,
-            "warehouseRepository es obligatorio");
+            "warehouseRepository is required");
     }
 
     /**
-     * @return producto → bodega asignada
-     * @throws InsufficientStockException si algún producto no tiene una bodega activa con stock
+     * @return product → assigned warehouse
+     * @throws InsufficientStockException if a product has no active warehouse with stock
      */
     public Map<ProductId, WarehouseId> allocate(List<OrderItem> items) {
         Set<WarehouseId> activeWarehouses = warehouseRepository.findAll().stream()
@@ -52,7 +52,7 @@ public final class WarehouseAllocationService {
         return allocation;
     }
 
-    /** Stock total del producto sumando solo bodegas activas. */
+    /** Total stock of the product, counting only active warehouses. */
     public Quantity availableInActiveWarehouses(ProductId productId) {
         Set<WarehouseId> activeWarehouses = warehouseRepository.findAll().stream()
             .filter(Warehouse::isActive)

@@ -40,7 +40,7 @@ class ProductApplicationServiceTest {
     void unapprovedSellerCannotPublish() {
         Seller pending = (Seller) f.auth.registerSeller("Pepe", Email.of("pepe@tienda.com"),
             PhoneNumber.of("+573001112233"), "Tienda2026", "Pepe Store");
-        assertThrows(IllegalStateException.class, () -> f.product(pending, "TEC-0002", "1000"));
+        assertThrows(BusinessRuleException.class, () -> f.product(pending, "TEC-0002", "1000"));
     }
 
     @Test

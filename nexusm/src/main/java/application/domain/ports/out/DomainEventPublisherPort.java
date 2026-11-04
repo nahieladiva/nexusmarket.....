@@ -3,8 +3,8 @@ package application.domain.ports.out;
 import application.domain.events.DomainEvent;
 
 /**
- * Puerto de salida 12/15 — publica eventos de dominio para quien los quiera escuchar
- * (por ejemplo, la bitácora de auditoría).
+ * Output port 12/15 — publishes domain events to anyone who wants to listen
+ * (for example, the audit log).
  */
 public interface DomainEventPublisherPort {
 

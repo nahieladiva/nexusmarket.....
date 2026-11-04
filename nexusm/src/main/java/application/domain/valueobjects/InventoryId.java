@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Identificador de inventario (UUID).
+ * Identifier of an inventory record (UUID).
  */
 public final class InventoryId {
 
     private final UUID value;
 
     public InventoryId(UUID value) {
-        this.value = Objects.requireNonNull(value, "El id de inventario no puede ser nulo");
+        this.value = Objects.requireNonNull(value, "Inventory id cannot be null");
     }
 
     public static InventoryId of(UUID value) {

@@ -6,16 +6,16 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Datos que viajan dentro del JWT.
+ * Data carried inside the JWT.
  */
 public record TokenClaims(String tokenId, UserId userId, UserRole role,
                           LocalDateTime issuedAt, LocalDateTime expiresAt) {
 
     public TokenClaims {
-        Objects.requireNonNull(tokenId, "tokenId es obligatorio");
-        Objects.requireNonNull(userId, "userId es obligatorio");
-        Objects.requireNonNull(role, "role es obligatorio");
-        Objects.requireNonNull(issuedAt, "issuedAt es obligatorio");
-        Objects.requireNonNull(expiresAt, "expiresAt es obligatorio");
+        Objects.requireNonNull(tokenId, "tokenId is required");
+        Objects.requireNonNull(userId, "userId is required");
+        Objects.requireNonNull(role, "role is required");
+        Objects.requireNonNull(issuedAt, "issuedAt is required");
+        Objects.requireNonNull(expiresAt, "expiresAt is required");
     }
 }

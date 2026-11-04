@@ -8,16 +8,16 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Evento emitido cuando se actualiza el inventario (entrada o salida de stock).
+ * Event raised when inventory is updated (stock coming in or going out).
  */
 public record InventoryUpdatedEvent(ProductId productId, WarehouseId warehouseId,
                                     Quantity newOnHand,
                                     LocalDateTime occurredAt) implements DomainEvent {
 
     public InventoryUpdatedEvent {
-        Objects.requireNonNull(productId, "productId es obligatorio");
-        Objects.requireNonNull(warehouseId, "warehouseId es obligatorio");
-        Objects.requireNonNull(newOnHand, "newOnHand es obligatorio");
-        Objects.requireNonNull(occurredAt, "occurredAt es obligatorio");
+        Objects.requireNonNull(productId, "productId is required");
+        Objects.requireNonNull(warehouseId, "warehouseId is required");
+        Objects.requireNonNull(newOnHand, "newOnHand is required");
+        Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 }

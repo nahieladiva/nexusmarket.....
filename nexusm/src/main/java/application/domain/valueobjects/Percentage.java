@@ -5,12 +5,12 @@ import java.math.RoundingMode;
 import java.util.Objects;
 
 /**
- * Value Object de porcentaje (descuentos, impuestos, etc.).
+ * Percentage value object (discounts, taxes, etc.).
  *
- * <p>Validaciones:</p>
+ * <p>Validations:</p>
  * <ul>
- *   <li>Debe estar en el rango [0, 100].</li>
- *   <li>Se normaliza a 2 decimales con redondeo {@code HALF_UP}.</li>
+ *   <li>Must be within the range [0, 100].</li>
+ *   <li>Normalized to 2 decimal places with {@code HALF_UP} rounding.</li>
  * </ul>
  */
 public final class Percentage {
@@ -19,10 +19,10 @@ public final class Percentage {
 
     public Percentage(BigDecimal value) {
         if (value == null) {
-            throw new IllegalArgumentException("El porcentaje no puede ser nulo");
+            throw new IllegalArgumentException("Percentage cannot be null");
         }
         if (value.signum() < 0 || value.compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new IllegalArgumentException("El porcentaje debe estar entre 0 y 100: " + value);
+            throw new IllegalArgumentException("Percentage must be between 0 and 100: " + value);
         }
         this.value = value.setScale(2, RoundingMode.HALF_UP);
     }
@@ -40,7 +40,7 @@ public final class Percentage {
     }
 
     /**
-     * Porcentaje convertido a fracción, p. ej. {@code 15} -> {@code 0.15}.
+     * Percentage converted to a fraction, e.g. {@code 15} -> {@code 0.15}.
      */
     public BigDecimal asFraction() {
         return value.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);

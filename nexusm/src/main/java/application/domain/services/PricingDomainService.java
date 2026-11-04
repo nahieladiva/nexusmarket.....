@@ -12,18 +12,18 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Servicio de dominio para cálculos de precios.
+ * Domain service for price calculations.
  *
- * <p>Regla de no acumulación: el descuento por volumen de una orden y las promociones de
- * producto no se suman. Se calcula el total de ambas formas y se cobra el menor
- * (ver {@link #chooseBestPricing}).</p>
+ * <p>Non-stacking rule: the volume discount of an order and product promotions
+ * are not added together. The total is calculated both ways and the lower one is charged
+ * (see {@link #chooseBestPricing}).</p>
  */
 public final class PricingDomainService {
 
-    /** Unidades totales a partir de las cuales aplica el descuento por volumen. */
+    /** Total units from which the volume discount applies. */
     public static final int VOLUME_THRESHOLD = 15;
 
-    /** Porcentaje del descuento por volumen. */
+    /** Volume discount percentage. */
     public static final Percentage VOLUME_DISCOUNT = Percentage.of(5);
 
     public Money applyPercentageDiscount(Money price, Percentage discount) {
@@ -37,7 +37,7 @@ public final class PricingDomainService {
             total = (total == null) ? item.subtotal() : total.add(item.subtotal());
         }
         if (total == null) {
-            throw new IllegalArgumentException("La orden debe tener al menos un item");
+            throw new IllegalArgumentException("The order must have at least one item");
         }
         return total;
     }
@@ -53,10 +53,10 @@ public final class PricingDomainService {
     }
 
     /**
-     * Precio final de un producto con la promoción vigente (si la hay).
+     * Final price of a product with the current promotion (if any).
      */
     public PriceQuote quote(Product product, Optional<Promotion> effectivePromotion) {
-        Objects.requireNonNull(product, "El producto es obligatorio");
+        Objects.requireNonNull(product, "Product is required");
         Percentage discount = effectivePromotion.map(Promotion::getDiscount)
             .orElse(Percentage.of(0));
         Money finalPrice = applyPercentageDiscount(product.getPrice(), discount);
@@ -64,11 +64,11 @@ public final class PricingDomainService {
     }
 
     /**
-     * Elige la forma de cobro más favorable para el comprador.
+     * Chooses the pricing most favorable to the buyer.
      *
-     * @param baseItems  ítems a precio de catálogo (sin promociones)
-     * @param promoItems los mismos ítems con el precio de promoción aplicado
-     * @return los ítems a guardar en la orden y el total a cobrar
+     * @param baseItems  items at catalog price (without promotions)
+     * @param promoItems the same items with the promotional price applied
+     * @return the items to store in the order and the total to charge
      */
     public PricingResult chooseBestPricing(List<OrderItem> baseItems, List<OrderItem> promoItems) {
         Money promoTotal = calculateOrderTotal(promoItems);
@@ -87,9 +87,9 @@ public final class PricingDomainService {
     }
 
     /**
-     * Resultado de la elección de precios.
+     * Result of the pricing choice.
      *
-     * @param volumeDiscountApplied {@code true} si se cobró con descuento por volumen
+     * @param volumeDiscountApplied {@code true} if the volume discount was charged
      */
     public record PricingResult(List<OrderItem> items, Money total,
                                 boolean volumeDiscountApplied) {

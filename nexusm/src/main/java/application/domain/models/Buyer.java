@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Especialización de {@link User} con rol {@code BUYER}.
+ * Specialization of {@link User} with the {@code BUYER} role.
  *
- * <p>Agrega la dirección de envío predeterminada utilizada en las órdenes.</p>
+ * <p>Adds the default shipping address used in orders.</p>
  */
 public class Buyer extends User {
 
@@ -24,7 +24,7 @@ public class Buyer extends User {
                  List<Address> addresses, LocalDateTime createdAt) {
         super(id, fullName, email, phone, UserRole.BUYER, passwordHash, addresses, createdAt);
         this.defaultShippingAddress =
-            Objects.requireNonNull(defaultShippingAddress, "La dirección de envío es obligatoria");
+            Objects.requireNonNull(defaultShippingAddress, "Shipping address is required");
     }
 
     public static Buyer create(String fullName, Email email, PhoneNumber phone,
@@ -35,7 +35,7 @@ public class Buyer extends User {
 
     public void changeDefaultShippingAddress(Address newAddress) {
         this.defaultShippingAddress =
-            Objects.requireNonNull(newAddress, "La dirección de envío es obligatoria");
+            Objects.requireNonNull(newAddress, "Shipping address is required");
     }
 
     public Address getDefaultShippingAddress() {

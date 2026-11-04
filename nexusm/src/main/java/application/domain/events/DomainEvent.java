@@ -3,7 +3,7 @@ package application.domain.events;
 import java.time.LocalDateTime;
 
 /**
- * Marcador de eventos de dominio. Todo evento ocurre en un instante dado.
+ * Marker for domain events. Every event occurs at a given instant.
  */
 public interface DomainEvent {
 

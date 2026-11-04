@@ -3,7 +3,7 @@ package application.domain.ports.out;
 import java.util.UUID;
 
 /**
- * Puerto de salida 15/15 — generación de identificadores fuera del dominio.
+ * Output port 15/15 — identifier generation outside the domain.
  */
 public interface IdGeneratorPort {
 

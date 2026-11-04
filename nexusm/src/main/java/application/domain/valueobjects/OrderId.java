@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Identificador de orden (UUID).
+ * Identifier of an order (UUID).
  */
 public final class OrderId {
 
     private final UUID value;
 
     public OrderId(UUID value) {
-        this.value = Objects.requireNonNull(value, "El id de orden no puede ser nulo");
+        this.value = Objects.requireNonNull(value, "Order id cannot be null");
     }
 
     public static OrderId of(UUID value) {

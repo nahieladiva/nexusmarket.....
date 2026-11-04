@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Identificador de producto (UUID).
+ * Identifier of a product (UUID).
  */
 public final class ProductId {
 
     private final UUID value;
 
     public ProductId(UUID value) {
-        this.value = Objects.requireNonNull(value, "El id de producto no puede ser nulo");
+        this.value = Objects.requireNonNull(value, "Product id cannot be null");
     }
 
     public static ProductId of(UUID value) {

@@ -6,16 +6,16 @@ import java.util.Currency;
 import java.util.Objects;
 
 /**
- * Value Object que representa una cantidad de dinero con su moneda.
+ * Value object representing an amount of money with its currency.
  *
- * <p>Reglas de negocio:</p>
+ * <p>Business rules:</p>
  * <ul>
- *   <li>Inmutable.</li>
- *   <li>El monto no puede ser negativo.</li>
- *   <li>La moneda es obligatoria.</li>
- *   <li>La precisión es de 2 decimales con redondeo {@code HALF_UP}.</li>
- *   <li>Solo se pueden operar montos de la misma moneda.</li>
- *   <li>La igualdad es por valor (monto y moneda).</li>
+ *   <li>Immutable.</li>
+ *   <li>The amount cannot be negative.</li>
+ *   <li>The currency is required.</li>
+ *   <li>Precision is 2 decimal places with {@code HALF_UP} rounding.</li>
+ *   <li>Only amounts in the same currency can be combined.</li>
+ *   <li>Equality is by value (amount and currency).</li>
  * </ul>
  */
 public final class Money {
@@ -25,20 +25,20 @@ public final class Money {
 
     public Money(BigDecimal amount, Currency currency) {
         if (amount == null) {
-            throw new IllegalArgumentException("El monto no puede ser nulo");
+            throw new IllegalArgumentException("Amount cannot be null");
         }
         if (currency == null) {
-            throw new IllegalArgumentException("La moneda no puede ser nula");
+            throw new IllegalArgumentException("Currency cannot be null");
         }
         if (amount.signum() < 0) {
-            throw new IllegalArgumentException("El monto no puede ser negativo");
+            throw new IllegalArgumentException("Amount cannot be negative");
         }
         this.amount = amount.setScale(2, RoundingMode.HALF_UP);
         this.currency = currency;
     }
 
     /**
-     * Fábrica a partir de valores planos, p. ej. {@code Money.of("19.99", "USD")}.
+     * Factory from plain values, e.g. {@code Money.of("19.99", "USD")}.
      */
     public static Money of(String amount, String currencyCode) {
         return new Money(new BigDecimal(amount), Currency.getInstance(currencyCode));
@@ -83,7 +83,7 @@ public final class Money {
     private void validateSameCurrency(Money other) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException(
-                "No se pueden operar monedas diferentes: " + this.currency + " vs " + other.currency);
+                "Cannot operate on different currencies: " + this.currency + " vs " + other.currency);
         }
     }
 

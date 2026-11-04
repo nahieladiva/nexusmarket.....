@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Identificador de almacén (UUID).
+ * Identifier of a warehouse (UUID).
  */
 public final class WarehouseId {
 
     private final UUID value;
 
     public WarehouseId(UUID value) {
-        this.value = Objects.requireNonNull(value, "El id de almacén no puede ser nulo");
+        this.value = Objects.requireNonNull(value, "Warehouse id cannot be null");
     }
 
     public static WarehouseId of(UUID value) {

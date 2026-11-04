@@ -9,14 +9,14 @@ import application.domain.valueobjects.WarehouseLocation;
 import java.util.Objects;
 
 /**
- * Entidad de inventario: stock disponible de un producto en un almacén.
+ * Inventory entity: available stock of a product in a warehouse.
  *
- * <p>Invariantes:</p>
+ * <p>Invariants:</p>
  * <ul>
- *   <li>Un par (producto, almacén) identifica de forma única el inventario.</li>
- *   <li>La cantidad disponible nunca puede ser negativa.</li>
- *   <li>Cuando el stock disponible cae por debajo del punto de reorden se
- *       considera inventario bajo (genera {@code LowStockEvent}).</li>
+ *   <li>A (product, warehouse) pair uniquely identifies the inventory.</li>
+ *   <li>The available quantity can never be negative.</li>
+ *   <li>When the available stock falls below the reorder threshold it is
+ *       considered low inventory (raises {@code LowStockEvent}).</li>
  * </ul>
  */
 public final class Inventory {
@@ -30,13 +30,13 @@ public final class Inventory {
 
     public Inventory(InventoryId id, ProductId productId, WarehouseId warehouseId,
                      Quantity onHand, Quantity reorderThreshold, WarehouseLocation location) {
-        this.id = Objects.requireNonNull(id, "El id de inventario es obligatorio");
-        this.productId = Objects.requireNonNull(productId, "El producto es obligatorio");
-        this.warehouseId = Objects.requireNonNull(warehouseId, "El almacén es obligatorio");
-        this.onHand = Objects.requireNonNull(onHand, "La cantidad disponible es obligatoria");
+        this.id = Objects.requireNonNull(id, "Inventory id is required");
+        this.productId = Objects.requireNonNull(productId, "Product is required");
+        this.warehouseId = Objects.requireNonNull(warehouseId, "Warehouse is required");
+        this.onHand = Objects.requireNonNull(onHand, "Available quantity is required");
         this.reorderThreshold =
-            Objects.requireNonNull(reorderThreshold, "El punto de reorden es obligatorio");
-        this.location = Objects.requireNonNull(location, "La ubicación es obligatoria");
+            Objects.requireNonNull(reorderThreshold, "Reorder threshold is required");
+        this.location = Objects.requireNonNull(location, "Location is required");
     }
 
     public static Inventory create(ProductId productId, WarehouseId warehouseId,
@@ -47,37 +47,37 @@ public final class Inventory {
     }
 
     /**
-     * Incrementa el stock disponible (entrada de mercancía).
+     * Increases the available stock (goods coming in).
      */
     public void increase(Quantity amount) {
-        Objects.requireNonNull(amount, "La cantidad es obligatoria");
+        Objects.requireNonNull(amount, "Quantity is required");
         this.onHand = this.onHand.add(amount);
     }
 
     /**
-     * Decrementa el stock disponible (venta, merma). Valida que exista disponibilidad.
+     * Decreases the available stock (sale, shrinkage). Validates that stock is available.
      */
     public void decrease(Quantity amount) {
-        Objects.requireNonNull(amount, "La cantidad es obligatoria");
+        Objects.requireNonNull(amount, "Quantity is required");
         if (!isAvailable(amount)) {
             throw new IllegalStateException(
-                "Stock insuficiente en el almacén " + warehouseId
-                    + ": disponible " + onHand + ", solicitado " + amount);
+                "Insufficient stock in warehouse " + warehouseId
+                    + ": available " + onHand + ", requested " + amount);
         }
         this.onHand = this.onHand.subtract(amount);
     }
 
     /**
-     * Indica si hay stock suficiente para satisfacer la cantidad solicitada.
+     * Tells whether there is enough stock to satisfy the requested quantity.
      */
     public boolean isAvailable(Quantity requested) {
-        Objects.requireNonNull(requested, "La cantidad es obligatoria");
+        Objects.requireNonNull(requested, "Quantity is required");
         return this.onHand.compareTo(requested) >= 0;
     }
 
     /**
-     * Regla de negocio: se considera stock bajo cuando la disponibilidad
-     * es menor que el punto de reorden.
+     * Business rule: stock is considered low when the available quantity
+     * is lower than the reorder threshold.
      */
     public boolean isBelowReorderPoint() {
         return this.onHand.compareTo(this.reorderThreshold) < 0;
@@ -85,7 +85,7 @@ public final class Inventory {
 
     public void changeReorderThreshold(Quantity newThreshold) {
         this.reorderThreshold =
-            Objects.requireNonNull(newThreshold, "El punto de reorden es obligatorio");
+            Objects.requireNonNull(newThreshold, "Reorder threshold is required");
     }
 
     public InventoryId getId() {

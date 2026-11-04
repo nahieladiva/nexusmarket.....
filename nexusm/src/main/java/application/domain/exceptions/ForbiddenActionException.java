@@ -1,8 +1,8 @@
 package application.domain.exceptions;
 
 /**
- * Se lanza cuando un usuario autenticado intenta una acción que no le corresponde
- * (por ejemplo, editar el producto de otro vendedor).
+ * Thrown when an authenticated user attempts an action outside their permissions
+ * (for example, editing another seller's product).
  */
 public class ForbiddenActionException extends DomainException {
 

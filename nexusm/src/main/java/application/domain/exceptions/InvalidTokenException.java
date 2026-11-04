@@ -1,7 +1,7 @@
 package application.domain.exceptions;
 
 /**
- * Se lanza cuando un token JWT es inválido, expiró o fue revocado.
+ * Thrown when a JWT token is invalid, expired or revoked.
  */
 public class InvalidTokenException extends DomainException {
 

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida 5/15 — pedidos (MySQL).
+ * Output port 5/15 — orders (MySQL).
  */
 public interface OrderRepository {
 

@@ -3,8 +3,8 @@ package application.domain.services;
 import application.domain.exceptions.BusinessRuleException;
 
 /**
- * Regla de contraseñas: mínimo {@value #MIN_LENGTH} caracteres, con al menos una letra
- * y un número.
+ * Password rule: at least {@value #MIN_LENGTH} characters, with at least one letter
+ * and one digit.
  */
 public final class PasswordPolicy {
 
@@ -13,13 +13,13 @@ public final class PasswordPolicy {
     public void validate(String rawPassword) {
         if (rawPassword == null || rawPassword.length() < MIN_LENGTH) {
             throw new BusinessRuleException(
-                "La contraseña debe tener al menos " + MIN_LENGTH + " caracteres");
+                "Password must be at least " + MIN_LENGTH + " characters long");
         }
         boolean hasLetter = rawPassword.chars().anyMatch(Character::isLetter);
         boolean hasDigit = rawPassword.chars().anyMatch(Character::isDigit);
         if (!hasLetter || !hasDigit) {
             throw new BusinessRuleException(
-                "La contraseña debe contener al menos una letra y un número");
+                "Password must contain at least one letter and one digit");
         }
     }
 }

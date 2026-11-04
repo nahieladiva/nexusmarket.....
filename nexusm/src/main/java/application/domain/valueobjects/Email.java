@@ -5,13 +5,13 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Value Object de correo electrónico.
+ * Email address value object.
  *
- * <p>Validaciones:</p>
+ * <p>Validations:</p>
  * <ul>
- *   <li>No puede ser nulo ni vacío.</li>
- *   <li>Debe cumplir el formato estándar de email.</li>
- *   <li>Se normaliza a minúsculas.</li>
+ *   <li>Cannot be null or blank.</li>
+ *   <li>Must follow the standard email format.</li>
+ *   <li>Normalized to lowercase.</li>
  * </ul>
  */
 public final class Email {
@@ -23,11 +23,11 @@ public final class Email {
 
     public Email(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+            throw new IllegalArgumentException("Email cannot be null or blank");
         }
         String normalized = value.trim().toLowerCase(Locale.ROOT);
         if (!EMAIL_PATTERN.matcher(normalized).matches()) {
-            throw new IllegalArgumentException("Formato de email inválido: " + value);
+            throw new IllegalArgumentException("Invalid email format: " + value);
         }
         this.value = normalized;
     }

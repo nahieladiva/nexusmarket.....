@@ -5,9 +5,9 @@ import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
 
 /**
- * Se lanza cuando no hay suficiente inventario disponible para satisfacer
- * una cantidad solicitada de un producto. El {@code warehouseId} puede ser
- * {@code null} cuando la escasez se evalúa de forma agregada.
+ * Thrown when there is not enough available inventory to satisfy
+ * a requested quantity of a product. The {@code warehouseId} may be
+ * {@code null} when the shortage is evaluated in aggregate.
  */
 public class InsufficientStockException extends DomainException {
 
@@ -18,10 +18,10 @@ public class InsufficientStockException extends DomainException {
 
     public InsufficientStockException(ProductId productId, WarehouseId warehouseId,
                                       Quantity requested, Quantity available) {
-        super("Stock insuficiente del producto " + productId
-            + (warehouseId != null ? " en el almacén " + warehouseId : "")
-            + ": solicitado " + requested.getValue()
-            + ", disponible " + available.getValue());
+        super("Insufficient stock for product " + productId
+            + (warehouseId != null ? " in warehouse " + warehouseId : "")
+            + ": requested " + requested.getValue()
+            + ", available " + available.getValue());
         this.productId = productId;
         this.warehouseId = warehouseId;
         this.requested = requested.getValue();

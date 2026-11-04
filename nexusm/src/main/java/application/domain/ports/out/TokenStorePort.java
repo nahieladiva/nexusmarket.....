@@ -4,7 +4,7 @@ import application.domain.models.IssuedToken;
 import java.util.Optional;
 
 /**
- * Puerto de salida 10/15 — base de datos de tokens emitidos (MongoDB con índice TTL).
+ * Output port 10/15 — issued token database (MongoDB with a TTL index).
  */
 public interface TokenStorePort {
 

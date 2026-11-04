@@ -3,13 +3,13 @@ package application.domain.valueobjects;
 import java.util.Objects;
 
 /**
- * Value Object de cantidad (inventario, unidades en una orden).
+ * Quantity value object (inventory, units in an order).
  *
- * <p>Validaciones:</p>
+ * <p>Validations:</p>
  * <ul>
- *   <li>Debe ser un número entero.</li>
- *   <li>No puede ser negativa.</li>
- *   <li>Las operaciones aritméticas nunca pueden producir valores negativos.</li>
+ *   <li>Must be a whole number.</li>
+ *   <li>Cannot be negative.</li>
+ *   <li>Arithmetic operations can never produce negative values.</li>
  * </ul>
  */
 public final class Quantity implements Comparable<Quantity> {
@@ -18,7 +18,7 @@ public final class Quantity implements Comparable<Quantity> {
 
     public Quantity(int value) {
         if (value < 0) {
-            throw new IllegalArgumentException("La cantidad no puede ser negativa: " + value);
+            throw new IllegalArgumentException("Quantity cannot be negative: " + value);
         }
         this.value = value;
     }
@@ -32,12 +32,12 @@ public final class Quantity implements Comparable<Quantity> {
     }
 
     public Quantity add(Quantity other) {
-        Objects.requireNonNull(other, "La cantidad a sumar no puede ser nula");
+        Objects.requireNonNull(other, "Quantity to add cannot be null");
         return new Quantity(this.value + other.value);
     }
 
     public Quantity subtract(Quantity other) {
-        Objects.requireNonNull(other, "La cantidad a restar no puede ser nula");
+        Objects.requireNonNull(other, "Quantity to subtract cannot be null");
         return new Quantity(this.value - other.value);
     }
 

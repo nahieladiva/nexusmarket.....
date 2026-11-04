@@ -1,7 +1,7 @@
 package application.domain.exceptions;
 
 /**
- * Se lanza cuando un recurso solicitado no existe.
+ * Thrown when a requested resource does not exist.
  */
 public class ResourceNotFoundException extends DomainException {
 
@@ -9,7 +9,7 @@ public class ResourceNotFoundException extends DomainException {
     private final String resourceId;
 
     public ResourceNotFoundException(String resourceType, String resourceId) {
-        super(resourceType + " no encontrado con id: " + resourceId);
+        super(resourceType + " not found with id: " + resourceId);
         this.resourceType = resourceType;
         this.resourceId = resourceId;
     }

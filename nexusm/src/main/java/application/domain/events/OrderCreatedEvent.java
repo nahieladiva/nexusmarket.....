@@ -8,15 +8,15 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Evento emitido cuando se crea una orden.
+ * Event raised when an order is created.
  */
 public record OrderCreatedEvent(OrderId orderId, UserId buyerId, Money total,
                                 LocalDateTime occurredAt) implements DomainEvent {
 
     public OrderCreatedEvent {
-        Objects.requireNonNull(orderId, "orderId es obligatorio");
-        Objects.requireNonNull(buyerId, "buyerId es obligatorio");
-        Objects.requireNonNull(total, "total es obligatorio");
-        Objects.requireNonNull(occurredAt, "occurredAt es obligatorio");
+        Objects.requireNonNull(orderId, "orderId is required");
+        Objects.requireNonNull(buyerId, "buyerId is required");
+        Objects.requireNonNull(total, "total is required");
+        Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 }

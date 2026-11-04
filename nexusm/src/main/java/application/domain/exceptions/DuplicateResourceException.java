@@ -1,7 +1,7 @@
 package application.domain.exceptions;
 
 /**
- * Se lanza cuando se intenta crear un recurso que ya existe (email, código de producto...).
+ * Thrown when trying to create a resource that already exists (email, product code...).
  */
 public class DuplicateResourceException extends DomainException {
 

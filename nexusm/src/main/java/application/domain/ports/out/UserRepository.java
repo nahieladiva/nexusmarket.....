@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida 1/15 — usuarios (MySQL).
+ * Output port 1/15 — users (MySQL).
  */
 public interface UserRepository {
 

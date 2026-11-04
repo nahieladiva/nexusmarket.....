@@ -52,7 +52,7 @@ class MoneyTest {
     void rejectsOperationsBetweenDifferentCurrencies() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
             () -> Money.of("10.00", "USD").add(Money.of("10.00", "MXN")));
-        assertTrue(ex.getMessage().contains("monedas diferentes"));
+        assertTrue(ex.getMessage().contains("different currencies"));
     }
 
     @Test

@@ -7,16 +7,16 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Evento emitido cuando una orden cambia de estado.
+ * Event raised when an order changes status.
  */
 public record OrderStatusChangedEvent(OrderId orderId, OrderStatus previousStatus,
                                       OrderStatus newStatus,
                                       LocalDateTime occurredAt) implements DomainEvent {
 
     public OrderStatusChangedEvent {
-        Objects.requireNonNull(orderId, "orderId es obligatorio");
-        Objects.requireNonNull(previousStatus, "previousStatus es obligatorio");
-        Objects.requireNonNull(newStatus, "newStatus es obligatorio");
-        Objects.requireNonNull(occurredAt, "occurredAt es obligatorio");
+        Objects.requireNonNull(orderId, "orderId is required");
+        Objects.requireNonNull(previousStatus, "previousStatus is required");
+        Objects.requireNonNull(newStatus, "newStatus is required");
+        Objects.requireNonNull(occurredAt, "occurredAt is required");
     }
 }

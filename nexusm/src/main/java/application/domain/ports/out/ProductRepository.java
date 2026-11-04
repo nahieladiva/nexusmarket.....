@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida 2/15 — catálogo de productos (MySQL).
+ * Output port 2/15 — product catalog (MySQL).
  */
 public interface ProductRepository {
 

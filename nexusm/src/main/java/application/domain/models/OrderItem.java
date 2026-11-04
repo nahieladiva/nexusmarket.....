@@ -7,10 +7,10 @@ import application.domain.valueobjects.WarehouseId;
 import java.util.Objects;
 
 /**
- * Ítem de una orden: producto, cantidad y precio unitario efectivo al momento de la compra.
+ * Order item: product, quantity and effective unit price at the time of purchase.
  *
- * <p>{@code warehouseId} es {@code null} mientras la orden está pendiente; se asigna al
- * confirmar la orden, cuando se reserva el stock en una bodega concreta.</p>
+ * <p>{@code warehouseId} is {@code null} until the order is allocated; it is assigned before
+ * payment, when stock is reserved in a specific warehouse.</p>
  */
 public final class OrderItem {
 
@@ -25,12 +25,12 @@ public final class OrderItem {
 
     public OrderItem(ProductId productId, Quantity quantity, Money unitPrice,
                      WarehouseId warehouseId) {
-        this.productId = Objects.requireNonNull(productId, "El producto es obligatorio");
-        this.quantity = Objects.requireNonNull(quantity, "La cantidad es obligatoria");
+        this.productId = Objects.requireNonNull(productId, "Product is required");
+        this.quantity = Objects.requireNonNull(quantity, "Quantity is required");
         if (quantity.getValue() <= 0) {
-            throw new IllegalArgumentException("La cantidad de un item debe ser mayor a cero");
+            throw new IllegalArgumentException("The quantity of an item must be greater than zero");
         }
-        this.unitPrice = Objects.requireNonNull(unitPrice, "El precio unitario es obligatorio");
+        this.unitPrice = Objects.requireNonNull(unitPrice, "Unit price is required");
         this.warehouseId = warehouseId;
     }
 
@@ -38,10 +38,10 @@ public final class OrderItem {
         return unitPrice.multiply(quantity.getValue());
     }
 
-    /** Devuelve una copia del ítem asignado a la bodega indicada. */
+    /** Returns a copy of the item assigned to the given warehouse. */
     public OrderItem assignedTo(WarehouseId warehouse) {
         return new OrderItem(productId, quantity, unitPrice,
-            Objects.requireNonNull(warehouse, "La bodega es obligatoria"));
+            Objects.requireNonNull(warehouse, "Warehouse is required"));
     }
 
     public boolean hasWarehouse() {
