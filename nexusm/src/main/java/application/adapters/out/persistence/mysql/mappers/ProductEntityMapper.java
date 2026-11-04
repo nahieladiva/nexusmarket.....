@@ -1,6 +1,8 @@
 package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.ProductJpaEntity;
+import application.domain.enums.ProductStatus;
+import application.domain.enums.ProductType;
 import application.domain.models.Product;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductCode;
@@ -10,7 +12,7 @@ import application.domain.valueobjects.UserId;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapea entre la entidad JPA y el modelo de dominio de productos.
+ * Maps between the JPA entity and the product domain model.
  */
 @Component
 public class ProductEntityMapper {
@@ -19,12 +21,13 @@ public class ProductEntityMapper {
         ProductJpaEntity entity = new ProductJpaEntity();
         entity.setId(product.getId().toString());
         entity.setCode(product.getCode().getValue());
+        entity.setType(product.getType().name());
         entity.setName(product.getName());
         entity.setDescription(product.getDescription());
         entity.setPriceAmount(product.getPrice().getAmount());
         entity.setPriceCurrency(product.getPrice().getCurrency().getCurrencyCode());
         entity.setSellerId(product.getSellerId().toString());
-        entity.setActive(product.isActive());
+        entity.setStatus(product.getStatus().name());
         entity.setCreatedAt(product.getCreatedAt());
         return entity;
     }
@@ -33,11 +36,12 @@ public class ProductEntityMapper {
         return new Product(
             ProductId.of(entity.getId()),
             ProductCode.of(entity.getCode()),
+            ProductType.valueOf(entity.getType()),
             entity.getName(),
             entity.getDescription(),
             Money.of(entity.getPriceAmount().toPlainString(), entity.getPriceCurrency()),
             UserId.of(entity.getSellerId()),
-            entity.isActive(),
+            ProductStatus.valueOf(entity.getStatus()),
             entity.getCreatedAt());
     }
 }

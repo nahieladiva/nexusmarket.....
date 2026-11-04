@@ -13,14 +13,15 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Entidad base de usuario del sistema.
+ * Base entity for every system user.
  *
- * <p>Invariantes:</p>
+ * <p>Invariants:</p>
  * <ul>
- *   <li>El id es inmutable.</li>
- *   <li>El email es inmutable y único.</li>
- *   <li>El nombre completo es obligatorio.</li>
- *   <li>El rol define la especialización (Buyer / Seller / Admin).</li>
+ *   <li>The id is immutable.</li>
+ *   <li>The email is immutable and unique.</li>
+ *   <li>The full name is required.</li>
+ *   <li>The role is fixed and defines the specialization (RG-02): Buyer, Seller,
+ *       LogisticsOperator, Administrator or Supervisor.</li>
  * </ul>
  */
 public class User {
@@ -37,11 +38,11 @@ public class User {
     protected User(UserId id, String fullName, Email email, PhoneNumber phone,
                    UserRole role, String passwordHash, List<Address> addresses,
                    LocalDateTime createdAt) {
-        this.id = Objects.requireNonNull(id, "El id de usuario es obligatorio");
-        this.fullName = requireNotBlank(fullName, "El nombre completo es obligatorio");
-        this.email = Objects.requireNonNull(email, "El email es obligatorio");
-        this.phone = Objects.requireNonNull(phone, "El teléfono es obligatorio");
-        this.role = Objects.requireNonNull(role, "El rol es obligatorio");
+        this.id = Objects.requireNonNull(id, "User id is required");
+        this.fullName = requireNotBlank(fullName, "Full name is required");
+        this.email = Objects.requireNonNull(email, "Email is required");
+        this.phone = Objects.requireNonNull(phone, "Phone number is required");
+        this.role = Objects.requireNonNull(role, "Role is required");
         this.passwordHash = passwordHash;
         this.addresses = new ArrayList<>(addresses == null ? List.of() : addresses);
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
@@ -55,11 +56,11 @@ public class User {
     }
 
     public void changeName(String newName) {
-        this.fullName = requireNotBlank(newName, "El nombre completo es obligatorio");
+        this.fullName = requireNotBlank(newName, "Full name is required");
     }
 
     public void changePhone(PhoneNumber newPhone) {
-        this.phone = Objects.requireNonNull(newPhone, "El teléfono es obligatorio");
+        this.phone = Objects.requireNonNull(newPhone, "Phone number is required");
     }
 
     public void changePasswordHash(String newPasswordHash) {
@@ -67,23 +68,30 @@ public class User {
     }
 
     public void addAddress(Address address) {
-        this.addresses.add(Objects.requireNonNull(address, "La dirección es obligatoria"));
+        this.addresses.add(Objects.requireNonNull(address, "Address is required"));
     }
 
     /**
-     * Quita una dirección registrada.
+     * Removes a registered address.
      *
-     * @throws IllegalArgumentException si la dirección no está registrada
+     * @throws IllegalArgumentException when the address is not registered for this user
      */
     public void removeAddress(Address address) {
-        Objects.requireNonNull(address, "La dirección es obligatoria");
+        Objects.requireNonNull(address, "Address is required");
         if (!this.addresses.remove(address)) {
-            throw new IllegalArgumentException("La dirección no está registrada para este usuario");
+            throw new IllegalArgumentException("Address is not registered for this user");
         }
     }
 
     public boolean hasAddress(Address address) {
         return this.addresses.contains(address);
+    }
+
+    /**
+     * Tells whether the user has the given role.
+     */
+    public boolean hasRole(UserRole expectedRole) {
+        return role == expectedRole;
     }
 
     public boolean isBuyer() {
@@ -94,8 +102,19 @@ public class User {
         return role == UserRole.SELLER;
     }
 
+    public boolean isLogisticsOperator() {
+        return role == UserRole.LOGISTICS_OPERATOR;
+    }
+
+    /**
+     * Kept with this name until the application services are replaced in phase 2.
+     */
     public boolean isAdmin() {
-        return role == UserRole.ADMIN;
+        return role == UserRole.ADMINISTRATOR;
+    }
+
+    public boolean isSupervisor() {
+        return role == UserRole.SUPERVISOR;
     }
 
     public UserId getId() {

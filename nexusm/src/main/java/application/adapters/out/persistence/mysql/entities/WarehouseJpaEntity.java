@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de almacén.
+ * JPA entity of a warehouse ({@code warehouses} table).
+ * {@code type} and {@code status} store the names of
+ * {@link application.domain.enums.WarehouseType} and {@link application.domain.enums.WarehouseStatus}.
  */
 @Entity
 @Table(name = "warehouses")
@@ -22,6 +24,12 @@ public class WarehouseJpaEntity {
     @Id
     @Column(name = "id", length = 36, nullable = false)
     private String id;
+
+    @Column(name = "type", length = 20, nullable = false)
+    private String type;
+
+    @Column(name = "owner_seller_id", length = 36)
+    private String ownerSellerId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -50,6 +58,6 @@ public class WarehouseJpaEntity {
     @Column(name = "bin", nullable = false)
     private String bin;
 
-    @Column(name = "active", nullable = false)
-    private boolean active;
+    @Column(name = "status", length = 20, nullable = false)
+    private String status;
 }

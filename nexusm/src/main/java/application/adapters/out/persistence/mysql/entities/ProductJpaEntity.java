@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de producto.
+ * JPA entity of a product ({@code products} table).
+ * {@code type} and {@code status} store the names of
+ * {@link application.domain.enums.ProductType} and {@link application.domain.enums.ProductStatus}.
  */
 @Entity
 @Table(name = "products")
@@ -28,6 +30,9 @@ public class ProductJpaEntity {
 
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
+
+    @Column(name = "type", nullable = false, length = 20)
+    private String type;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -44,8 +49,8 @@ public class ProductJpaEntity {
     @Column(name = "seller_id", nullable = false, length = 36)
     private String sellerId;
 
-    @Column(name = "active", nullable = false)
-    private boolean active;
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

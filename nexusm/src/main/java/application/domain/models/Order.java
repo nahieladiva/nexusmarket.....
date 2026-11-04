@@ -19,22 +19,18 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Orden de compra (agregado raíz).
+ * Purchase order (aggregate root).
  *
- * <p>Reglas de negocio:</p>
+ * <p>Business rules:</p>
  * <ul>
- *   <li>Debe tener al menos un ítem.</li>
- *   <li>Cada producto aparece una sola vez y con máximo {@value #MAX_UNITS_PER_PRODUCT} unidades.</li>
- *   <li>Transiciones: PENDING → CONFIRMED → SHIPPED → DELIVERED; se cancela solo desde
- *       PENDING o CONFIRMED (ver {@link OrderStatus}).</li>
- *   <li>Para confirmar, todos los ítems deben tener bodega asignada.</li>
- *   <li>El total puede ser menor que la suma de subtotales (descuento por volumen),
- *       nunca mayor.</li>
+ *   <li>It has at least one item, and each product appears only once.</li>
+ *   <li>Transitions: PENDING_PAYMENT -> PAID -> SHIPPED -> DELIVERED; it can be cancelled
+ *       only from PENDING_PAYMENT or PAID (see {@link OrderStatus}).</li>
+ *   <li>To be paid, every item must have an assigned warehouse.</li>
+ *   <li>The total can be lower than the sum of the subtotals (discounts), never higher.</li>
  * </ul>
  */
 public final class Order {
-
-    public static final int MAX_UNITS_PER_PRODUCT = 10;
 
     private final OrderId id;
     private final UserId buyerId;
@@ -46,82 +42,78 @@ public final class Order {
 
     public Order(OrderId id, UserId buyerId, List<OrderItem> items, OrderStatus status,
                  Money total, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "El id de orden es obligatorio");
-        this.buyerId = Objects.requireNonNull(buyerId, "El comprador es obligatorio");
+        this.id = Objects.requireNonNull(id, "Order id is required");
+        this.buyerId = Objects.requireNonNull(buyerId, "Buyer is required");
         this.items = new ArrayList<>(items == null ? List.of() : items);
         if (this.items.isEmpty()) {
-            throw new IllegalArgumentException("Una orden debe tener al menos un item");
+            throw new IllegalArgumentException("An order must have at least one item");
         }
-        this.status = status == null ? OrderStatus.PENDING : status;
+        this.status = status == null ? OrderStatus.PENDING_PAYMENT : status;
         Money subtotal = calculateSubtotal();
         if (total != null && total.isGreaterThan(subtotal)) {
             throw new IllegalArgumentException(
-                "El total de la orden no puede ser mayor que la suma de sus ítems");
+                "The order total cannot be greater than the sum of its items");
         }
         this.total = total != null ? total : subtotal;
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
         this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;
     }
 
-    /** Crea una orden pendiente cuyo total es la suma de sus ítems. */
+    /** Creates an order pending payment whose total is the sum of its items. */
     public static Order create(UserId buyerId, List<OrderItem> items) {
         return create(OrderId.random(), buyerId, items, null, LocalDateTime.now());
     }
 
     /**
-     * Crea una orden pendiente aplicando las reglas de cantidades.
+     * Creates an order pending payment.
      *
-     * @param total total ya calculado (con descuentos); {@code null} = suma de ítems
+     * @param total total already calculated (with discounts); {@code null} means the sum of the items
      */
     public static Order create(OrderId id, UserId buyerId, List<OrderItem> items, Money total,
                                LocalDateTime now) {
-        validateQuantities(items);
-        return new Order(id, buyerId, items, OrderStatus.PENDING, total, now, now);
+        validateItems(items);
+        return new Order(id, buyerId, items, OrderStatus.PENDING_PAYMENT, total, now, now);
     }
 
-    private static void validateQuantities(List<OrderItem> items) {
+    private static void validateItems(List<OrderItem> items) {
         if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("Una orden debe tener al menos un item");
+            throw new IllegalArgumentException("An order must have at least one item");
         }
         Set<ProductId> seen = new HashSet<>();
         for (OrderItem item : items) {
             if (!seen.add(item.getProductId())) {
                 throw new BusinessRuleException(
-                    "El producto " + item.getProductId() + " está repetido en la orden");
-            }
-            if (item.getQuantity().getValue() > MAX_UNITS_PER_PRODUCT) {
-                throw new BusinessRuleException("Máximo " + MAX_UNITS_PER_PRODUCT
-                    + " unidades por producto en una orden (producto " + item.getProductId() + ")");
+                    "Product " + item.getProductId() + " is repeated in the order");
             }
         }
     }
 
     public void addItem(OrderItem item) {
-        if (status != OrderStatus.PENDING) {
+        if (status != OrderStatus.PENDING_PAYMENT) {
             throw new OrderStateTransitionException(id, status, status);
         }
         List<OrderItem> candidate = new ArrayList<>(items);
-        candidate.add(Objects.requireNonNull(item, "El item es obligatorio"));
-        validateQuantities(candidate);
+        candidate.add(Objects.requireNonNull(item, "Item is required"));
+        validateItems(candidate);
         this.items.add(item);
         this.total = calculateSubtotal();
         this.updatedAt = LocalDateTime.now();
     }
 
     /**
-     * Asigna a cada ítem la bodega desde la que se despacha. Solo en estado PENDING.
+     * Assigns to each item the warehouse it ships from. Only while the order is pending payment.
      */
     public void assignWarehouses(Map<ProductId, WarehouseId> allocation) {
-        if (status != OrderStatus.PENDING) {
-            throw new BusinessRuleException("Solo se asignan bodegas a órdenes pendientes");
+        if (status != OrderStatus.PENDING_PAYMENT) {
+            throw new BusinessRuleException("Warehouses can only be assigned to orders pending payment");
         }
-        Objects.requireNonNull(allocation, "La asignación de bodegas es obligatoria");
+        Objects.requireNonNull(allocation, "Warehouse allocation is required");
         List<OrderItem> assigned = new ArrayList<>();
         for (OrderItem item : items) {
             WarehouseId warehouse = allocation.get(item.getProductId());
             if (warehouse == null) {
                 throw new BusinessRuleException(
-                    "No hay bodega asignada para el producto " + item.getProductId());
+                    "No warehouse is assigned to product " + item.getProductId());
             }
             assigned.add(item.assignedTo(warehouse));
         }
@@ -129,15 +121,20 @@ public final class Order {
         this.items.addAll(assigned);
     }
 
-    public void confirm() {
-        if (!this.status.canTransitionTo(OrderStatus.CONFIRMED)) {
-            throw new OrderStateTransitionException(id, this.status, OrderStatus.CONFIRMED);
+    /**
+     * Registers the payment of the order.
+     *
+     * @throws BusinessRuleException when some item has no assigned warehouse
+     */
+    public void pay() {
+        if (!this.status.canTransitionTo(OrderStatus.PAID)) {
+            throw new OrderStateTransitionException(id, this.status, OrderStatus.PAID);
         }
         if (items.stream().anyMatch(item -> !item.hasWarehouse())) {
             throw new BusinessRuleException(
-                "No se puede confirmar la orden " + id + " sin asignar bodega a todos los ítems");
+                "Order " + id + " cannot be paid until every item has an assigned warehouse");
         }
-        transitionTo(OrderStatus.CONFIRMED);
+        transitionTo(OrderStatus.PAID);
     }
 
     public void ship() {
@@ -152,9 +149,9 @@ public final class Order {
         transitionTo(OrderStatus.CANCELLED);
     }
 
-    /** Indica si la orden reservó stock (es decir, fue confirmada y no despachada aún). */
+    /** Tells whether the order keeps stock reserved (paid and not shipped yet). */
     public boolean hasReservedStock() {
-        return status == OrderStatus.CONFIRMED;
+        return status.keepsStockReserved();
     }
 
     public boolean belongsTo(UserId userId) {
@@ -165,7 +162,7 @@ public final class Order {
         return items.stream().anyMatch(item -> productIds.contains(item.getProductId()));
     }
 
-    /** Unidades totales por producto. */
+    /** Total units per product. */
     public Map<ProductId, Integer> unitsByProduct() {
         Map<ProductId, Integer> result = new HashMap<>();
         items.forEach(item -> result.merge(item.getProductId(),
@@ -189,7 +186,7 @@ public final class Order {
         return result;
     }
 
-    /** Suma de subtotales de los ítems, antes de descuentos de orden. */
+    /** Sum of the item subtotals, before order discounts. */
     public Money getSubtotal() {
         return calculateSubtotal();
     }

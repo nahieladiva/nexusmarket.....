@@ -2,10 +2,13 @@ package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.AddressEmbeddable;
 import application.adapters.out.persistence.mysql.entities.UserJpaEntity;
+import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
 import application.domain.models.Administrator;
 import application.domain.models.Buyer;
+import application.domain.models.LogisticsOperator;
 import application.domain.models.Seller;
+import application.domain.models.Supervisor;
 import application.domain.models.User;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
@@ -15,8 +18,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Convierte usuarios del dominio (Buyer, Seller, Administrator) a la tabla {@code users}
- * y viceversa. Las direcciones adicionales van en {@code user_addresses}.
+ * Converts domain users (Buyer, Seller, LogisticsOperator, Administrator, Supervisor)
+ * to the {@code users} table and back. Additional addresses go to {@code user_addresses}.
  */
 @Component
 public class UserEntityMapper {
@@ -32,7 +35,7 @@ public class UserEntityMapper {
             user.getCreatedAt());
         if (user instanceof Seller seller) {
             entity.setBusinessName(seller.getBusinessName());
-            entity.setApproved(seller.isApproved());
+            entity.setSellerStatus(seller.getStatus().name());
         } else if (user instanceof Buyer buyer) {
             Address address = buyer.getDefaultShippingAddress();
             entity.setShippingStreet(address.getStreet());
@@ -64,8 +67,13 @@ public class UserEntityMapper {
                     entity.getShippingState(), entity.getShippingZip(), entity.getShippingCountry()),
                 addresses, entity.getCreatedAt());
             case SELLER -> new Seller(id, entity.getFullName(), email, phone, entity.getPasswordHash(),
-                entity.getBusinessName(), addresses, entity.isApproved(), entity.getCreatedAt());
-            case ADMIN -> new Administrator(id, entity.getFullName(), email, phone,
+                entity.getBusinessName(), addresses, SellerStatus.valueOf(entity.getSellerStatus()),
+                entity.getCreatedAt());
+            case LOGISTICS_OPERATOR -> new LogisticsOperator(id, entity.getFullName(), email, phone,
+                entity.getPasswordHash(), addresses, entity.getCreatedAt());
+            case ADMINISTRATOR -> new Administrator(id, entity.getFullName(), email, phone,
+                entity.getPasswordHash(), addresses, entity.getCreatedAt());
+            case SUPERVISOR -> new Supervisor(id, entity.getFullName(), email, phone,
                 entity.getPasswordHash(), addresses, entity.getCreatedAt());
         };
     }

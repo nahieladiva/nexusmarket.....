@@ -1,5 +1,6 @@
 package application.support;
 
+import application.domain.enums.SellerStatus;
 import application.domain.models.Administrator;
 import application.domain.models.Buyer;
 import application.domain.models.Inventory;
@@ -99,7 +100,8 @@ public class TestFixture {
 
     public Seller approvedSeller(String email) {
         Seller seller = new Seller(UserId.of(ids.newId()), "Vendedor " + email, Email.of(email),
-            PhoneNumber.of("+573001234567"), "hashed:Clave123", "Tienda " + email, List.of(), true, NOW);
+            PhoneNumber.of("+573001234567"), "hashed:Clave123", "Tienda " + email, List.of(),
+            SellerStatus.APPROVED, NOW);
         return (Seller) users.save(seller);
     }
 

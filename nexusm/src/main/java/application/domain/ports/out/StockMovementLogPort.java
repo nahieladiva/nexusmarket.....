@@ -6,12 +6,12 @@ import application.domain.valueobjects.WarehouseId;
 import java.util.List;
 
 /**
- * Puerto de salida 8/15 — historial de movimientos de stock (MongoDB).
+ * Output port for the stock movement history (stored in MongoDB).
  */
 public interface StockMovementLogPort {
 
     void record(StockMovement movement);
 
-    /** Movimientos de un producto en una bodega, del más reciente al más antiguo. */
+    /** Movements of a product in a warehouse, from the most recent to the oldest. */
     List<StockMovement> findByProductAndWarehouse(ProductId productId, WarehouseId warehouseId);
 }

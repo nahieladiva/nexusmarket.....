@@ -4,8 +4,7 @@ import application.domain.enums.OrderStatus;
 import application.domain.valueobjects.OrderId;
 
 /**
- * Se lanza cuando se intenta ejecutar una transición de estado no permitida
- * sobre una orden.
+ * Thrown when an order is asked to make a status transition that is not allowed.
  */
 public class OrderStateTransitionException extends DomainException {
 
@@ -14,8 +13,8 @@ public class OrderStateTransitionException extends DomainException {
     private final OrderStatus target;
 
     public OrderStateTransitionException(OrderId orderId, OrderStatus current, OrderStatus target) {
-        super("Transición de estado de la orden " + orderId
-            + " no permitida: " + current + " -> " + target);
+        super("Order " + (orderId == null ? "" : orderId + " ")
+            + "cannot change status from " + current + " to " + target);
         this.orderId = orderId;
         this.current = current;
         this.target = target;

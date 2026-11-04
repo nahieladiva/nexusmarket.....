@@ -2,6 +2,7 @@ package application.adapters.out.persistence.mongodb.adapters;
 
 import application.adapters.out.persistence.mongodb.documents.IssuedTokenDocument;
 import application.adapters.out.persistence.mongodb.repositories.IssuedTokenMongoRepository;
+import application.domain.enums.TokenStatus;
 import application.domain.models.IssuedToken;
 import application.domain.ports.out.TokenStorePort;
 import application.domain.valueobjects.UserId;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador MongoDB de {@link TokenStorePort} (colección {@code issued_tokens} con TTL).
+ * MongoDB adapter of {@link TokenStorePort} (collection {@code issued_tokens} with a TTL index).
  */
 @Component
 public class TokenStoreAdapter implements TokenStorePort {
@@ -22,7 +23,7 @@ public class TokenStoreAdapter implements TokenStorePort {
     private final ZoneId zone = ZoneId.systemDefault();
 
     public TokenStoreAdapter(IssuedTokenMongoRepository repository) {
-        this.repository = Objects.requireNonNull(repository, "repository es obligatorio");
+        this.repository = Objects.requireNonNull(repository, "Repository is required");
     }
 
     @Override
@@ -32,7 +33,7 @@ public class TokenStoreAdapter implements TokenStorePort {
         doc.setUserId(token.getUserId().toString());
         doc.setIssuedAt(token.getIssuedAt());
         doc.setExpiresAt(Date.from(token.getExpiresAt().atZone(zone).toInstant()));
-        doc.setRevoked(token.isRevoked());
+        doc.setStatus(token.getStatus().name());
         repository.save(doc);
         return token;
     }
@@ -41,6 +42,14 @@ public class TokenStoreAdapter implements TokenStorePort {
     public Optional<IssuedToken> findById(String tokenId) {
         return repository.findById(tokenId).map(doc -> new IssuedToken(doc.getTokenId(),
             UserId.of(doc.getUserId()), doc.getIssuedAt(),
-            LocalDateTime.ofInstant(doc.getExpiresAt().toInstant(), zone), doc.isRevoked()));
+            LocalDateTime.ofInstant(doc.getExpiresAt().toInstant(), zone), toStatus(doc.getStatus())));
+    }
+
+    /**
+     * Documents saved before the status field existed have no status; they are treated
+     * as revoked so the user simply logs in again.
+     */
+    private TokenStatus toStatus(String value) {
+        return value == null ? TokenStatus.REVOKED : TokenStatus.valueOf(value);
     }
 }

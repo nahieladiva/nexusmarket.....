@@ -11,15 +11,15 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Coordina el stock con el ciclo de vida de la orden.
+ * Coordinates stock with the order lifecycle.
  *
- * <p>Reglas:</p>
+ * <p>Rules:</p>
  * <ul>
- *   <li>Al confirmar se asigna bodega a cada ítem y se reserva (descuenta) el stock.</li>
- *   <li>Al cancelar una orden confirmada se devuelve el stock a la misma bodega.</li>
- *   <li>Cancelar una orden pendiente no toca el stock, porque nunca se reservó.</li>
+ *   <li>When the order is paid, each item gets a warehouse and its stock is reserved.</li>
+ *   <li>When a paid order is cancelled, the stock goes back to the same warehouse.</li>
+ *   <li>Cancelling an order pending payment does not touch the stock, because it was never reserved.</li>
  * </ul>
- * Este servicio no persiste la orden: eso lo hace el caso de uso.
+ * This service does not persist the order; the use case does.
  */
 public final class OrderFulfillmentDomainService {
 
@@ -29,20 +29,20 @@ public final class OrderFulfillmentDomainService {
     public OrderFulfillmentDomainService(InventoryDomainService inventoryDomainService,
                                          WarehouseAllocationService warehouseAllocationService) {
         this.inventoryDomainService = Objects.requireNonNull(inventoryDomainService,
-            "inventoryDomainService es obligatorio");
+            "Inventory domain service is required");
         this.warehouseAllocationService = Objects.requireNonNull(warehouseAllocationService,
-            "warehouseAllocationService es obligatorio");
+            "Warehouse allocation service is required");
     }
 
     /**
-     * Confirma la orden reservando stock.
+     * Registers the payment of the order and reserves its stock.
      *
-     * @return inventarios modificados (para registrar movimientos y alertas de stock bajo)
+     * @return modified inventories (to record movements and low-stock alerts)
      */
     public List<Inventory> confirm(Order order) {
         Map<ProductId, WarehouseId> allocation = warehouseAllocationService.allocate(order.getItems());
         order.assignWarehouses(allocation);
-        order.confirm();
+        order.pay();
         List<Inventory> touched = new ArrayList<>();
         for (OrderItem item : order.getItems()) {
             touched.add(inventoryDomainService.reserve(
@@ -52,9 +52,9 @@ public final class OrderFulfillmentDomainService {
     }
 
     /**
-     * Cancela la orden y, si tenía stock reservado, lo devuelve.
+     * Cancels the order and, if it had reserved stock, returns it.
      *
-     * @return inventarios modificados (vacío si la orden estaba pendiente)
+     * @return modified inventories (empty when the order was pending payment)
      */
     public List<Inventory> cancel(Order order) {
         boolean hadReservation = order.hasReservedStock();

@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Registro inmutable de un movimiento de stock.
+ * Immutable record of a stock movement.
  *
- * @param delta         cambio aplicado (positivo = entrada, negativo = salida)
- * @param resultingOnHand stock que quedó después del movimiento
- * @param performedBy   usuario que lo hizo; {@code null} si lo hizo el sistema
- * @param reference     referencia opcional (por ejemplo, el id del pedido)
+ * @param delta           applied change (positive = inbound, negative = outbound)
+ * @param resultingOnHand stock left after the movement
+ * @param performedBy     user who made it; {@code null} when the system made it
+ * @param reference       optional reference (for example, the order id)
  */
 public record StockMovement(String id, ProductId productId, WarehouseId warehouseId,
                             StockMovementType type, int delta, Quantity resultingOnHand,
@@ -22,14 +22,18 @@ public record StockMovement(String id, ProductId productId, WarehouseId warehous
                             LocalDateTime occurredAt) {
 
     public StockMovement {
-        Objects.requireNonNull(id, "El id es obligatorio");
-        Objects.requireNonNull(productId, "El producto es obligatorio");
-        Objects.requireNonNull(warehouseId, "La bodega es obligatoria");
-        Objects.requireNonNull(type, "El tipo es obligatorio");
-        Objects.requireNonNull(resultingOnHand, "El stock resultante es obligatorio");
-        Objects.requireNonNull(occurredAt, "La fecha es obligatoria");
+        Objects.requireNonNull(id, "Id is required");
+        Objects.requireNonNull(productId, "Product is required");
+        Objects.requireNonNull(warehouseId, "Warehouse is required");
+        Objects.requireNonNull(type, "Movement type is required");
+        Objects.requireNonNull(resultingOnHand, "Resulting stock is required");
+        Objects.requireNonNull(occurredAt, "Date is required");
         if (reason == null || reason.isBlank()) {
-            throw new IllegalArgumentException("Todo movimiento de stock debe tener un motivo");
+            throw new IllegalArgumentException("Every stock movement must have a reason");
+        }
+        if (!type.allowsAnySign() && delta != 0 && (delta > 0) != type.isInbound()) {
+            throw new IllegalArgumentException(
+                "The sign of the movement does not match its type " + type);
         }
     }
 }

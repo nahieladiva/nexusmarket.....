@@ -4,6 +4,7 @@ import application.adapters.in.rest.requests.CreateWarehouseRequest;
 import application.adapters.in.rest.responses.AddressResponse;
 import application.adapters.in.rest.responses.WarehouseResponse;
 import application.domain.models.Warehouse;
+import application.domain.valueobjects.WarehouseId;
 import application.domain.valueobjects.WarehouseLocation;
 
 import java.util.Objects;
@@ -11,7 +12,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapea entre DTOs REST y el modelo de dominio de almacenes.
+ * Maps between REST DTOs and the warehouse domain model.
  */
 @Component
 public class WarehouseMapper {
@@ -19,11 +20,12 @@ public class WarehouseMapper {
     private final UserMapper userMapper;
 
     public WarehouseMapper(UserMapper userMapper) {
-        this.userMapper = Objects.requireNonNull(userMapper, "userMapper es obligatorio");
+        this.userMapper = Objects.requireNonNull(userMapper, "User mapper is required");
     }
 
     public Warehouse toDomain(CreateWarehouseRequest request) {
-        return Warehouse.create(
+        return Warehouse.createMarketplaceWarehouse(
+            WarehouseId.random(),
             request.name(),
             userMapper.toDomain(request.address()),
             new WarehouseLocation(request.location().aisle(),

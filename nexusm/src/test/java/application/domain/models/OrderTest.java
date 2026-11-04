@@ -2,23 +2,24 @@ package application.domain.models;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 
 import application.domain.enums.OrderStatus;
+import application.domain.exceptions.BusinessRuleException;
 import application.domain.exceptions.OrderStateTransitionException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseId;
-import application.domain.exceptions.BusinessRuleException;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * Pruebas unitarias de la entidad {@link Order}.
+ * Unit tests of the {@link Order} entity.
  */
 class OrderTest {
 
@@ -26,21 +27,23 @@ class OrderTest {
         return new OrderItem(ProductId.random(), Quantity.of(1), Money.of(price, "USD"));
     }
 
-    private void confirmWithWarehouse(Order order) {
+    private void payWithWarehouse(Order order) {
         order.assignWarehouses(Map.of(order.getItems().get(0).getProductId(), WarehouseId.random()));
-        order.confirm();
+        order.pay();
     }
 
     @Test
-    void cannotConfirmWithoutWarehouse() {
+    void cannotPayWithoutWarehouse() {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
-        assertThrows(BusinessRuleException.class, order::confirm);
+        assertThrows(BusinessRuleException.class, order::pay);
     }
 
     @Test
-    void rejectsMoreThanTenUnitsPerProduct() {
-        OrderItem big = new OrderItem(ProductId.random(), Quantity.of(11), Money.of("1.00", "USD"));
-        assertThrows(BusinessRuleException.class, () -> Order.create(UserId.random(), List.of(big)));
+    void rejectsRepeatedProducts() {
+        OrderItem first = new OrderItem(ProductId.random(), Quantity.of(1), Money.of("1.00", "USD"));
+        OrderItem repeated = new OrderItem(first.getProductId(), Quantity.of(2), Money.of("1.00", "USD"));
+        assertThrows(BusinessRuleException.class,
+            () -> Order.create(UserId.random(), List.of(first, repeated)));
     }
 
     @Test
@@ -49,7 +52,7 @@ class OrderTest {
         OrderItem item2 = new OrderItem(ProductId.random(), Quantity.of(1), Money.of("5.00", "USD"));
         Order order = Order.create(UserId.random(), List.of(item1, item2));
         assertEquals("25.00", order.getTotal().getAmount().toPlainString());
-        assertEquals(OrderStatus.PENDING, order.getStatus());
+        assertEquals(OrderStatus.PENDING_PAYMENT, order.getStatus());
     }
 
     @Test
@@ -61,8 +64,9 @@ class OrderTest {
     @Test
     void followsValidLifecycle() {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
-        confirmWithWarehouse(order);
-        assertEquals(OrderStatus.CONFIRMED, order.getStatus());
+        payWithWarehouse(order);
+        assertEquals(OrderStatus.PAID, order.getStatus());
+        assertTrue(order.hasReservedStock());
         order.ship();
         assertEquals(OrderStatus.SHIPPED, order.getStatus());
         order.deliver();
@@ -77,11 +81,19 @@ class OrderTest {
     }
 
     @Test
-    void doesNotAllowAddingItemsAfterConfirmation() {
+    void doesNotAllowAddingItemsAfterPayment() {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
-        confirmWithWarehouse(order);
+        payWithWarehouse(order);
         assertThrows(OrderStateTransitionException.class,
             () -> order.addItem(item("2.00")));
+    }
+
+    @Test
+    void shippedOrderCannotBeCancelled() {
+        Order order = Order.create(UserId.random(), List.of(item("1.00")));
+        payWithWarehouse(order);
+        order.ship();
+        assertThrows(OrderStateTransitionException.class, order::cancel);
     }
 
     @Test
@@ -89,6 +101,6 @@ class OrderTest {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
         order.cancel();
         assertEquals(OrderStatus.CANCELLED, order.getStatus());
-        assertThrows(OrderStateTransitionException.class, order::confirm);
+        assertThrows(OrderStateTransitionException.class, order::pay);
     }
 }

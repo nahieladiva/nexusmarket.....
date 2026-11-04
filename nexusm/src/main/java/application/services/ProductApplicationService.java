@@ -4,6 +4,7 @@ import application.domain.events.ProductAddedEvent;
 import application.domain.exceptions.BusinessRuleException;
 import application.domain.exceptions.DuplicateResourceException;
 import application.domain.exceptions.ResourceNotFoundException;
+import application.domain.enums.ProductType;
 import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.models.User;
@@ -59,8 +60,11 @@ public class ProductApplicationService implements ProductManagementPort {
         if (productRepository.findByCode(code).isPresent()) {
             throw new DuplicateResourceException("Ya existe un producto con el código " + code);
         }
-        Product product = new Product(ProductId.of(idGenerator.newId()), code, name, description,
-            price, sellerId, true, clock.now());
+        // Until phase 2 separates registering from publishing, every product is physical
+        // and is published right after being registered.
+        Product product = Product.register(ProductId.of(idGenerator.newId()), code,
+            ProductType.PHYSICAL, name, description, price, sellerId, clock.now());
+        product.publish();
         Product saved = productRepository.save(product);
         eventPublisher.publish(new ProductAddedEvent(
             saved.getId(), saved.getCode(), saved.getSellerId(), clock.now()));
@@ -94,9 +98,9 @@ public class ProductApplicationService implements ProductManagementPort {
         Product product = findProductById(productId);
         accessRules.requireOwner(sellerId, product);
         if (active) {
-            product.activate();
+            product.publish();
         } else {
-            product.deactivate();
+            product.suspend();
         }
         return productRepository.save(product);
     }

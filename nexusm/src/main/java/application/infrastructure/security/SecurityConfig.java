@@ -14,15 +14,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Seguridad sin estado con JWT. Reglas de acceso por rol (BUYER, SELLER, ADMIN).
- * Las reglas de propiedad (por ejemplo, "solo el dueño del producto") se validan en los
- * casos de uso.
+ * Stateless JWT security with role-based access rules.
+ * Ownership rules (for example, "only the product owner") are validated in the use cases.
+ * The routes are reorganized by role in phase 4.
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String ADMIN = "ADMIN";
+    private static final String ADMIN = "ADMINISTRATOR";
     private static final String SELLER = "SELLER";
     private static final String BUYER = "BUYER";
 
@@ -40,23 +40,23 @@ public class SecurityConfig {
                 .accessDeniedHandler(errorHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
-                // Autenticación
+                // Authentication
                 .requestMatchers(HttpMethod.POST, "/api/auth/register/**", "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/**").authenticated()
-                // Usuarios
+                // Users
                 .requestMatchers("/api/users/me", "/api/users/me/**").authenticated()
                 .requestMatchers("/api/users", "/api/users/**").hasRole(ADMIN)
-                // Productos
+                // Products
                 .requestMatchers(HttpMethod.GET, "/api/products/mine").hasRole(SELLER)
                 .requestMatchers(HttpMethod.GET, "/api/products/all").hasRole(ADMIN)
                 .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").hasRole(SELLER)
-                // Bodegas
+                // Warehouses
                 .requestMatchers(HttpMethod.GET, "/api/warehouses", "/api/warehouses/**").authenticated()
                 .requestMatchers("/api/warehouses", "/api/warehouses/**").hasRole(ADMIN)
-                // Inventario
+                // Inventory
                 .requestMatchers("/api/inventory", "/api/inventory/**").hasAnyRole(SELLER, ADMIN)
-                // Pedidos
+                // Orders
                 .requestMatchers(HttpMethod.POST, "/api/orders").hasRole(BUYER)
                 .requestMatchers(HttpMethod.GET, "/api/orders/mine").hasRole(BUYER)
                 .requestMatchers(HttpMethod.GET, "/api/orders/seller").hasRole(SELLER)
@@ -65,7 +65,7 @@ public class SecurityConfig {
                     "/api/orders/*/deliver").hasRole(ADMIN)
                 .requestMatchers(HttpMethod.PATCH, "/api/orders/*/cancel").hasAnyRole(BUYER, ADMIN)
                 .requestMatchers("/api/orders/**").authenticated()
-                // Promociones
+                // Promotions
                 .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
                 .requestMatchers("/api/promotions", "/api/promotions/**").hasRole(SELLER)
                 .anyRequest().authenticated())

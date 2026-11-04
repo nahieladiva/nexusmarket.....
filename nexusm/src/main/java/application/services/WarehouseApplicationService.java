@@ -33,8 +33,8 @@ public class WarehouseApplicationService implements WarehouseManagementPort {
     @Override
     public Warehouse createWarehouse(String name, Address address, WarehouseLocation location) {
         requireNameAvailable(name, null);
-        Warehouse warehouse = new Warehouse(WarehouseId.of(idGenerator.newId()), name, address,
-            location, true);
+        Warehouse warehouse = Warehouse.createMarketplaceWarehouse(WarehouseId.of(idGenerator.newId()),
+            name, address, location);
         return warehouseRepository.save(warehouse);
     }
 

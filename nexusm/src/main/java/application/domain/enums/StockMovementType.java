@@ -1,17 +1,34 @@
 package application.domain.enums;
 
 /**
- * Tipos de movimiento de inventario que quedan registrados en el historial.
+ * Types of inventory movement recorded in the stock history.
  */
 public enum StockMovementType {
-    /** Registro del stock inicial de un producto en una bodega. */
+
+    /** Initial stock of a product in a warehouse. */
     INITIAL,
-    /** Entrada de mercancía (reabastecimiento). */
+    /** Inbound goods (restocking). */
     RESTOCK,
-    /** Ajuste manual (conteo físico, merma, daño). Puede ser positivo o negativo. */
+    /** Manual adjustment (physical count, shrinkage, damage). It can be positive or negative. */
     ADJUSTMENT,
-    /** Salida por reserva al confirmar un pedido. */
+    /** Outbound reservation when an order is paid. */
     RESERVATION,
-    /** Devolución de stock al cancelar un pedido confirmado. */
-    RELEASE
+    /** Stock returned to the warehouse when a paid order is cancelled. */
+    RELEASE,
+    /** Stock returned to the warehouse when a buyer's return is received. */
+    RETURN;
+
+    /**
+     * Tells whether the movement adds units to the warehouse.
+     */
+    public boolean isInbound() {
+        return this == INITIAL || this == RESTOCK || this == RELEASE || this == RETURN;
+    }
+
+    /**
+     * Only manual adjustments can have either sign; the rest have a fixed direction.
+     */
+    public boolean allowsAnySign() {
+        return this == ADJUSTMENT;
+    }
 }

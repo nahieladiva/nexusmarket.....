@@ -9,8 +9,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Documento MongoDB de un token emitido (la "base de datos de JWT").
- * {@code expiresAt} es {@link Date} para que el índice TTL lo borre al expirar.
+ * MongoDB document of an issued token (the "JWT database").
+ * {@code expiresAt} is a {@link Date} so the TTL index removes it when it expires.
+ * {@code status} stores the name of {@link application.domain.enums.TokenStatus}.
  */
 @Document(collection = IssuedTokenDocument.COLLECTION)
 @Getter
@@ -25,5 +26,5 @@ public class IssuedTokenDocument {
     private String userId;
     private LocalDateTime issuedAt;
     private Date expiresAt;
-    private boolean revoked;
+    private String status;
 }

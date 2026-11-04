@@ -79,8 +79,8 @@ public class AuthenticationApplicationService implements AuthenticationPort {
                                String businessName) {
         requireEmailAvailable(email);
         passwordPolicy.validate(rawPassword);
-        Seller seller = new Seller(UserId.of(idGenerator.newId()), fullName, email, phone,
-            passwordEncoder.encode(rawPassword), businessName, List.of(), false, clock.now());
+        Seller seller = Seller.register(UserId.of(idGenerator.newId()), fullName, email, phone,
+            passwordEncoder.encode(rawPassword), businessName, clock.now());
         return userRepository.save(seller);
     }
 
@@ -97,7 +97,7 @@ public class AuthenticationApplicationService implements AuthenticationPort {
         TokenClaims claims = new TokenClaims(idGenerator.newId().toString(), user.getId(),
             user.getRole(), issuedAt, expiresAt);
         String token = tokenProvider.issue(claims);
-        tokenStore.save(new IssuedToken(claims.tokenId(), user.getId(), issuedAt, expiresAt, false));
+        tokenStore.save(IssuedToken.issue(claims.tokenId(), user.getId(), issuedAt, expiresAt));
         return new AuthSession(token, expiresAt, user);
     }
 

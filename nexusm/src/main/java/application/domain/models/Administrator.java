@@ -9,14 +9,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Administrador del marketplace: aprueba vendedores, gestiona bodegas y despacha pedidos.
- * No se registra por la API; se crea al arrancar la aplicación con las credenciales
- * configuradas.
+ * Marketplace administrator: registers sellers and internal staff, manages
+ * marketplace warehouses, and approves returns and refunds.
+ * The first administrator is not registered through the API; it is created at
+ * startup with the configured credentials.
  */
 public class Administrator extends User {
 
     public Administrator(UserId id, String fullName, Email email, PhoneNumber phone,
                          String passwordHash, List<Address> addresses, LocalDateTime createdAt) {
-        super(id, fullName, email, phone, UserRole.ADMIN, passwordHash, addresses, createdAt);
+        super(id, fullName, email, phone, UserRole.ADMINISTRATOR, passwordHash, addresses, createdAt);
     }
 }

@@ -51,7 +51,7 @@ class OrderApplicationServiceTest {
     void priceComesFromCatalogNotFromClient() {
         Order order = place(product, 2);
         assertEquals(Money.of("200000", "COP"), order.getTotal());
-        assertEquals(OrderStatus.PENDING, order.getStatus());
+        assertEquals(OrderStatus.PENDING_PAYMENT, order.getStatus());
     }
 
     @Test
@@ -60,11 +60,6 @@ class OrderApplicationServiceTest {
             DateRange.of(TestFixture.NOW.toLocalDate(), TestFixture.NOW.toLocalDate().plusDays(7)));
         Order order = place(product, 1);
         assertEquals(Money.of("80000", "COP"), order.getTotal());
-    }
-
-    @Test
-    void maxTenUnitsPerProduct() {
-        assertThrows(BusinessRuleException.class, () -> place(product, 11));
     }
 
     @Test
@@ -86,7 +81,7 @@ class OrderApplicationServiceTest {
         assertEquals(50, f.inventoryService.findInventory(product.getId(), warehouse.getId())
             .getOnHand().getValue());
         Order confirmed = f.orderService.confirmOrder(order.getId());
-        assertEquals(OrderStatus.CONFIRMED, confirmed.getStatus());
+        assertEquals(OrderStatus.PAID, confirmed.getStatus());
         assertEquals(warehouse.getId(), confirmed.getItems().get(0).getWarehouseId());
         assertEquals(46, f.inventoryService.findInventory(product.getId(), warehouse.getId())
             .getOnHand().getValue());

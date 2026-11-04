@@ -51,9 +51,9 @@ public class UserJpaEntity {
     @Column(name = "business_name")
     private String businessName;
 
-    /** Solo aplica a vendedores. */
-    @Column(name = "approved")
-    private boolean approved;
+    /** Sellers only: name of {@link application.domain.enums.SellerStatus}. */
+    @Column(name = "seller_status", length = 20)
+    private String sellerStatus;
 
     /** Solo aplica a compradores. */
     @Column(name = "shipping_street")
