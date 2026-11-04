@@ -1,7 +1,7 @@
 package application.domain.ports.out;
 
 /**
- * Output port 11/15 — password hashing, without coupling the domain to Spring Security.
+ * Output port — password hashing, without coupling the domain to Spring Security.
  */
 public interface PasswordEncoderPort {
 

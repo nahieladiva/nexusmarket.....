@@ -4,7 +4,7 @@ import application.domain.models.TokenClaims;
 import java.util.Optional;
 
 /**
- * Output port 9/15 — signing and reading of JSON Web Tokens.
+ * Output port — signing and reading of JSON Web Tokens.
  */
 public interface TokenProviderPort {
 

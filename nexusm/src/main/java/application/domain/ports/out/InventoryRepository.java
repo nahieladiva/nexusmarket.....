@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Output port 4/15 — stock by product and warehouse (MySQL).
+ * Output port — stock by product and warehouse (MySQL).
  */
 public interface InventoryRepository {
 
