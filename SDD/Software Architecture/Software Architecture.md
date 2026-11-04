@@ -195,7 +195,7 @@ Este documento describe el código actual. Estos cambios ya están planeados:
 
 | Fase | Cambio |
 |---|---|
-| 2 | Puertos de entrada por rol y `adapters/useCases`; desaparecen `application.services`, los puertos por entidad y las promociones |
+| 2 | Puertos de entrada por rol y `adapters/useCases`; desaparecen `application.services` y los puertos por entidad |
 | 3 | Persistencia de `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` |
 | 4 | Un controlador por rol bajo `/api/v1` |
 | 5 | Transacciones y bloqueo optimista |

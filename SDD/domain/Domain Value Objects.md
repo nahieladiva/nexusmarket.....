@@ -15,8 +15,6 @@ los de NexusMarket cumplen estas reglas:
 Un **enum** representa un conjunto cerrado de valores. Los enums de estado también deciden qué
 transiciones están permitidas, mediante `canTransitionTo` y `requireCanTransitionTo`.
 
-`PromotionId` no se documenta porque las promociones se eliminan en la Fase 2.
-
 ## 2. Value objects
 
 ### 2.1 Resumen
@@ -27,9 +25,7 @@ transiciones están permitidas, mediante `canTransitionTo` y `requireCanTransiti
 | `PhoneNumber` | Teléfono en formato E.164 | `value` | `of` |
 | `Money` | Monto con moneda | `amount`, `currency` | `of`, `zero` |
 | `Quantity` | Cantidad entera no negativa | `value` | `of`, `zero` |
-| `Percentage` | Porcentaje entre 0 y 100 | `value` | `of` |
 | `ProductCode` | Código SKU | `value` | `of`, `generate` |
-| `DateRange` | Rango inclusivo de fechas | `startDate`, `endDate` | `of`, `startingAt` |
 | `Address` | Dirección postal | `street`, `city`, `state`, `zipCode`, `country` | `of` |
 | `WarehouseLocation` | Ubicación dentro de una bodega | `aisle`, `shelf`, `bin` | `of` |
 
@@ -73,43 +69,25 @@ transiciones están permitidas, mediante `canTransitionTo` y `requireCanTransiti
 | `subtract(Quantity)` | Resta; falla si el resultado es negativo |
 | `isZero()` | Indica si la cantidad es cero |
 
-### 2.6 `Percentage`
-
-- Debe estar entre 0 y 100.
-- Se guarda con 2 decimales y redondeo `HALF_UP`.
-- `asFraction()` lo convierte en fracción: `15` pasa a `0.15`.
-
-### 2.7 `ProductCode`
+### 2.6 `ProductCode`
 
 - Se normaliza a mayúsculas.
 - Formato: 2 a 5 letras, guion y 4 a 8 dígitos, como `ELE-000123`. Patrón: `^[A-Z]{2,5}-\d{4,8}$`.
 - `generate(categoryCode, sequence)` lo arma a partir de una categoría de 2 a 5 letras y una secuencia
   no negativa.
 
-### 2.8 `DateRange`
-
-- `startDate` y `endDate` son obligatorias.
-- `endDate` no puede ser anterior a `startDate`.
-- `startingAt(start, days)` crea un rango de al menos 1 día.
-
-| Operación | Resultado |
-|---|---|
-| `contains(LocalDate)` | Indica si la fecha está dentro del rango |
-| `overlaps(DateRange)` | Indica si dos rangos se traslapan |
-| `durationInDays()` | Número de días, contando ambos extremos |
-
-### 2.9 `Address`
+### 2.7 `Address`
 
 - Todos sus atributos son obligatorios y se les quitan los espacios exteriores.
 - `fullAddress()` devuelve la dirección completa en una sola línea.
 
-### 2.10 `WarehouseLocation`
+### 2.8 `WarehouseLocation`
 
 - `aisle`, `shelf` y `bin` son obligatorios.
 - Se normalizan a mayúsculas, y los espacios internos se reemplazan por guiones.
 - `code()` devuelve la ubicación con el formato `aisle/shelf/bin`.
 
-### 2.11 Identificadores tipados
+### 2.9 Identificadores tipados
 
 Evitan confundir un id con otro: un método que recibe `OrderId` no acepta un `ProductId`. Todos
 envuelven un `UUID` en el atributo `value`, y este no puede ser nulo.

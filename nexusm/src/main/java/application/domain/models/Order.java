@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  *   <li>To be paid, every item that requires shipment must have an assigned warehouse.</li>
  *   <li>Each warehouse of the order has one shipment. The order is SHIPPED when every shipment
  *       has left its warehouse, and DELIVERED when every shipment is delivered.</li>
- *   <li>The total can be lower than the sum of the subtotals (discounts), never higher.</li>
+ *   <li>The total is always the sum of the item subtotals.</li>
  * </ul>
  */
 public final class Order {
@@ -48,7 +48,7 @@ public final class Order {
     private LocalDateTime updatedAt;
 
     public Order(OrderId id, UserId buyerId, List<OrderItem> items, OrderStatus status,
-                 Money total, LocalDateTime paidAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                 LocalDateTime paidAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = Objects.requireNonNull(id, "Order id is required");
         this.buyerId = Objects.requireNonNull(buyerId, "Buyer is required");
         this.items = new ArrayList<>(items == null ? List.of() : items);
@@ -56,31 +56,21 @@ public final class Order {
             throw new IllegalArgumentException("An order must have at least one item");
         }
         this.status = status == null ? OrderStatus.PENDING_PAYMENT : status;
-        Money subtotal = calculateSubtotal();
-        if (total != null && total.isGreaterThan(subtotal)) {
-            throw new IllegalArgumentException(
-                "The order total cannot be greater than the sum of its items");
-        }
-        this.total = total != null ? total : subtotal;
+        this.total = calculateTotal();
         this.paidAt = paidAt;
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
         this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;
     }
 
-    /** Creates an order pending payment whose total is the sum of its items. */
+    /** Creates an order pending payment with a new id. */
     public static Order create(UserId buyerId, List<OrderItem> items) {
-        return create(OrderId.random(), buyerId, items, null, LocalDateTime.now());
+        return create(OrderId.random(), buyerId, items, LocalDateTime.now());
     }
 
-    /**
-     * Creates an order pending payment.
-     *
-     * @param total total already calculated (with discounts); {@code null} means the sum of the items
-     */
-    public static Order create(OrderId id, UserId buyerId, List<OrderItem> items, Money total,
-                               LocalDateTime now) {
+    /** Creates an order pending payment. */
+    public static Order create(OrderId id, UserId buyerId, List<OrderItem> items, LocalDateTime now) {
         validateItems(items);
-        return new Order(id, buyerId, items, OrderStatus.PENDING_PAYMENT, total, null, now, now);
+        return new Order(id, buyerId, items, OrderStatus.PENDING_PAYMENT, null, now, now);
     }
 
     private static void validateItems(List<OrderItem> items) {
@@ -104,7 +94,7 @@ public final class Order {
         candidate.add(Objects.requireNonNull(item, "Item is required"));
         validateItems(candidate);
         this.items.add(item);
-        this.total = calculateSubtotal();
+        this.total = calculateTotal();
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -260,21 +250,12 @@ public final class Order {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Money calculateSubtotal() {
+    private Money calculateTotal() {
         Money result = null;
         for (OrderItem item : items) {
             result = (result == null) ? item.subtotal() : result.add(item.subtotal());
         }
         return result;
-    }
-
-    /** Sum of the item subtotals, before order discounts. */
-    public Money getSubtotal() {
-        return calculateSubtotal();
-    }
-
-    public Money getDiscount() {
-        return calculateSubtotal().subtract(total);
     }
 
     public OrderId getId() {

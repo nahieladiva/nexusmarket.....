@@ -28,8 +28,6 @@ public class OrderMapper {
             order.getId().toString(),
             order.getBuyerId().toString(),
             order.getStatus().name(),
-            order.getSubtotal().getAmount().toPlainString(),
-            order.getDiscount().getAmount().toPlainString(),
             order.getTotal().getAmount().toPlainString(),
             order.getTotal().getCurrency().getCurrencyCode(),
             order.getCreatedAt(),

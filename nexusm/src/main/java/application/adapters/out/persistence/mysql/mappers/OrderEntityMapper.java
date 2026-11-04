@@ -57,7 +57,6 @@ public class OrderEntityMapper {
             UserId.of(entity.getBuyerId()),
             items,
             OrderStatus.valueOf(entity.getStatus()),
-            Money.of(entity.getTotalAmount().toPlainString(), entity.getTotalCurrency()),
             entity.getPaidAt(),
             entity.getCreatedAt(),
             entity.getUpdatedAt());

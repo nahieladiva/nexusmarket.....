@@ -7,8 +7,7 @@ atributos y métodos son idénticos a los del código. Los tipos auxiliares est�
 [Domain Value Objects](Domain%20Value%20Objects.md).
 
 **Alcance.** Cubre el flujo completo del marketplace: incorporación del vendedor, catálogo, inventario,
-publicación, compra, pago, logística, entrega y posventa. `Promotion`, `PriceQuote` y `PromotionPolicy`
-no se documentan porque se eliminan en la Fase 2.
+publicación, compra, pago, logística, entrega y posventa.
 
 **Reglas generales.**
 
@@ -513,12 +512,10 @@ agregar el producto.
 | `belongsTo(UserId)` | Indica si pertenece al usuario (RG-03) |
 | `containsAnyProduct(Set)` | Indica si contiene alguno de los productos |
 | `unitsByProduct()` | Unidades totales por producto |
-| `getSubtotal()` | Suma de los subtotales antes de descuentos |
-| `getDiscount()` | Diferencia entre el subtotal y `total` |
 
 **Reglas.**
 - Tiene al menos una línea, y cada producto aparece una sola vez.
-- `total` puede ser menor que la suma de las líneas, pero nunca mayor.
+- `total` siempre es la suma de los subtotales de sus líneas.
 - Las transiciones se validan en `OrderStatus`; si no son válidas, se lanza
   `OrderStateTransitionException`.
 - Solo se cancela desde `PENDING_PAYMENT` o `PAID`.
@@ -745,7 +742,6 @@ Resumen de los servicios actuales. Su detalle se documenta en la Fase 2.
 | `InventoryDomainService` | Verifica disponibilidad, reserva stock y reabastece |
 | `WarehouseAllocationService` | Elige, entre las bodegas activas con stock suficiente, la que tiene más unidades |
 | `OrderFulfillmentDomainService` | Coordina el stock con el ciclo del pedido: `confirm` y `cancel` |
-| `PricingDomainService` | Calcula totales y el descuento por volumen |
 | `PasswordPolicy` | Exige `MIN_LENGTH` (8) caracteres, con al menos una letra y un número |
 
 ## 11. Eventos de dominio

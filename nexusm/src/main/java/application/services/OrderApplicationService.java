@@ -11,7 +11,6 @@ import application.domain.models.Inventory;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.models.OrderLine;
-import application.domain.models.PriceQuote;
 import application.domain.models.Product;
 import application.domain.models.User;
 import application.domain.ports.in.OrderManagementPort;
@@ -21,10 +20,7 @@ import application.domain.ports.out.IdGeneratorPort;
 import application.domain.ports.out.NotificationPort;
 import application.domain.ports.out.OrderRepository;
 import application.domain.ports.out.ProductRepository;
-import application.domain.ports.out.PromotionRepository;
 import application.domain.services.OrderFulfillmentDomainService;
-import application.domain.services.PricingDomainService;
-import application.domain.services.PromotionPolicy;
 import application.domain.services.WarehouseAllocationService;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ProductId;
@@ -51,11 +47,8 @@ public class OrderApplicationService implements OrderManagementPort {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final PromotionRepository promotionRepository;
     private final OrderFulfillmentDomainService fulfillment;
     private final WarehouseAllocationService allocationService;
-    private final PricingDomainService pricing;
-    private final PromotionPolicy promotionPolicy;
     private final StockMovementRecorder recorder;
     private final AccessRules accessRules;
     private final DomainEventPublisherPort eventPublisher;
@@ -65,11 +58,8 @@ public class OrderApplicationService implements OrderManagementPort {
 
     public OrderApplicationService(OrderRepository orderRepository,
                                    ProductRepository productRepository,
-                                   PromotionRepository promotionRepository,
                                    OrderFulfillmentDomainService fulfillment,
                                    WarehouseAllocationService allocationService,
-                                   PricingDomainService pricing,
-                                   PromotionPolicy promotionPolicy,
                                    StockMovementRecorder recorder,
                                    AccessRules accessRules,
                                    DomainEventPublisherPort eventPublisher,
@@ -78,11 +68,8 @@ public class OrderApplicationService implements OrderManagementPort {
                                    IdGeneratorPort idGenerator) {
         this.orderRepository = Objects.requireNonNull(orderRepository);
         this.productRepository = Objects.requireNonNull(productRepository);
-        this.promotionRepository = Objects.requireNonNull(promotionRepository);
         this.fulfillment = Objects.requireNonNull(fulfillment);
         this.allocationService = Objects.requireNonNull(allocationService);
-        this.pricing = Objects.requireNonNull(pricing);
-        this.promotionPolicy = Objects.requireNonNull(promotionPolicy);
         this.recorder = Objects.requireNonNull(recorder);
         this.accessRules = Objects.requireNonNull(accessRules);
         this.eventPublisher = Objects.requireNonNull(eventPublisher);
@@ -100,8 +87,7 @@ public class OrderApplicationService implements OrderManagementPort {
         if (lines == null || lines.isEmpty()) {
             throw new BusinessRuleException("El pedido debe tener al menos un producto");
         }
-        List<OrderItem> baseItems = new ArrayList<>();
-        List<OrderItem> promoItems = new ArrayList<>();
+        List<OrderItem> items = new ArrayList<>();
         for (OrderLine line : lines) {
             Product product = productRepository.findById(line.productId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -110,19 +96,11 @@ public class OrderApplicationService implements OrderManagementPort {
                 throw new BusinessRuleException("El producto " + product.getName()
                     + " no está disponible");
             }
-            PriceQuote quote = pricing.quote(product, promotionPolicy.effectiveOn(
-                promotionRepository.findByProductId(product.getId()), clock.today()));
-            baseItems.add(new OrderItem(product.getId(), product.getType(), line.quantity(), product.getPrice()));
-            promoItems.add(new OrderItem(product.getId(), product.getType(), line.quantity(), quote.finalPrice()));
+            items.add(new OrderItem(product.getId(), product.getType(), line.quantity(), product.getPrice()));
         }
-        // Valida reglas de cantidades antes de consultar stock.
-        Order.create(OrderId.random(), buyerId, baseItems, null, clock.now());
-        // Verifica que haya stock en alguna bodega activa (sin reservar todavía).
-        allocationService.allocate(baseItems);
-
-        PricingDomainService.PricingResult result = pricing.chooseBestPricing(baseItems, promoItems);
-        Order order = Order.create(OrderId.of(idGenerator.newId()), buyerId, result.items(),
-            result.total(), clock.now());
+        Order order = Order.create(OrderId.of(idGenerator.newId()), buyerId, items, clock.now());
+        // Checks that an active warehouse has stock, without reserving it yet.
+        allocationService.allocate(items);
         Order saved = orderRepository.save(order);
         eventPublisher.publish(new OrderCreatedEvent(
             saved.getId(), saved.getBuyerId(), saved.getTotal(), clock.now()));

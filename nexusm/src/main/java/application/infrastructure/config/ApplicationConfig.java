@@ -5,8 +5,6 @@ import application.domain.ports.out.WarehouseRepository;
 import application.domain.services.InventoryDomainService;
 import application.domain.services.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
-import application.domain.services.PricingDomainService;
-import application.domain.services.PromotionPolicy;
 import application.domain.services.WarehouseAllocationService;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
@@ -22,16 +20,6 @@ public class ApplicationConfig {
     @Bean
     public Clock clock() {
         return Clock.systemDefaultZone();
-    }
-
-    @Bean
-    public PricingDomainService pricingDomainService() {
-        return new PricingDomainService();
-    }
-
-    @Bean
-    public PromotionPolicy promotionPolicy() {
-        return new PromotionPolicy();
     }
 
     @Bean

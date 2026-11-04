@@ -96,7 +96,7 @@ public final class Cart {
         }
         List<OrderItem> orderItems = new ArrayList<>();
         items.values().forEach(item -> orderItems.add(item.toOrderItem()));
-        Order order = Order.create(orderId, buyerId, orderItems, null, now);
+        Order order = Order.create(orderId, buyerId, orderItems, now);
         clear();
         return order;
     }

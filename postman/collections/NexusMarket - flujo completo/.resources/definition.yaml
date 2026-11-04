@@ -11,6 +11,5 @@ variables:
   sellerId: ""
   warehouseId: ""
   productId: ""
-  promotionId: ""
   orderId: ""
   orderId2: ""

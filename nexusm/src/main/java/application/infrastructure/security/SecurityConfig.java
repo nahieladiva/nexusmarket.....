@@ -65,9 +65,6 @@ public class SecurityConfig {
                     "/api/orders/*/deliver").hasRole(ADMIN)
                 .requestMatchers(HttpMethod.PATCH, "/api/orders/*/cancel").hasAnyRole(BUYER, ADMIN)
                 .requestMatchers("/api/orders/**").authenticated()
-                // Promotions
-                .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
-                .requestMatchers("/api/promotions", "/api/promotions/**").hasRole(SELLER)
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtAuthenticationFilter(authenticationPort),
                 UsernamePasswordAuthenticationFilter.class);

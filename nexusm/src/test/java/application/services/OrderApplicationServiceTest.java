@@ -2,7 +2,6 @@ package application.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import application.domain.enums.OrderStatus;
 import application.domain.enums.StockMovementType;
@@ -16,9 +15,7 @@ import application.domain.models.OrderLine;
 import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.models.Warehouse;
-import application.domain.valueobjects.DateRange;
 import application.domain.valueobjects.Money;
-import application.domain.valueobjects.Percentage;
 import application.domain.valueobjects.Quantity;
 import application.support.TestFixture;
 import java.util.List;
@@ -52,14 +49,6 @@ class OrderApplicationServiceTest {
         Order order = place(product, 2);
         assertEquals(Money.of("200000", "COP"), order.getTotal());
         assertEquals(OrderStatus.PENDING_PAYMENT, order.getStatus());
-    }
-
-    @Test
-    void activePromotionIsApplied() {
-        f.promotionService.createPromotion(seller.getId(), product.getId(), Percentage.of(20),
-            DateRange.of(TestFixture.NOW.toLocalDate(), TestFixture.NOW.toLocalDate().plusDays(7)));
-        Order order = place(product, 1);
-        assertEquals(Money.of("80000", "COP"), order.getTotal());
     }
 
     @Test
@@ -118,41 +107,6 @@ class OrderApplicationServiceTest {
         assertThrows(ForbiddenActionException.class,
             () -> f.orderService.findOrderById(intruder.getId(), order.getId()));
         assertEquals(order.getId(), f.orderService.findOrderById(seller.getId(), order.getId()).getId());
-    }
-
-    @Test
-    void volumeDiscountAndPromotionDoNotStack() {
-        // 3 productos x 5 unidades = 15 unidades → aplica 5% por volumen.
-        Product p2 = f.product(seller, "TEC-0002", "100000");
-        Product p3 = f.product(seller, "TEC-0003", "100000");
-        f.stock(seller, p2, warehouse, 50, 5);
-        f.stock(seller, p3, warehouse, 50, 5);
-        // Promoción pequeña (2%) en un solo producto: el volumen (5% del total) es mejor.
-        f.promotionService.createPromotion(seller.getId(), product.getId(), Percentage.of(2),
-            DateRange.of(TestFixture.NOW.toLocalDate(), TestFixture.NOW.toLocalDate().plusDays(3)));
-        Order order = f.orderService.placeOrder(buyer.getId(), List.of(
-            new OrderLine(product.getId(), Quantity.of(5)),
-            new OrderLine(p2.getId(), Quantity.of(5)),
-            new OrderLine(p3.getId(), Quantity.of(5))));
-        assertEquals(Money.of("1425000", "COP"), order.getTotal()); // 1.500.000 - 5%
-        assertTrue(order.getDiscount().isGreaterThan(Money.zero("COP")));
-    }
-
-    @Test
-    void bestOptionWinsWhenPromotionIsBigger() {
-        Product p2 = f.product(seller, "TEC-0002", "100000");
-        Product p3 = f.product(seller, "TEC-0003", "100000");
-        f.stock(seller, p2, warehouse, 50, 5);
-        f.stock(seller, p3, warehouse, 50, 5);
-        for (Product p : List.of(product, p2, p3)) {
-            f.promotionService.createPromotion(seller.getId(), p.getId(), Percentage.of(30),
-                DateRange.of(TestFixture.NOW.toLocalDate(), TestFixture.NOW.toLocalDate().plusDays(3)));
-        }
-        Order order = f.orderService.placeOrder(buyer.getId(), List.of(
-            new OrderLine(product.getId(), Quantity.of(5)),
-            new OrderLine(p2.getId(), Quantity.of(5)),
-            new OrderLine(p3.getId(), Quantity.of(5))));
-        assertEquals(Money.of("1050000", "COP"), order.getTotal()); // 30% por promoción, sin volumen
     }
 
     @Test

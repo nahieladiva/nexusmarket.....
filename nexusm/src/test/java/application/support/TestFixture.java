@@ -11,8 +11,6 @@ import application.domain.models.Warehouse;
 import application.domain.services.InventoryDomainService;
 import application.domain.services.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
-import application.domain.services.PricingDomainService;
-import application.domain.services.PromotionPolicy;
 import application.domain.services.WarehouseAllocationService;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
@@ -27,7 +25,6 @@ import application.services.AuthenticationApplicationService;
 import application.services.InventoryApplicationService;
 import application.services.OrderApplicationService;
 import application.services.ProductApplicationService;
-import application.services.PromotionApplicationService;
 import application.services.StockMovementRecorder;
 import application.services.UserApplicationService;
 import application.services.WarehouseApplicationService;
@@ -46,7 +43,6 @@ public class TestFixture {
     public final InMemoryWarehouseRepository warehouses = new InMemoryWarehouseRepository();
     public final InMemoryInventoryRepository inventories = new InMemoryInventoryRepository();
     public final InMemoryOrderRepository orders = new InMemoryOrderRepository();
-    public final InMemoryPromotionRepository promotions = new InMemoryPromotionRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -62,12 +58,9 @@ public class TestFixture {
     public final WarehouseApplicationService warehouseService;
     public final InventoryApplicationService inventoryService;
     public final OrderApplicationService orderService;
-    public final PromotionApplicationService promotionService;
 
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
-        PricingDomainService pricing = new PricingDomainService();
-        PromotionPolicy promotionPolicy = new PromotionPolicy();
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
         WarehouseAllocationService allocation = new WarehouseAllocationService(inventories, warehouses);
         OrderFulfillmentDomainService fulfillment = new OrderFulfillmentDomainService(inventoryDomain, allocation);
@@ -81,10 +74,8 @@ public class TestFixture {
         warehouseService = new WarehouseApplicationService(warehouses, ids);
         inventoryService = new InventoryApplicationService(inventories, products, warehouses, movements,
             recorder, accessRules, ids);
-        orderService = new OrderApplicationService(orders, products, promotions, fulfillment, allocation,
-            pricing, promotionPolicy, recorder, accessRules, events, notifier, clock, ids);
-        promotionService = new PromotionApplicationService(promotions, products, promotionPolicy, pricing,
-            accessRules, clock, ids);
+        orderService = new OrderApplicationService(orders, products, fulfillment, allocation,
+            recorder, accessRules, events, notifier, clock, ids);
     }
 
     // ---------- Datos de apoyo
