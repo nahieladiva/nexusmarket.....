@@ -29,7 +29,7 @@ public class AccessRules {
 
     public User requireAdmin(UserId userId) {
         User user = requireUser(userId);
-        if (!user.isAdmin()) {
+        if (!user.isAdministrator()) {
             throw new ForbiddenActionException("Solo un administrador puede hacer esta operación");
         }
         return user;
@@ -38,7 +38,7 @@ public class AccessRules {
     /** El vendedor dueño del producto, o un administrador. */
     public User requireOwnerOrAdmin(UserId actorId, Product product) {
         User actor = requireUser(actorId);
-        if (!actor.isAdmin() && !product.isOwnedBy(actorId)) {
+        if (!actor.isAdministrator() && !product.isOwnedBy(actorId)) {
             throw new ForbiddenActionException(
                 "Solo el vendedor dueño del producto o un administrador puede hacer esta operación");
         }

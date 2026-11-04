@@ -42,6 +42,9 @@ public class OrderJpaEntity {
     @Column(name = "total_currency", nullable = false, length = 3)
     private String totalCurrency;
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

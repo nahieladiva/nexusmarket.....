@@ -66,12 +66,15 @@ public final class Refund {
     /**
      * Creates the refund of a paid order that was cancelled before shipping.
      *
-     * @throws BusinessRuleException when the order is not cancelled
+     * @throws BusinessRuleException when the order is not cancelled or was never paid
      */
     public static Refund forCancelledOrder(Order order, RefundId id, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
         if (order.getStatus() != OrderStatus.CANCELLED) {
             throw new BusinessRuleException("Only a cancelled order can be refunded");
+        }
+        if (!order.wasPaid()) {
+            throw new BusinessRuleException("An order that was never paid cannot be refunded");
         }
         return new Refund(id, order.getId(), order.getBuyerId(), null, order.getTotal(),
             RefundStatus.PENDING, now, null);

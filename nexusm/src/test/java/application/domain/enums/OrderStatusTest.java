@@ -19,6 +19,7 @@ class OrderStatusTest {
     @Test
     void allowsPaidTransitions() {
         assertTrue(OrderStatus.PAID.canTransitionTo(OrderStatus.SHIPPED));
+        assertTrue(OrderStatus.PAID.canTransitionTo(OrderStatus.DELIVERED));
         assertTrue(OrderStatus.PAID.canTransitionTo(OrderStatus.CANCELLED));
     }
 

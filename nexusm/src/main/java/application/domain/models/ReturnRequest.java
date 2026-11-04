@@ -19,7 +19,8 @@ import java.util.Optional;
  * <p>Rules:</p>
  * <ul>
  *   <li>It can only be requested for a {@code DELIVERED} order.</li>
- *   <li>The product must belong to the order, and the quantity cannot exceed what was bought.</li>
+ *   <li>The product must belong to the order and be returnable: digital products are not.</li>
+ *   <li>The units already returned plus the requested quantity cannot exceed what was bought.</li>
  *   <li>The refund amount is the unit price paid times the returned quantity.</li>
  *   <li>The original order is not modified; the return is an independent entity.</li>
  * </ul>
@@ -61,12 +62,16 @@ public final class ReturnRequest {
     /**
      * Creates a return for a product of a delivered order.
      *
+     * @param alreadyReturned units of this product in previous returns of the order that were not
+     *                        rejected; the caller calculates them
      * @throws BusinessRuleException when the order is not delivered, the product is not in the
-     *                               order or the quantity exceeds what was bought
+     *                               order, is not returnable, or the total returned would exceed
+     *                               what was bought
      */
     public static ReturnRequest request(Order order, ReturnId id, ProductId productId, Quantity quantity,
-                                        String reason, LocalDateTime now) {
+                                        Quantity alreadyReturned, String reason, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
+        Objects.requireNonNull(alreadyReturned, "Already returned quantity is required");
         if (!order.getStatus().allowsReturns()) {
             throw new BusinessRuleException("Only products of delivered orders can be returned");
         }
@@ -75,7 +80,10 @@ public final class ReturnRequest {
             .findFirst()
             .orElseThrow(() -> new BusinessRuleException(
                 "Product " + productId + " does not belong to order " + order.getId()));
-        if (quantity.compareTo(purchased.getQuantity()) > 0) {
+        if (!purchased.isReturnable()) {
+            throw new BusinessRuleException("Digital products cannot be returned");
+        }
+        if (alreadyReturned.add(quantity).compareTo(purchased.getQuantity()) > 0) {
             throw new BusinessRuleException("Cannot return more units than were bought");
         }
         Money amount = purchased.getUnitPrice().multiply(quantity.getValue());

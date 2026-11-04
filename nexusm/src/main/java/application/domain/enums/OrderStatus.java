@@ -12,7 +12,8 @@ import java.util.Set;
  * <p>Allowed transitions:</p>
  * <ul>
  *   <li>{@code PENDING_PAYMENT} -> {@code PAID}, {@code CANCELLED}</li>
- *   <li>{@code PAID} -> {@code SHIPPED}, {@code CANCELLED}</li>
+ *   <li>{@code PAID} -> {@code SHIPPED}, {@code DELIVERED}, {@code CANCELLED}; {@link
+ *       application.domain.models.Order} allows {@code DELIVERED} only when no item requires shipment</li>
  *   <li>{@code SHIPPED} -> {@code DELIVERED}</li>
  *   <li>{@code DELIVERED}, {@code CANCELLED} -> terminal statuses</li>
  * </ul>
@@ -30,7 +31,7 @@ public enum OrderStatus {
     static {
         Map<OrderStatus, Set<OrderStatus>> transitions = new EnumMap<>(OrderStatus.class);
         transitions.put(PENDING_PAYMENT, Set.of(PAID, CANCELLED));
-        transitions.put(PAID, Set.of(SHIPPED, CANCELLED));
+        transitions.put(PAID, Set.of(SHIPPED, DELIVERED, CANCELLED));
         transitions.put(SHIPPED, Set.of(DELIVERED));
         transitions.put(DELIVERED, Set.of());
         transitions.put(CANCELLED, Set.of());

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
+import application.domain.enums.ProductType;
 import application.domain.models.OrderItem;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.Percentage;
@@ -29,15 +30,15 @@ class PricingDomainServiceTest {
     @Test
     void calculatesOrderTotal() {
         List<OrderItem> items = List.of(
-            new OrderItem(ProductId.random(), Quantity.of(2), Money.of("10.00", "USD")),
-            new OrderItem(ProductId.random(), Quantity.of(3), Money.of("5.50", "USD")));
+            new OrderItem(ProductId.random(), ProductType.PHYSICAL, Quantity.of(2), Money.of("10.00", "USD")),
+            new OrderItem(ProductId.random(), ProductType.PHYSICAL, Quantity.of(3), Money.of("5.50", "USD")));
         assertEquals("36.50", pricing.calculateOrderTotal(items).getAmount().toPlainString());
     }
 
     @Test
     void appliesVolumeDiscountOverThreshold() {
         List<OrderItem> items = List.of(
-            new OrderItem(ProductId.random(), Quantity.of(100), Money.of("1.00", "USD")));
+            new OrderItem(ProductId.random(), ProductType.PHYSICAL, Quantity.of(100), Money.of("1.00", "USD")));
         Money total = pricing.applyVolumeDiscount(items, 100, Percentage.of(10));
         assertEquals("90.00", total.getAmount().toPlainString());
     }
@@ -45,7 +46,7 @@ class PricingDomainServiceTest {
     @Test
     void keepsTotalWhenBelowVolumeThreshold() {
         List<OrderItem> items = List.of(
-            new OrderItem(ProductId.random(), Quantity.of(50), Money.of("1.00", "USD")));
+            new OrderItem(ProductId.random(), ProductType.PHYSICAL, Quantity.of(50), Money.of("1.00", "USD")));
         Money total = pricing.applyVolumeDiscount(items, 100, Percentage.of(10));
         assertEquals("50.00", total.getAmount().toPlainString());
     }

@@ -106,10 +106,7 @@ public class User {
         return role == UserRole.LOGISTICS_OPERATOR;
     }
 
-    /**
-     * Kept with this name until the application services are replaced in phase 2.
-     */
-    public boolean isAdmin() {
+    public boolean isAdministrator() {
         return role == UserRole.ADMINISTRATOR;
     }
 

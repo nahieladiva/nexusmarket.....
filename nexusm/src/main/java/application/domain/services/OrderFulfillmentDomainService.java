@@ -5,6 +5,7 @@ import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.WarehouseId;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,9 @@ import java.util.Objects;
  *
  * <p>Rules:</p>
  * <ul>
- *   <li>When the order is paid, each item gets a warehouse and its stock is reserved.</li>
+ *   <li>When the order is paid, each item that requires shipment gets a warehouse and its stock
+ *       is reserved.</li>
+ *   <li>An order with no items that require shipment is delivered as soon as it is paid.</li>
  *   <li>When a paid order is cancelled, the stock goes back to the same warehouse.</li>
  *   <li>Cancelling an order pending payment does not touch the stock, because it was never reserved.</li>
  * </ul>
@@ -37,16 +40,22 @@ public final class OrderFulfillmentDomainService {
     /**
      * Registers the payment of the order and reserves its stock.
      *
-     * @return modified inventories (to record movements and low-stock alerts)
+     * @return modified inventories, in the order of the items that require shipment
+     *         (to record movements and low-stock alerts)
      */
-    public List<Inventory> confirm(Order order) {
+    public List<Inventory> confirm(Order order, LocalDateTime now) {
         Map<ProductId, WarehouseId> allocation = warehouseAllocationService.allocate(order.getItems());
         order.assignWarehouses(allocation);
-        order.pay();
+        order.pay(now);
         List<Inventory> touched = new ArrayList<>();
         for (OrderItem item : order.getItems()) {
-            touched.add(inventoryDomainService.reserve(
-                item.getProductId(), item.getWarehouseId(), item.getQuantity()));
+            if (item.requiresShipment()) {
+                touched.add(inventoryDomainService.reserve(
+                    item.getProductId(), item.getWarehouseId(), item.getQuantity()));
+            }
+        }
+        if (!order.requiresShipment()) {
+            order.deliver();
         }
         return touched;
     }
@@ -54,7 +63,8 @@ public final class OrderFulfillmentDomainService {
     /**
      * Cancels the order and, if it had reserved stock, returns it.
      *
-     * @return modified inventories (empty when the order was pending payment)
+     * @return modified inventories, in the order of the items that require shipment
+     *         (empty when the order was pending payment)
      */
     public List<Inventory> cancel(Order order) {
         boolean hadReservation = order.hasReservedStock();
@@ -62,8 +72,10 @@ public final class OrderFulfillmentDomainService {
         List<Inventory> touched = new ArrayList<>();
         if (hadReservation) {
             for (OrderItem item : order.getItems()) {
-                touched.add(inventoryDomainService.restock(
-                    item.getProductId(), item.getWarehouseId(), item.getQuantity()));
+                if (item.requiresShipment()) {
+                    touched.add(inventoryDomainService.restock(
+                        item.getProductId(), item.getWarehouseId(), item.getQuantity()));
+                }
             }
         }
         return touched;

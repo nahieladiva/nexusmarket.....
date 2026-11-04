@@ -37,6 +37,9 @@ public class OrderItemJpaEntity {
     @Column(name = "product_id", nullable = false, length = 36)
     private String productId;
 
+    @Column(name = "product_type", nullable = false, length = 20)
+    private String productType;
+
     @Column(name = "quantity", nullable = false)
     private int quantity;
 

@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.enums.ProductType;
 import application.domain.exceptions.BusinessRuleException;
 import application.domain.valueobjects.CartId;
 import application.domain.valueobjects.Money;
@@ -55,8 +56,8 @@ public final class Cart {
     /**
      * Adds a product; if it is already in the cart, its quantity is increased.
      */
-    public void addItem(ProductId productId, Quantity quantity, Money unitPrice) {
-        merge(new CartItem(productId, quantity, unitPrice));
+    public void addItem(ProductId productId, ProductType productType, Quantity quantity, Money unitPrice) {
+        merge(new CartItem(productId, productType, quantity, unitPrice));
         touch();
     }
 

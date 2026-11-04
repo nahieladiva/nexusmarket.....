@@ -37,7 +37,7 @@ public final class WarehouseAllocationService {
     }
 
     /**
-     * @return product → assigned warehouse
+     * @return product → assigned warehouse, only for the items that require shipment
      * @throws InsufficientStockException if a product has no active warehouse with stock
      */
     public Map<ProductId, WarehouseId> allocate(List<OrderItem> items) {
@@ -46,7 +46,7 @@ public final class WarehouseAllocationService {
             .map(Warehouse::getId)
             .collect(Collectors.toSet());
         Map<ProductId, WarehouseId> allocation = new LinkedHashMap<>();
-        for (OrderItem item : items) {
+        for (OrderItem item : items.stream().filter(OrderItem::requiresShipment).toList()) {
             allocation.put(item.getProductId(), allocateForProduct(item, activeWarehouses));
         }
         return allocation;

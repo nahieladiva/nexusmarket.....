@@ -199,10 +199,10 @@ stateDiagram-v2
 
 ### 3.5 `ProductType`
 
-| Valor | `requiresInventory()` | `requiresShipment()` |
-|---|---|---|
-| `PHYSICAL` | Sí | Sí |
-| `DIGITAL` | No | No |
+| Valor | `requiresInventory()` | `requiresShipment()` | `isReturnable()` |
+|---|---|---|---|
+| `PHYSICAL` | Sí | Sí | Sí |
+| `DIGITAL` | No | No | No |
 
 ### 3.6 `WarehouseStatus`
 
@@ -235,11 +235,15 @@ stateDiagram-v2
     PENDING_PAYMENT --> PAID
     PENDING_PAYMENT --> CANCELLED
     PAID --> SHIPPED
+    PAID --> DELIVERED : sin items que requieran envio
     PAID --> CANCELLED
     SHIPPED --> DELIVERED
     DELIVERED --> [*]
     CANCELLED --> [*]
 ```
+
+La transición `PAID` a `DELIVERED` existe solo para pedidos sin ítems que requieran envío. El enum
+la declara, y `Order.deliver()` la rechaza si algún ítem requiere envío.
 
 | Método | Regla |
 |---|---|

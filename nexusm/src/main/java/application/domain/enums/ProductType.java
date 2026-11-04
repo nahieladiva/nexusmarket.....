@@ -26,4 +26,11 @@ public enum ProductType {
     public boolean requiresShipment() {
         return this == PHYSICAL;
     }
+
+    /**
+     * Tells whether the product can be returned. Digital products cannot.
+     */
+    public boolean isReturnable() {
+        return this == PHYSICAL;
+    }
 }

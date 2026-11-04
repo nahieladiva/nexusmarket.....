@@ -97,6 +97,7 @@ classDiagram
     }
     class CartItem {
         -ProductId productId
+        -ProductType productType
         -Quantity quantity
         -Money unitPrice
     }
@@ -106,11 +107,13 @@ classDiagram
         -List~OrderItem~ items
         -OrderStatus status
         -Money total
+        -LocalDateTime paidAt
         -LocalDateTime createdAt
         -LocalDateTime updatedAt
     }
     class OrderItem {
         -ProductId productId
+        -ProductType productType
         -Quantity quantity
         -Money unitPrice
         -WarehouseId warehouseId
@@ -225,7 +228,7 @@ classDiagram
 | `removeAddress(Address)` | Elimina una dirección; falla si no está registrada |
 | `hasAddress(Address)` | Indica si la dirección está registrada |
 | `hasRole(UserRole)` | Indica si el usuario tiene el rol dado |
-| `isBuyer()`, `isSeller()`, `isLogisticsOperator()`, `isAdmin()`, `isSupervisor()` | Consultas de rol |
+| `isBuyer()`, `isSeller()`, `isLogisticsOperator()`, `isAdministrator()`, `isSupervisor()` | Consultas de rol |
 
 **Reglas.**
 - `id`, `email` y `role` no cambian.
@@ -440,7 +443,7 @@ y `Shipment`.
 | Comportamiento | Descripción |
 |---|---|
 | `createFor(...)` | Crea el carrito vacío de un comprador |
-| `addItem(ProductId, Quantity, Money)` | Agrega un producto; si ya existe, suma la cantidad |
+| `addItem(ProductId, ProductType, Quantity, Money)` | Agrega un producto; si ya existe, suma la cantidad |
 | `changeQuantity(ProductId, Quantity)` | Cambia la cantidad; con cero, elimina el producto |
 | `removeItem(ProductId)` | Quita un producto; falla si no está en el carrito |
 | `clear()` | Vacía el carrito |
@@ -464,6 +467,7 @@ agregar el producto.
 | Atributo | Tipo |
 |---|---|
 | `productId` | `ProductId` |
+| `productType` | `ProductType` |
 | `quantity` | `Quantity` |
 | `unitPrice` | `Money` |
 
@@ -488,6 +492,7 @@ agregar el producto.
 | `items` | `List<OrderItem>` | Sí |
 | `status` | `OrderStatus` | Sí |
 | `total` | `Money` | Sí |
+| `paidAt` | `LocalDateTime` (opcional) | Sí |
 | `createdAt` | `LocalDateTime` | No |
 | `updatedAt` | `LocalDateTime` | Sí |
 
@@ -495,11 +500,15 @@ agregar el producto.
 |---|---|
 | `create(...)` | Crea el pedido en `PENDING_PAYMENT` |
 | `addItem(OrderItem)` | Agrega una línea mientras el pedido está pendiente de pago |
-| `assignWarehouses(Map)` | Asigna la bodega de cada línea antes del pago |
-| `pay()` | Registra el pago; exige bodega en todas las líneas |
-| `ship()` | Pasa el pedido a `SHIPPED` |
-| `deliver()` | Pasa el pedido a `DELIVERED` |
+| `assignWarehouses(Map)` | Asigna la bodega de cada línea que requiere envío, antes del pago |
+| `pay(LocalDateTime)` | Registra el pago y guarda `paidAt`; exige bodega en las líneas que requieren envío |
+| `ship()` | Pasa el pedido a `SHIPPED`; falla si ningún ítem requiere envío |
+| `deliver()` | Pasa el pedido a `DELIVERED`; desde `PAID` solo si ningún ítem requiere envío |
 | `cancel()` | Pasa el pedido a `CANCELLED` |
+| `applyShipmentProgress(List)` | Actualiza el estado según los envíos del pedido |
+| `requiresShipment()` | Indica si algún ítem viaja en un envío |
+| `shippingWarehouses()` | Bodegas que deben despachar ítems del pedido |
+| `wasPaid()` | Indica si el pedido se pagó, aunque después se haya cancelado |
 | `hasReservedStock()` | Indica si mantiene stock reservado |
 | `belongsTo(UserId)` | Indica si pertenece al usuario (RG-03) |
 | `containsAnyProduct(Set)` | Indica si contiene alguno de los productos |
@@ -513,6 +522,10 @@ agregar el producto.
 - Las transiciones se validan en `OrderStatus`; si no son válidas, se lanza
   `OrderStateTransitionException`.
 - Solo se cancela desde `PENDING_PAYMENT` o `PAID`.
+- Cada bodega del pedido tiene su propio `Shipment`.
+- Pasa a `SHIPPED` cuando existe un envío por cada bodega y todos cumplen `hasLeftWarehouse()`.
+- Pasa a `DELIVERED` cuando todos sus envíos están `DELIVERED`.
+- Un pedido sin ítems que requieran envío pasa de `PAID` a `DELIVERED` directamente.
 
 **Relaciones.** Pertenece a un `Buyer` y contiene `OrderItem`. Lo referencian `Invoice`, `Shipment`,
 `ReturnRequest` y `Refund`.
@@ -524,6 +537,7 @@ agregar el producto.
 | Atributo | Tipo |
 |---|---|
 | `productId` | `ProductId` |
+| `productType` | `ProductType` |
 | `quantity` | `Quantity` |
 | `unitPrice` | `Money` |
 | `warehouseId` | `WarehouseId` (opcional) |
@@ -533,9 +547,11 @@ agregar el producto.
 | `subtotal()` | `unitPrice` por `quantity` |
 | `assignedTo(WarehouseId)` | Devuelve una copia asignada a la bodega |
 | `hasWarehouse()` | Indica si ya tiene bodega |
+| `requiresShipment()` | Indica si toma stock de una bodega y viaja en un envío |
+| `isReturnable()` | Indica si admite devolución |
 
 **Reglas.** `quantity` debe ser mayor que cero. `warehouseId` es `null` hasta que se asigna, antes del
-pago.
+pago. Los ítems que no requieren envío nunca tienen bodega.
 
 **Relaciones.** Es parte de `Order` y referencia un `Product` y un `Warehouse`.
 
@@ -596,13 +612,14 @@ catálogo.
 
 | Comportamiento | Descripción |
 |---|---|
-| `prepareFor(...)` | Crea el envío en `PREPARING`; exige un pedido `PAID` |
+| `prepareFor(...)` | Crea el envío en `PREPARING`; exige un pedido `PAID` y una bodega del pedido |
 | `pack()` | Marca el envío como empacado |
 | `dispatch(UserId, String, LocalDateTime)` | Entrega el envío al transportador |
 | `confirmDelivery(LocalDateTime)` | Confirma que el comprador lo recibió |
 
 **Reglas.**
-- Solo se crea para un pedido `PAID`.
+- Solo se crea para un pedido `PAID`, desde una de sus bodegas.
+- Cada bodega de un pedido tiene su propio envío.
 - Para despacharlo se exigen operador y número de guía.
 - Las transiciones se validan en `ShipmentStatus`.
 
@@ -629,7 +646,7 @@ catálogo.
 
 | Comportamiento | Descripción |
 |---|---|
-| `request(...)` | Crea la devolución en `REQUESTED` |
+| `request(Order, ReturnId, ProductId, Quantity, Quantity, String, LocalDateTime)` | Crea la devolución en `REQUESTED`; recibe la cantidad solicitada y la ya devuelta |
 | `approve(LocalDateTime)` | Aprueba la devolución |
 | `reject(LocalDateTime)` | Rechaza la devolución |
 | `markAsReceived()` | Registra que la bodega recibió el producto |
@@ -637,8 +654,9 @@ catálogo.
 
 **Reglas.**
 - Solo se devuelven productos de pedidos `DELIVERED`.
-- El producto debe pertenecer al pedido.
-- `quantity` debe ser mayor que cero y no superar lo comprado.
+- El producto debe pertenecer al pedido y admitir devolución: los productos `DIGITAL` no la admiten.
+- `quantity` debe ser mayor que cero.
+- Lo ya devuelto más `quantity` no puede superar lo comprado. El servicio calcula lo ya devuelto sumando las devoluciones no rechazadas de ese producto.
 - `reason` es obligatorio.
 - `refundAmount` es el precio unitario pagado por la cantidad devuelta.
 - El pedido original no se modifica.
@@ -663,12 +681,13 @@ catálogo.
 | Comportamiento | Descripción |
 |---|---|
 | `forReturn(ReturnRequest, RefundId, LocalDateTime)` | Crea el reembolso de una devolución `RECEIVED` |
-| `forCancelledOrder(Order, RefundId, LocalDateTime)` | Crea el reembolso de un pedido `CANCELLED` |
+| `forCancelledOrder(Order, RefundId, LocalDateTime)` | Crea el reembolso de un pedido `CANCELLED` que se había pagado |
 | `process(LocalDateTime)` | Marca el reembolso como procesado |
 | `reject(LocalDateTime)` | Rechaza el reembolso |
 
 **Reglas.**
 - `amount` debe ser mayor que cero.
+- Un pedido cancelado sin haberse pagado no se reembolsa.
 - En una devolución, `amount` es `refundAmount`. En un pedido cancelado, es el total del pedido.
 - Las transiciones se validan en `RefundStatus`.
 
@@ -766,15 +785,14 @@ Todas heredan de `DomainException`.
 | Publicación | `Product`, `Seller` | `requireApprovedToPublish`, `publish` |
 | Compra | `Cart`, `Order` | `addItem`, `checkout` |
 | Pago | `Order`, `Invoice` | `assignWarehouses`, `pay`, `issueFor` |
-| Logística | `Shipment`, `Order` | `prepareFor`, `pack`, `dispatch`, `ship` |
-| Entrega | `Shipment`, `Order` | `confirmDelivery`, `deliver` |
+| Logística | `Shipment`, `Order` | `prepareFor`, `pack`, `dispatch`, `applyShipmentProgress` |
+| Entrega | `Shipment`, `Order` | `confirmDelivery`, `applyShipmentProgress` |
 | Posventa | `ReturnRequest`, `Refund` | `request`, `approve`, `markAsReceived`, `forReturn`, `process` |
 
 ## 14. Pendientes temporales
 
 | Tema | Estado actual | Se corrige en |
 |---|---|---|
-| `User.isAdmin()` | Se renombra a `isAdministrator()` | Fase 2 |
 | Registro de productos | `ProductApplicationService` registra todo como `PHYSICAL` y publica de inmediato | Fase 2 |
 | Pago | `/api/orders/{id}/confirm` marca el pedido como pagado | Fase 4 |
 | Persistencia | `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` no tienen tablas | Fase 3 |

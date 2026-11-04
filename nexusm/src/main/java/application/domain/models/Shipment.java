@@ -18,7 +18,8 @@ import java.util.Optional;
  *
  * <p>Rules:</p>
  * <ul>
- *   <li>It is created only for a {@code PAID} order.</li>
+ *   <li>It is created only for a {@code PAID} order, from one of the warehouses of the order.</li>
+ *   <li>Each warehouse of an order has its own shipment.</li>
  *   <li>Lifecycle: PREPARING -> PACKED -> IN_TRANSIT -> DELIVERED (see {@link ShipmentStatus}).</li>
  *   <li>A tracking number is required to dispatch it.</li>
  * </ul>
@@ -53,9 +54,9 @@ public final class Shipment {
     }
 
     /**
-     * Creates the shipment of a paid order.
+     * Creates the shipment of a paid order from one of its warehouses.
      *
-     * @throws BusinessRuleException when the order is not paid
+     * @throws BusinessRuleException when the order is not paid or does not ship from the warehouse
      */
     public static Shipment prepareFor(Order order, ShipmentId id, WarehouseId warehouseId,
                                       Address shippingAddress, LocalDateTime now) {
@@ -63,6 +64,10 @@ public final class Shipment {
         if (order.getStatus() != OrderStatus.PAID) {
             throw new BusinessRuleException(
                 "Only a paid order can be shipped (current status: " + order.getStatus() + ")");
+        }
+        if (!order.shippingWarehouses().contains(warehouseId)) {
+            throw new BusinessRuleException(
+                "Order " + order.getId() + " does not ship from warehouse " + warehouseId);
         }
         return new Shipment(id, order.getId(), warehouseId, shippingAddress, null, null,
             ShipmentStatus.PREPARING, now, null, null);

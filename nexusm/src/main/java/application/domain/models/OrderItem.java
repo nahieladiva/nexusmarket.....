@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.enums.ProductType;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
@@ -10,22 +11,25 @@ import java.util.Objects;
  * Order item: product, quantity and effective unit price at the time of purchase.
  *
  * <p>{@code warehouseId} is {@code null} until the order is allocated; it is assigned before
- * payment, when stock is reserved in a specific warehouse.</p>
+ * payment, when stock is reserved in a specific warehouse. Items that do not require shipment
+ * (digital products) never have a warehouse.</p>
  */
 public final class OrderItem {
 
     private final ProductId productId;
+    private final ProductType productType;
     private final Quantity quantity;
     private final Money unitPrice;
     private final WarehouseId warehouseId;
 
-    public OrderItem(ProductId productId, Quantity quantity, Money unitPrice) {
-        this(productId, quantity, unitPrice, null);
+    public OrderItem(ProductId productId, ProductType productType, Quantity quantity, Money unitPrice) {
+        this(productId, productType, quantity, unitPrice, null);
     }
 
-    public OrderItem(ProductId productId, Quantity quantity, Money unitPrice,
+    public OrderItem(ProductId productId, ProductType productType, Quantity quantity, Money unitPrice,
                      WarehouseId warehouseId) {
         this.productId = Objects.requireNonNull(productId, "Product is required");
+        this.productType = Objects.requireNonNull(productType, "Product type is required");
         this.quantity = Objects.requireNonNull(quantity, "Quantity is required");
         if (quantity.getValue() <= 0) {
             throw new IllegalArgumentException("The quantity of an item must be greater than zero");
@@ -40,12 +44,25 @@ public final class OrderItem {
 
     /** Returns a copy of the item assigned to the given warehouse. */
     public OrderItem assignedTo(WarehouseId warehouse) {
-        return new OrderItem(productId, quantity, unitPrice,
+        return new OrderItem(productId, productType, quantity, unitPrice,
             Objects.requireNonNull(warehouse, "Warehouse is required"));
     }
 
     public boolean hasWarehouse() {
         return warehouseId != null;
+    }
+
+    /** Tells whether the item takes stock from a warehouse and travels in a shipment. */
+    public boolean requiresShipment() {
+        return productType.requiresShipment();
+    }
+
+    public boolean isReturnable() {
+        return productType.isReturnable();
+    }
+
+    public ProductType getProductType() {
+        return productType;
     }
 
     public ProductId getProductId() {
@@ -74,6 +91,7 @@ public final class OrderItem {
         }
         OrderItem orderItem = (OrderItem) o;
         return productId.equals(orderItem.productId)
+            && productType == orderItem.productType
             && quantity.equals(orderItem.quantity)
             && unitPrice.equals(orderItem.unitPrice)
             && Objects.equals(warehouseId, orderItem.warehouseId);
@@ -81,7 +99,7 @@ public final class OrderItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(productId, quantity, unitPrice, warehouseId);
+        return Objects.hash(productId, productType, quantity, unitPrice, warehouseId);
     }
 
     @Override

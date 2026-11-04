@@ -112,8 +112,8 @@ public class OrderApplicationService implements OrderManagementPort {
             }
             PriceQuote quote = pricing.quote(product, promotionPolicy.effectiveOn(
                 promotionRepository.findByProductId(product.getId()), clock.today()));
-            baseItems.add(new OrderItem(product.getId(), line.quantity(), product.getPrice()));
-            promoItems.add(new OrderItem(product.getId(), line.quantity(), quote.finalPrice()));
+            baseItems.add(new OrderItem(product.getId(), product.getType(), line.quantity(), product.getPrice()));
+            promoItems.add(new OrderItem(product.getId(), product.getType(), line.quantity(), quote.finalPrice()));
         }
         // Valida reglas de cantidades antes de consultar stock.
         Order.create(OrderId.random(), buyerId, baseItems, null, clock.now());
@@ -133,10 +133,11 @@ public class OrderApplicationService implements OrderManagementPort {
     public Order confirmOrder(OrderId id) {
         Order order = requireOrder(id);
         OrderStatus previous = order.getStatus();
-        List<Inventory> touched = fulfillment.confirm(order);
+        List<Inventory> touched = fulfillment.confirm(order, clock.now());
         Order saved = orderRepository.save(order);
+        List<OrderItem> shippable = saved.getItems().stream().filter(OrderItem::requiresShipment).toList();
         for (int i = 0; i < touched.size(); i++) {
-            OrderItem item = saved.getItems().get(i);
+            OrderItem item = shippable.get(i);
             recorder.record(touched.get(i), StockMovementType.RESERVATION,
                 -item.getQuantity().getValue(), "Reserva por pedido confirmado", null,
                 saved.getId().toString());
@@ -169,15 +170,16 @@ public class OrderApplicationService implements OrderManagementPort {
     public Order cancelOrder(UserId actorId, OrderId id) {
         Order order = requireOrder(id);
         User actor = accessRules.requireUser(actorId);
-        if (!actor.isAdmin() && !order.belongsTo(actorId)) {
+        if (!actor.isAdministrator() && !order.belongsTo(actorId)) {
             throw new ForbiddenActionException(
                 "Solo el comprador del pedido o un administrador puede cancelarlo");
         }
         OrderStatus previous = order.getStatus();
         List<Inventory> touched = fulfillment.cancel(order);
         Order saved = orderRepository.save(order);
+        List<OrderItem> shippable = saved.getItems().stream().filter(OrderItem::requiresShipment).toList();
         for (int i = 0; i < touched.size(); i++) {
-            OrderItem item = saved.getItems().get(i);
+            OrderItem item = shippable.get(i);
             recorder.record(touched.get(i), StockMovementType.RELEASE,
                 item.getQuantity().getValue(), "Devolución por pedido cancelado", actorId,
                 saved.getId().toString());
@@ -191,7 +193,7 @@ public class OrderApplicationService implements OrderManagementPort {
     public Order findOrderById(UserId actorId, OrderId id) {
         Order order = requireOrder(id);
         User actor = accessRules.requireUser(actorId);
-        boolean allowed = actor.isAdmin()
+        boolean allowed = actor.isAdministrator()
             || order.belongsTo(actorId)
             || (actor.isSeller() && order.containsAnyProduct(productIdsOf(actorId)));
         if (!allowed) {
