@@ -1,6 +1,7 @@
 package application.domain.models;
 
 import application.domain.enums.UserRole;
+import application.domain.exceptions.ForbiddenActionException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.PhoneNumber;
@@ -8,6 +9,7 @@ import application.domain.valueobjects.UserId;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -92,6 +94,26 @@ public class User {
      */
     public boolean hasRole(UserRole expectedRole) {
         return role == expectedRole;
+    }
+
+    /**
+     * Validates that the user has the given role (RG-03).
+     *
+     * @throws ForbiddenActionException when the user has another role
+     */
+    public void requireRole(UserRole expectedRole) {
+        requireAnyRole(expectedRole);
+    }
+
+    /**
+     * Validates that the user has one of the given roles (RG-03).
+     *
+     * @throws ForbiddenActionException when the user has another role
+     */
+    public void requireAnyRole(UserRole... allowedRoles) {
+        if (!Arrays.asList(allowedRoles).contains(role)) {
+            throw new ForbiddenActionException("Role " + role + " cannot perform this operation");
+        }
     }
 
     public boolean isBuyer() {

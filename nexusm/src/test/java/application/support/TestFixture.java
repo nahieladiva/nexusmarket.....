@@ -8,6 +8,11 @@ import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.models.Warehouse;
+import application.domain.services.cart.AddItemToCartService;
+import application.domain.services.cart.ChangeCartItemQuantityService;
+import application.domain.services.cart.ClearCartService;
+import application.domain.services.cart.ConsultCartService;
+import application.domain.services.cart.RemoveItemFromCartService;
 import application.domain.services.InventoryDomainService;
 import application.domain.services.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
@@ -43,6 +48,7 @@ public class TestFixture {
     public final InMemoryWarehouseRepository warehouses = new InMemoryWarehouseRepository();
     public final InMemoryInventoryRepository inventories = new InMemoryInventoryRepository();
     public final InMemoryOrderRepository orders = new InMemoryOrderRepository();
+    public final InMemoryCartRepository carts = new InMemoryCartRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -58,6 +64,12 @@ public class TestFixture {
     public final WarehouseApplicationService warehouseService;
     public final InventoryApplicationService inventoryService;
     public final OrderApplicationService orderService;
+
+    public final ConsultCartService consultCart;
+    public final AddItemToCartService addItemToCart;
+    public final ChangeCartItemQuantityService changeCartItemQuantity;
+    public final RemoveItemFromCartService removeItemFromCart;
+    public final ClearCartService clearCart;
 
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
@@ -76,6 +88,12 @@ public class TestFixture {
             recorder, accessRules, ids);
         orderService = new OrderApplicationService(orders, products, fulfillment, allocation,
             recorder, accessRules, events, notifier, clock, ids);
+
+        consultCart = new ConsultCartService(carts, clock, ids);
+        addItemToCart = new AddItemToCartService(carts, products, consultCart);
+        changeCartItemQuantity = new ChangeCartItemQuantityService(carts, consultCart);
+        removeItemFromCart = new RemoveItemFromCartService(carts, consultCart);
+        clearCart = new ClearCartService(carts, consultCart);
     }
 
     // ---------- Datos de apoyo
