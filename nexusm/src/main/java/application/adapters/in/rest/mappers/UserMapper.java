@@ -7,24 +7,20 @@ import application.domain.models.Buyer;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.valueobjects.Address;
-
 import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 /**
- * Traduce entre los DTOs REST y el modelo de dominio de usuarios.
+ * Conversión entre DTOs REST y usuarios del dominio. Nunca expone el hash de la contraseña.
  */
 @Component
 public class UserMapper {
 
     public UserResponse toResponse(User user) {
         String businessName = null;
-        String sellerStatus = null;
         AddressResponse defaultShipping = null;
         if (user instanceof Seller seller) {
             businessName = seller.getBusinessName();
-            sellerStatus = seller.getSellerStatus().name();
         } else if (user instanceof Buyer buyer) {
             defaultShipping = toResponse(buyer.getDefaultShippingAddress());
         }
@@ -33,14 +29,11 @@ public class UserMapper {
             .toList();
         return new UserResponse(
             user.getId().toString(),
-            user.getIdentification().getValue(),
             user.getFullName(),
             user.getEmail().getValue(),
             user.getPhone().getValue(),
             user.getRole().name(),
-            user.getStatus().name(),
             businessName,
-            sellerStatus,
             defaultShipping,
             addresses,
             user.getCreatedAt());
@@ -52,6 +45,9 @@ public class UserMapper {
     }
 
     public Address toDomain(AddressRequest address) {
+        if (address == null) {
+            throw new IllegalArgumentException("La dirección es obligatoria");
+        }
         return Address.of(address.street(), address.city(), address.state(),
             address.zipCode(), address.country());
     }

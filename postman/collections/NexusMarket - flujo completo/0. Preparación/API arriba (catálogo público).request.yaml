@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{base}}/api/products"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      // Datos únicos por corrida: se puede ejecutar la colección muchas veces
+      const run = Math.floor(1000 + Math.random() * 9000);
+      pm.collectionVariables.set("run", run);
+      const pad = n => String(n).padStart(2, "0");
+      const d = new Date();
+      pm.collectionVariables.set("hoy", `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
+      const f = new Date(d.getTime() + 30*24*3600*1000);
+      pm.collectionVariables.set("fin", `${f.getFullYear()}-${pad(f.getMonth()+1)}-${pad(f.getDate())}`);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      console.log("Corrida", pm.collectionVariables.get("run"));
+    language: text/javascript
+order: 1000

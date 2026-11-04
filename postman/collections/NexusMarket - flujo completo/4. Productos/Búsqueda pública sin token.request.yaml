@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base}}/api/products?keyword={{run}}"
+method: GET
+queryParams:
+  keyword: "{{run}}"
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test("Encuentra el producto", () => pm.expect(pm.response.json().length).to.eql(1));
+    language: text/javascript
+order: 3000

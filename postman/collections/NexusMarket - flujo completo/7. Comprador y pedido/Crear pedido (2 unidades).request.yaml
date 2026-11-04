@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{base}}/api/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "items": [
+        {
+          "productId": "{{productId}}",
+          "quantity": 2
+        }
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{buyerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 201", () => pm.response.to.have.status(201));
+      const j = pm.response.json();
+      pm.test("PENDING", () => pm.expect(j.status).to.eql("PENDING"));
+      pm.test("Total 2 x 120000 = 240000 (precio del catálogo)", () => pm.expect(j.totalAmount).to.eql("240000.00"));
+      pm.collectionVariables.set("orderId", j.id);
+    language: text/javascript
+order: 5000

@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base}}/api/inventory?productId={{productId}}&warehouseId={{warehouseId}}"
+method: GET
+queryParams:
+  productId: "{{productId}}"
+  warehouseId: "{{warehouseId}}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{sellerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test("Sigue en 18", () => pm.expect(pm.response.json().onHand).to.eql(18));
+    language: text/javascript
+order: 6000

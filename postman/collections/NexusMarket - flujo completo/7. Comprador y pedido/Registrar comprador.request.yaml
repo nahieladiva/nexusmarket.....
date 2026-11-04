@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{base}}/api/auth/register/buyer"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Comprador {{run}}",
+      "email": "comprador{{run}}@nexus.com",
+      "phone": "+5730022{{run}}",
+      "password": "Compra2026",
+      "defaultShippingAddress": {
+        "street": "Calle 50 # 40-20",
+        "city": "Medellín",
+        "state": "Antioquia",
+        "zipCode": "050001",
+        "country": "Colombia"
+      }
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("HTTP 201", () => pm.response.to.have.status(201));
+    language: text/javascript
+order: 1000

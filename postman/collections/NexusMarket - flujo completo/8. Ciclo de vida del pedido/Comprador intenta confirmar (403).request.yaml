@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{base}}/api/orders/{{orderId}}/confirm"
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: "{{buyerToken}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("HTTP 403 - solo ADMIN", () => pm.response.to.have.status(403));
+    language: text/javascript
+order: 1000

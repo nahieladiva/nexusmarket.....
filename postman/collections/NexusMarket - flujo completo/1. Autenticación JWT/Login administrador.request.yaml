@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{base}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "admin@nexusmarket.com",
+      "password": "Admin2026"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      const j = pm.response.json();
+      pm.test("Devuelve token Bearer", () => { pm.expect(j.token).to.be.a("string"); pm.expect(j.tokenType).to.eql("Bearer"); });
+      pm.test("Rol ADMIN", () => pm.expect(j.user.role).to.eql("ADMIN"));
+      pm.collectionVariables.set("adminToken", j.token);
+    language: text/javascript
+order: 1000

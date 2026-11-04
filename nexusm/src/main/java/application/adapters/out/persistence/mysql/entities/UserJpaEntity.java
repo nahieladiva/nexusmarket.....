@@ -5,7 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,9 +32,6 @@ public class UserJpaEntity {
     @Column(name = "id", length = 36, nullable = false)
     private String id;
 
-    @Column(name = "identification", nullable = false, unique = true, length = 20)
-    private String identification;
-
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
@@ -41,9 +44,6 @@ public class UserJpaEntity {
     @Column(name = "role", nullable = false, length = 20)
     private String role;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
-
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -52,8 +52,8 @@ public class UserJpaEntity {
     private String businessName;
 
     /** Solo aplica a vendedores. */
-    @Column(name = "seller_status", length = 20)
-    private String sellerStatus;
+    @Column(name = "approved")
+    private boolean approved;
 
     /** Solo aplica a compradores. */
     @Column(name = "shipping_street")
@@ -78,16 +78,17 @@ public class UserJpaEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public UserJpaEntity(String id, String identification, String fullName, String email,
-                         String phone, String role, String status, String passwordHash,
-                         LocalDateTime createdAt) {
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_addresses", joinColumns = @JoinColumn(name = "user_id"))
+    private List<AddressEmbeddable> addresses = new ArrayList<>();
+
+    public UserJpaEntity(String id, String fullName, String email, String phone,
+                         String role, String passwordHash, LocalDateTime createdAt) {
         this.id = id;
-        this.identification = identification;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.role = role;
-        this.status = status;
         this.passwordHash = passwordHash;
         this.createdAt = createdAt;
     }

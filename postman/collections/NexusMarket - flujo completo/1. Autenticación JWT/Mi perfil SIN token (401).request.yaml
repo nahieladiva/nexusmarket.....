@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{base}}/api/users/me"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("HTTP 401 - ruta protegida", () => pm.response.to.have.status(401));
+    language: text/javascript
+order: 3000

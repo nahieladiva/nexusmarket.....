@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida para la persistencia de órdenes.
+ * Puerto de salida 5/15 — pedidos (MySQL).
  */
 public interface OrderRepository {
 

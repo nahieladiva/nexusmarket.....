@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto de salida para la persistencia de productos.
+ * Puerto de salida 2/15 — catálogo de productos (MySQL).
  */
 public interface ProductRepository {
 

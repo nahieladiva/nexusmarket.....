@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base}}/api/orders/{{orderId}}/deliver"
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test("DELIVERED", () => pm.expect(pm.response.json().status).to.eql("DELIVERED"));
+    language: text/javascript
+order: 6000

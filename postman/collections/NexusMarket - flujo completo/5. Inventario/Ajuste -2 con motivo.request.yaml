@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{base}}/api/inventory/adjust"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "productId": "{{productId}}",
+      "warehouseId": "{{warehouseId}}",
+      "delta": -2,
+      "reason": "Unidades dañadas"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{sellerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test("20 - 2 = 18", () => pm.expect(pm.response.json().onHand).to.eql(18));
+    language: text/javascript
+order: 3000

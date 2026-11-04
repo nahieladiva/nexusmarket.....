@@ -50,6 +50,6 @@ public class WarehouseJpaEntity {
     @Column(name = "bin", nullable = false)
     private String bin;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    @Column(name = "active", nullable = false)
+    private boolean active;
 }

@@ -1,8 +1,5 @@
 package application.domain.models;
 
-import application.domain.enums.ProductStatus;
-import application.domain.enums.ProductType;
-import application.domain.exceptions.InvalidStatusTransitionException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductCode;
 import application.domain.valueobjects.ProductId;
@@ -12,14 +9,13 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Producto del catálogo publicado por un vendedor.
+ * Entidad de producto publicado por un vendedor.
  *
  * <p>Invariantes:</p>
  * <ul>
- *   <li>El id, el código, el vendedor y el tipo son inmutables.</li>
- *   <li>Un producto nace {@code PUBLISHED}.</li>
- *   <li>Un producto {@code DISCONTINUED} no admite cambios.</li>
- *   <li>Solo los productos {@code PHYSICAL} manejan inventario en bodega.</li>
+ *   <li>El SKU ({@code ProductCode}) y el id son inmutables y únicos.</li>
+ *   <li>El precio no puede ser negativo (validado por {@link Money}).</li>
+ *   <li>Solo se puede modificar precio, descripción y estado.</li>
  * </ul>
  */
 public final class Product {
@@ -30,28 +26,25 @@ public final class Product {
     private String description;
     private Money price;
     private final UserId sellerId;
-    private final ProductType type;
-    private ProductStatus status;
+    private boolean active;
     private final LocalDateTime createdAt;
 
     public Product(ProductId id, ProductCode code, String name, String description,
-                   Money price, UserId sellerId, ProductType type, ProductStatus status,
-                   LocalDateTime createdAt) {
+                   Money price, UserId sellerId, boolean active, LocalDateTime createdAt) {
         this.id = Objects.requireNonNull(id, "El id de producto es obligatorio");
         this.code = Objects.requireNonNull(code, "El código de producto es obligatorio");
         this.name = requireNotBlank(name, "El nombre del producto es obligatorio");
         this.description = description;
-        this.price = Objects.requireNonNull(price, "El precio es obligatorio");
+        this.price = requirePositive(price);
         this.sellerId = Objects.requireNonNull(sellerId, "El vendedor es obligatorio");
-        this.type = Objects.requireNonNull(type, "El tipo de producto es obligatorio");
-        this.status = status == null ? ProductStatus.PUBLISHED : status;
+        this.active = active;
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
     }
 
     public static Product create(ProductCode code, String name, String description,
-                                 Money price, UserId sellerId, ProductType type) {
+                                 Money price, UserId sellerId) {
         return new Product(ProductId.random(), code, name, description, price, sellerId,
-            type, ProductStatus.PUBLISHED, LocalDateTime.now());
+            true, LocalDateTime.now());
     }
 
     private static String requireNotBlank(String value, String message) {
@@ -61,47 +54,42 @@ public final class Product {
         return value.trim();
     }
 
+    private static Money requirePositive(Money price) {
+        Objects.requireNonNull(price, "El precio es obligatorio");
+        if (price.isZero()) {
+            throw new IllegalArgumentException("El precio debe ser mayor que cero");
+        }
+        return price;
+    }
+
     public void changePrice(Money newPrice) {
-        requireNotDiscontinued();
-        this.price = Objects.requireNonNull(newPrice, "El precio es obligatorio");
+        Money validated = requirePositive(newPrice);
+        if (!validated.getCurrency().equals(this.price.getCurrency())) {
+            throw new IllegalArgumentException(
+                "La moneda del producto no se puede cambiar: " + this.price.getCurrency());
+        }
+        this.price = validated;
+    }
+
+    public void rename(String newName) {
+        this.name = requireNotBlank(newName, "El nombre del producto es obligatorio");
+    }
+
+    /** Indica si el producto pertenece al vendedor dado. */
+    public boolean isOwnedBy(UserId userId) {
+        return this.sellerId.equals(userId);
     }
 
     public void changeDescription(String newDescription) {
-        requireNotDiscontinued();
         this.description = newDescription;
     }
 
-    public void publish() {
-        transitionTo(ProductStatus.PUBLISHED);
+    public void activate() {
+        this.active = true;
     }
 
-    public void suspend() {
-        transitionTo(ProductStatus.SUSPENDED);
-    }
-
-    public void discontinue() {
-        transitionTo(ProductStatus.DISCONTINUED);
-    }
-
-    private void transitionTo(ProductStatus target) {
-        if (!status.canTransitionTo(target)) {
-            throw new InvalidStatusTransitionException("Producto", status, target);
-        }
-        this.status = target;
-    }
-
-    private void requireNotDiscontinued() {
-        if (status == ProductStatus.DISCONTINUED) {
-            throw new IllegalStateException("El producto " + id + " está descontinuado");
-        }
-    }
-
-    public boolean isSellable() {
-        return status.isSellable();
-    }
-
-    public boolean requiresInventory() {
-        return type.requiresInventory();
+    public void deactivate() {
+        this.active = false;
     }
 
     public ProductId getId() {
@@ -128,12 +116,8 @@ public final class Product {
         return sellerId;
     }
 
-    public ProductType getType() {
-        return type;
-    }
-
-    public ProductStatus getStatus() {
-        return status;
+    public boolean isActive() {
+        return active;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -3,7 +3,9 @@ package application.adapters.in.rest.mappers;
 import application.adapters.in.rest.requests.CreateInventoryRequest;
 import application.adapters.in.rest.requests.WarehouseLocationRequest;
 import application.adapters.in.rest.responses.InventoryResponse;
+import application.adapters.in.rest.responses.StockMovementResponse;
 import application.domain.models.Inventory;
+import application.domain.models.StockMovement;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
@@ -28,6 +30,18 @@ public class InventoryMapper {
 
     public WarehouseLocation toDomain(WarehouseLocationRequest location) {
         return WarehouseLocation.of(location.aisle(), location.shelf(), location.bin());
+    }
+
+    public StockMovementResponse toResponse(StockMovement movement) {
+        return new StockMovementResponse(
+            movement.id(),
+            movement.type().name(),
+            movement.delta(),
+            movement.resultingOnHand().getValue(),
+            movement.reason(),
+            movement.performedBy() == null ? null : movement.performedBy().toString(),
+            movement.reference(),
+            movement.occurredAt());
     }
 
     public InventoryResponse toResponse(Inventory inventory) {

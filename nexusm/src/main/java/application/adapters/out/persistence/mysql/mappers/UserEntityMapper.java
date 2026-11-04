@@ -1,25 +1,22 @@
 package application.adapters.out.persistence.mysql.mappers;
 
+import application.adapters.out.persistence.mysql.entities.AddressEmbeddable;
 import application.adapters.out.persistence.mysql.entities.UserJpaEntity;
-import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
-import application.domain.enums.UserStatus;
+import application.domain.models.Administrator;
 import application.domain.models.Buyer;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
-import application.domain.valueobjects.IdentificationNumber;
 import application.domain.valueobjects.PhoneNumber;
 import application.domain.valueobjects.UserId;
-
 import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 /**
- * Traduce entre el modelo de dominio {@link User} (y sus subclases) y la
- * entidad JPA {@link UserJpaEntity}. Los enums se guardan como texto.
+ * Convierte usuarios del dominio (Buyer, Seller, Administrator) a la tabla {@code users}
+ * y viceversa. Las direcciones adicionales van en {@code user_addresses}.
  */
 @Component
 public class UserEntityMapper {
@@ -27,17 +24,15 @@ public class UserEntityMapper {
     public UserJpaEntity toEntity(User user) {
         UserJpaEntity entity = new UserJpaEntity(
             user.getId().toString(),
-            user.getIdentification().getValue(),
             user.getFullName(),
             user.getEmail().getValue(),
             user.getPhone().getValue(),
             user.getRole().name(),
-            user.getStatus().name(),
             user.getPasswordHash(),
             user.getCreatedAt());
         if (user instanceof Seller seller) {
             entity.setBusinessName(seller.getBusinessName());
-            entity.setSellerStatus(seller.getSellerStatus().name());
+            entity.setApproved(seller.isApproved());
         } else if (user instanceof Buyer buyer) {
             Address address = buyer.getDefaultShippingAddress();
             entity.setShippingStreet(address.getStreet());
@@ -46,53 +41,32 @@ public class UserEntityMapper {
             entity.setShippingZip(address.getZipCode());
             entity.setShippingCountry(address.getCountry());
         }
+        entity.setAddresses(user.getAddresses().stream()
+            .map(a -> new AddressEmbeddable(a.getStreet(), a.getCity(), a.getState(),
+                a.getZipCode(), a.getCountry()))
+            .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new)));
         return entity;
     }
 
     public User toDomain(UserJpaEntity entity) {
         UserRole role = UserRole.valueOf(entity.getRole());
-        UserStatus status = UserStatus.valueOf(entity.getStatus());
         UserId id = UserId.of(entity.getId());
-        IdentificationNumber identification = IdentificationNumber.of(entity.getIdentification());
+        Email email = Email.of(entity.getEmail());
+        PhoneNumber phone = PhoneNumber.of(entity.getPhone());
+        List<Address> addresses = entity.getAddresses() == null ? List.of()
+            : entity.getAddresses().stream()
+                .map(a -> Address.of(a.getStreet(), a.getCity(), a.getState(), a.getZipCode(),
+                    a.getCountry()))
+                .toList();
         return switch (role) {
-            case BUYER -> new Buyer(
-                id,
-                identification,
-                entity.getFullName(),
-                Email.of(entity.getEmail()),
-                PhoneNumber.of(entity.getPhone()),
-                entity.getPasswordHash(),
+            case BUYER -> new Buyer(id, entity.getFullName(), email, phone, entity.getPasswordHash(),
                 Address.of(entity.getShippingStreet(), entity.getShippingCity(),
-                    entity.getShippingState(), entity.getShippingZip(),
-                    entity.getShippingCountry()),
-                List.of(),
-                status,
-                entity.getCreatedAt());
-            case SELLER -> new Seller(
-                id,
-                identification,
-                entity.getFullName(),
-                Email.of(entity.getEmail()),
-                PhoneNumber.of(entity.getPhone()),
-                entity.getPasswordHash(),
-                entity.getBusinessName(),
-                List.of(),
-                entity.getSellerStatus() == null
-                    ? SellerStatus.PENDING_APPROVAL
-                    : SellerStatus.valueOf(entity.getSellerStatus()),
-                status,
-                entity.getCreatedAt());
-            default -> new User(
-                id,
-                identification,
-                entity.getFullName(),
-                Email.of(entity.getEmail()),
-                PhoneNumber.of(entity.getPhone()),
-                role,
-                status,
-                entity.getPasswordHash(),
-                List.of(),
-                entity.getCreatedAt());
+                    entity.getShippingState(), entity.getShippingZip(), entity.getShippingCountry()),
+                addresses, entity.getCreatedAt());
+            case SELLER -> new Seller(id, entity.getFullName(), email, phone, entity.getPasswordHash(),
+                entity.getBusinessName(), addresses, entity.isApproved(), entity.getCreatedAt());
+            case ADMIN -> new Administrator(id, entity.getFullName(), email, phone,
+                entity.getPasswordHash(), addresses, entity.getCreatedAt());
         };
     }
 }

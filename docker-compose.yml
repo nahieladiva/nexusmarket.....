@@ -1,3 +1,5 @@
+# NexusMarket: MySQL + MongoDB + API Spring Boot
+# Uso:  docker compose up -d --build      (la API queda en http://localhost:8080)
 services:
   mysql:
     image: mysql:8.0
@@ -5,11 +7,17 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: nexusmarket
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: America/Bogota
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - nexus_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
   mongo:
     image: mongo:7.0
@@ -18,8 +26,34 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - nexus_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build: ./nexusm
+    container_name: nexusmarket-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/nexusmarket?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MONGODB_URI: mongodb://mongo:27017/nexusmarket
+      JWT_SECRET: ${JWT_SECRET:-nexusmarket-clave-de-desarrollo-cambiar-0123456789}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@nexusmarket.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin2026}
+      TZ: America/Bogota
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
 
 volumes:
-  mysql_data:
-  mongo_data:
+  nexus_mysql:
+  nexus_mongo:

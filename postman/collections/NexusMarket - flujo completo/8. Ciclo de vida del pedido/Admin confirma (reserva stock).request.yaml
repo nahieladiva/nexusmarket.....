@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base}}/api/orders/{{orderId}}/confirm"
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      const j = pm.response.json();
+      pm.test("CONFIRMED", () => pm.expect(j.status).to.eql("CONFIRMED"));
+      pm.test("Bodega asignada", () => pm.expect(j.items[0].warehouseId).to.eql(pm.collectionVariables.get("warehouseId")));
+    language: text/javascript
+order: 2000

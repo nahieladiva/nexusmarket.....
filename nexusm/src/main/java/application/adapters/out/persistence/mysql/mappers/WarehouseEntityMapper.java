@@ -1,7 +1,6 @@
 package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.WarehouseJpaEntity;
-import application.domain.enums.WarehouseStatus;
 import application.domain.models.Warehouse;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.WarehouseId;
@@ -27,7 +26,7 @@ public class WarehouseEntityMapper {
         entity.setAisle(warehouse.getLocation().getAisle());
         entity.setShelf(warehouse.getLocation().getShelf());
         entity.setBin(warehouse.getLocation().getBin());
-        entity.setStatus(warehouse.getStatus().name());
+        entity.setActive(warehouse.isActive());
         return entity;
     }
 
@@ -38,6 +37,6 @@ public class WarehouseEntityMapper {
             new Address(entity.getStreet(), entity.getCity(), entity.getState(),
                 entity.getZipCode(), entity.getCountry()),
             new WarehouseLocation(entity.getAisle(), entity.getShelf(), entity.getBin()),
-            WarehouseStatus.valueOf(entity.getStatus()));
+            entity.isActive());
     }
 }

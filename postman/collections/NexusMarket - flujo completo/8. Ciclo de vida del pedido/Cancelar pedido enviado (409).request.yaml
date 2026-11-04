@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{base}}/api/orders/{{orderId}}/cancel"
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: "{{buyerToken}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("HTTP 409 - transición inválida", () => pm.response.to.have.status(409));
+    language: text/javascript
+order: 5000

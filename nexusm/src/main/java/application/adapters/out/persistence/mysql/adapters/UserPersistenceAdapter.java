@@ -6,7 +6,6 @@ import application.adapters.out.persistence.mysql.repositories.UserJpaRepository
 import application.domain.models.User;
 import application.domain.ports.out.UserRepository;
 import application.domain.valueobjects.Email;
-import application.domain.valueobjects.IdentificationNumber;
 import application.domain.valueobjects.UserId;
 
 import java.util.List;
@@ -43,16 +42,6 @@ public class UserPersistenceAdapter implements UserRepository {
     @Override
     public Optional<User> findByEmail(Email email) {
         return jpaRepository.findByEmail(email.getValue()).map(mapper::toDomain);
-    }
-
-    @Override
-    public boolean existsByEmail(Email email) {
-        return jpaRepository.existsByEmail(email.getValue());
-    }
-
-    @Override
-    public boolean existsByIdentification(IdentificationNumber identification) {
-        return jpaRepository.existsByIdentification(identification.getValue());
     }
 
     @Override

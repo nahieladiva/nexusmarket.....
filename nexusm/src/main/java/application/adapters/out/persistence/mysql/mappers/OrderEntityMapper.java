@@ -37,7 +37,8 @@ public class OrderEntityMapper {
             itemEntity.setQuantity(item.getQuantity().getValue());
             itemEntity.setUnitPriceAmount(item.getUnitPrice().getAmount());
             itemEntity.setUnitPriceCurrency(item.getUnitPrice().getCurrency().getCurrencyCode());
-            itemEntity.setWarehouseId(item.hasWarehouse() ? item.getWarehouseId().toString() : null);
+            itemEntity.setWarehouseId(item.getWarehouseId() == null
+                ? null : item.getWarehouseId().toString());
             itemEntity.setOrder(entity);
             entity.getItems().add(itemEntity);
         });

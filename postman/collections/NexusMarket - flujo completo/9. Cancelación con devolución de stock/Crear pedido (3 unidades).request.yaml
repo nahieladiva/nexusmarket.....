@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{base}}/api/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "items": [
+        {
+          "productId": "{{productId}}",
+          "quantity": 3
+        }
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{buyerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("orderId2", pm.response.json().id);
+    language: text/javascript
+order: 1000

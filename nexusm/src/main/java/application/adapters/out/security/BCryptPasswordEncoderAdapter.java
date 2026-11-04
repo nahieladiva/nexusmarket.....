@@ -1,0 +1,24 @@
+package application.adapters.out.security;
+
+import application.domain.ports.out.PasswordEncoderPort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
+
+/**
+ * Adaptador de {@link PasswordEncoderPort} con BCrypt.
+ */
+@Component
+public class BCryptPasswordEncoderAdapter implements PasswordEncoderPort {
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    @Override
+    public String encode(String rawPassword) {
+        return encoder.encode(rawPassword);
+    }
+
+    @Override
+    public boolean matches(String rawPassword, String encodedPassword) {
+        return encoder.matches(rawPassword, encodedPassword);
+    }
+}

@@ -4,17 +4,13 @@ import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
-
 import java.util.Objects;
 
 /**
- * Entidad que representa una línea de una orden ({@link Order}).
+ * Ítem de una orden: producto, cantidad y precio unitario efectivo al momento de la compra.
  *
- * <p>Invariantes:</p>
- * <ul>
- *   <li>La cantidad debe ser mayor a cero.</li>
- *   <li>El subtotal se calcula siempre como {@code unitPrice * quantity}.</li>
- * </ul>
+ * <p>{@code warehouseId} es {@code null} mientras la orden está pendiente; se asigna al
+ * confirmar la orden, cuando se reserva el stock en una bodega concreta.</p>
  */
 public final class OrderItem {
 
@@ -27,10 +23,6 @@ public final class OrderItem {
         this(productId, quantity, unitPrice, null);
     }
 
-    /**
-     * @param warehouseId bodega de la que se reservó el stock; {@code null} para
-     *                    productos digitales o ítems aún sin asignar.
-     */
     public OrderItem(ProductId productId, Quantity quantity, Money unitPrice,
                      WarehouseId warehouseId) {
         this.productId = Objects.requireNonNull(productId, "El producto es obligatorio");
@@ -42,7 +34,11 @@ public final class OrderItem {
         this.warehouseId = warehouseId;
     }
 
-    /** Devuelve una copia del ítem asignada a la bodega indicada. */
+    public Money subtotal() {
+        return unitPrice.multiply(quantity.getValue());
+    }
+
+    /** Devuelve una copia del ítem asignado a la bodega indicada. */
     public OrderItem assignedTo(WarehouseId warehouse) {
         return new OrderItem(productId, quantity, unitPrice,
             Objects.requireNonNull(warehouse, "La bodega es obligatoria"));
@@ -50,14 +46,6 @@ public final class OrderItem {
 
     public boolean hasWarehouse() {
         return warehouseId != null;
-    }
-
-    public WarehouseId getWarehouseId() {
-        return warehouseId;
-    }
-
-    public Money subtotal() {
-        return unitPrice.multiply(quantity.getValue());
     }
 
     public ProductId getProductId() {
@@ -72,6 +60,10 @@ public final class OrderItem {
         return unitPrice;
     }
 
+    public WarehouseId getWarehouseId() {
+        return warehouseId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -83,16 +75,18 @@ public final class OrderItem {
         OrderItem orderItem = (OrderItem) o;
         return productId.equals(orderItem.productId)
             && quantity.equals(orderItem.quantity)
-            && unitPrice.equals(orderItem.unitPrice);
+            && unitPrice.equals(orderItem.unitPrice)
+            && Objects.equals(warehouseId, orderItem.warehouseId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(productId, quantity, unitPrice);
+        return Objects.hash(productId, quantity, unitPrice, warehouseId);
     }
 
     @Override
     public String toString() {
-        return "OrderItem{product=" + productId + ", qty=" + quantity + ", unitPrice=" + unitPrice + '}';
+        return "OrderItem{product=" + productId + ", qty=" + quantity + ", unitPrice=" + unitPrice
+            + (warehouseId != null ? ", warehouse=" + warehouseId : "") + '}';
     }
 }

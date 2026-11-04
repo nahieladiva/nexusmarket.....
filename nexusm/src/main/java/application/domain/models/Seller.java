@@ -1,62 +1,41 @@
 package application.domain.models;
 
-import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
-import application.domain.enums.UserStatus;
-import application.domain.exceptions.InvalidStatusTransitionException;
-import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
-import application.domain.valueobjects.IdentificationNumber;
 import application.domain.valueobjects.PhoneNumber;
 import application.domain.valueobjects.UserId;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Vendedor de la plataforma.
+ * Especialización de {@link User} con rol {@code SELLER}.
  *
- * <p>Reglas:</p>
- * <ul>
- *   <li>Solo un Administrador puede registrarlo (se valida en el caso de uso).</li>
- *   <li>Nace en {@code PENDING_APPROVAL} y solo publica productos cuando está {@code APPROVED}.</li>
- * </ul>
+ * <p>Agrega el nombre comercial y un estado de aprobación.</p>
  */
 public class Seller extends User {
 
     private String businessName;
-    private SellerStatus sellerStatus;
+    private boolean approved;
 
-    public Seller(UserId id, IdentificationNumber identification, String fullName, Email email,
-                  PhoneNumber phone, String passwordHash, String businessName,
-                  List<Address> addresses, SellerStatus sellerStatus, UserStatus status,
-                  LocalDateTime createdAt) {
-        super(id, identification, fullName, email, phone, UserRole.SELLER, status,
-            passwordHash, addresses, createdAt);
+    public Seller(UserId id, String fullName, Email email, PhoneNumber phone,
+                  String passwordHash, String businessName,
+                  List<Address> addresses, boolean approved, LocalDateTime createdAt) {
+        super(id, fullName, email, phone, UserRole.SELLER, passwordHash, addresses, createdAt);
         this.businessName = requireNotBlank(businessName, "El nombre comercial es obligatorio");
-        this.sellerStatus = sellerStatus == null ? SellerStatus.PENDING_APPROVAL : sellerStatus;
+        this.approved = approved;
     }
 
-    public static Seller create(IdentificationNumber identification, String fullName, Email email,
-                                PhoneNumber phone, String passwordHash, String businessName) {
-        return new Seller(UserId.random(), identification, fullName, email, phone, passwordHash,
-            businessName, List.of(), SellerStatus.PENDING_APPROVAL, UserStatus.ACTIVE,
-            LocalDateTime.now());
+    public static Seller create(String fullName, Email email, PhoneNumber phone,
+                                String passwordHash, String businessName) {
+        return new Seller(UserId.random(), fullName, email, phone, passwordHash,
+            businessName, List.of(), false, LocalDateTime.now());
     }
 
     public void approve() {
-        if (sellerStatus == SellerStatus.APPROVED) {
-            throw new InvalidStatusTransitionException("Vendedor", sellerStatus, SellerStatus.APPROVED);
-        }
-        this.sellerStatus = SellerStatus.APPROVED;
-    }
-
-    public void suspend() {
-        if (sellerStatus != SellerStatus.APPROVED) {
-            throw new InvalidStatusTransitionException("Vendedor", sellerStatus, SellerStatus.SUSPENDED);
-        }
-        this.sellerStatus = SellerStatus.SUSPENDED;
+        this.approved = true;
     }
 
     public void changeBusinessName(String newBusinessName) {
@@ -67,23 +46,33 @@ public class Seller extends User {
         return businessName;
     }
 
-    public SellerStatus getSellerStatus() {
-        return sellerStatus;
-    }
-
     public boolean isApproved() {
-        return sellerStatus == SellerStatus.APPROVED;
+        return approved;
     }
 
     /**
-     * Un vendedor solo puede publicar si está activo y aprobado.
+     * Regla de negocio: solo vendedores aprobados pueden publicar productos.
      */
     public void requireApprovedToPublish() {
-        requireActive();
-        if (!sellerStatus.canPublishProducts()) {
-            throw new UnauthorizedOperationException(
-                "El vendedor debe estar aprobado para publicar productos (estado actual: "
-                    + sellerStatus + ")");
+        if (!approved) {
+            throw new IllegalStateException("El vendedor debe estar aprobado para publicar productos");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Seller seller = (Seller) o;
+        return Objects.equals(getId(), seller.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

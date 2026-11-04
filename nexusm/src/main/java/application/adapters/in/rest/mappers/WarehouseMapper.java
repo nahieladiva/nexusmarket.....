@@ -45,6 +45,6 @@ public class WarehouseMapper {
             location.getAisle(),
             location.getShelf(),
             location.getBin(),
-            warehouse.getStatus().name());
+            warehouse.isActive());
     }
 }

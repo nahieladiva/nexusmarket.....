@@ -1,28 +1,22 @@
 package application.domain.models;
 
-import application.domain.enums.MovementType;
-import application.domain.exceptions.InsufficientStockException;
 import application.domain.valueobjects.InventoryId;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
 import application.domain.valueobjects.WarehouseLocation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * Inventario de un producto en una bodega (inventario distribuido).
+ * Entidad de inventario: stock disponible de un producto en un almacén.
  *
  * <p>Invariantes:</p>
  * <ul>
- *   <li>Un par (producto, bodega) identifica de forma única el inventario.</li>
- *   <li>El stock nunca puede ser negativo: cualquier salida mayor al
- *       disponible lanza {@link InsufficientStockException}.</li>
- *   <li>Todo cambio de stock queda registrado como {@link InventoryMovement}
- *       con su {@link MovementType}.</li>
+ *   <li>Un par (producto, almacén) identifica de forma única el inventario.</li>
+ *   <li>La cantidad disponible nunca puede ser negativa.</li>
+ *   <li>Cuando el stock disponible cae por debajo del punto de reorden se
+ *       considera inventario bajo (genera {@code LowStockEvent}).</li>
  * </ul>
  */
 public final class Inventory {
@@ -33,7 +27,6 @@ public final class Inventory {
     private Quantity onHand;
     private Quantity reorderThreshold;
     private WarehouseLocation location;
-    private final List<InventoryMovement> movements = new ArrayList<>();
 
     public Inventory(InventoryId id, ProductId productId, WarehouseId warehouseId,
                      Quantity onHand, Quantity reorderThreshold, WarehouseLocation location) {
@@ -53,73 +46,39 @@ public final class Inventory {
             onHand, reorderThreshold, location);
     }
 
-    /** Entrada de mercancía a la bodega. */
-    public InventoryMovement receive(Quantity amount) {
-        return add(MovementType.INFLOW, amount, "Entrada de mercancía");
-    }
-
-    /** Reserva de stock para un pedido. */
-    public InventoryMovement reserve(Quantity amount) {
-        return remove(MovementType.RESERVATION, amount, "Reserva para pedido");
-    }
-
-    /** Salida definitiva por venta. */
-    public InventoryMovement registerSale(Quantity amount) {
-        return remove(MovementType.SALE, amount, "Venta");
-    }
-
-    /** Reingreso de unidades por devolución. */
-    public InventoryMovement registerReturn(Quantity amount) {
-        return add(MovementType.RETURN, amount, "Devolución");
+    /**
+     * Incrementa el stock disponible (entrada de mercancía).
+     */
+    public void increase(Quantity amount) {
+        Objects.requireNonNull(amount, "La cantidad es obligatoria");
+        this.onHand = this.onHand.add(amount);
     }
 
     /**
-     * Ajuste manual por conteo físico. Un delta positivo suma y uno negativo
-     * resta; el resultado nunca puede quedar negativo.
+     * Decrementa el stock disponible (venta, merma). Valida que exista disponibilidad.
      */
-    public InventoryMovement adjust(int delta, String reason) {
-        if (delta == 0) {
-            throw new IllegalArgumentException("El ajuste de inventario no puede ser cero");
-        }
-        String motive = (reason == null || reason.isBlank()) ? "Ajuste manual" : reason.trim();
-        return delta > 0
-            ? add(MovementType.ADJUSTMENT, Quantity.of(delta), motive)
-            : remove(MovementType.ADJUSTMENT, Quantity.of(-delta), motive);
-    }
-
-    private InventoryMovement add(MovementType type, Quantity amount, String reason) {
-        requirePositive(amount);
-        this.onHand = this.onHand.add(amount);
-        return registerMovement(type, amount, reason);
-    }
-
-    private InventoryMovement remove(MovementType type, Quantity amount, String reason) {
-        requirePositive(amount);
+    public void decrease(Quantity amount) {
+        Objects.requireNonNull(amount, "La cantidad es obligatoria");
         if (!isAvailable(amount)) {
-            throw new InsufficientStockException(productId, warehouseId, amount, onHand);
+            throw new IllegalStateException(
+                "Stock insuficiente en el almacén " + warehouseId
+                    + ": disponible " + onHand + ", solicitado " + amount);
         }
         this.onHand = this.onHand.subtract(amount);
-        return registerMovement(type, amount, reason);
     }
 
-    private InventoryMovement registerMovement(MovementType type, Quantity amount, String reason) {
-        InventoryMovement movement = InventoryMovement.record(id, type, amount, onHand, reason);
-        movements.add(movement);
-        return movement;
-    }
-
-    private static void requirePositive(Quantity amount) {
-        Objects.requireNonNull(amount, "La cantidad es obligatoria");
-        if (amount.isZero()) {
-            throw new IllegalArgumentException("La cantidad del movimiento debe ser mayor a cero");
-        }
-    }
-
+    /**
+     * Indica si hay stock suficiente para satisfacer la cantidad solicitada.
+     */
     public boolean isAvailable(Quantity requested) {
         Objects.requireNonNull(requested, "La cantidad es obligatoria");
         return this.onHand.compareTo(requested) >= 0;
     }
 
+    /**
+     * Regla de negocio: se considera stock bajo cuando la disponibilidad
+     * es menor que el punto de reorden.
+     */
     public boolean isBelowReorderPoint() {
         return this.onHand.compareTo(this.reorderThreshold) < 0;
     }
@@ -151,10 +110,5 @@ public final class Inventory {
 
     public WarehouseLocation getLocation() {
         return location;
-    }
-
-    /** Movimientos registrados desde que se cargó el inventario. */
-    public List<InventoryMovement> getMovements() {
-        return Collections.unmodifiableList(movements);
     }
 }

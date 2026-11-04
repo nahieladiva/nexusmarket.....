@@ -11,36 +11,27 @@ import org.junit.jupiter.api.Test;
 class OrderStatusTest {
 
     @Test
-    void allowsCartTransitions() {
-        assertTrue(OrderStatus.CART.canTransitionTo(OrderStatus.PENDING_PAYMENT));
-        assertTrue(OrderStatus.CART.canTransitionTo(OrderStatus.CANCELLED));
+    void allowsPendingTransitions() {
+        assertTrue(OrderStatus.PENDING.canTransitionTo(OrderStatus.CONFIRMED));
+        assertTrue(OrderStatus.PENDING.canTransitionTo(OrderStatus.CANCELLED));
     }
 
     @Test
-    void allowsPendingPaymentTransitions() {
-        assertTrue(OrderStatus.PENDING_PAYMENT.canTransitionTo(OrderStatus.PAID));
-        assertTrue(OrderStatus.PENDING_PAYMENT.canTransitionTo(OrderStatus.CANCELLED));
+    void allowsConfirmedTransitions() {
+        assertTrue(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.SHIPPED));
+        assertTrue(OrderStatus.CONFIRMED.canTransitionTo(OrderStatus.CANCELLED));
     }
 
     @Test
-    void allowsPaidToShippedAndShippedToDelivered() {
-        assertTrue(OrderStatus.PAID.canTransitionTo(OrderStatus.SHIPPED));
+    void allowsShippedToDelivered() {
         assertTrue(OrderStatus.SHIPPED.canTransitionTo(OrderStatus.DELIVERED));
     }
 
     @Test
     void forbidsInvalidTransitions() {
-        assertFalse(OrderStatus.CART.canTransitionTo(OrderStatus.PAID));
-        assertFalse(OrderStatus.PENDING_PAYMENT.canTransitionTo(OrderStatus.SHIPPED));
-        assertFalse(OrderStatus.PAID.canTransitionTo(OrderStatus.CANCELLED));
+        assertFalse(OrderStatus.PENDING.canTransitionTo(OrderStatus.SHIPPED));
+        assertFalse(OrderStatus.PENDING.canTransitionTo(OrderStatus.DELIVERED));
         assertFalse(OrderStatus.DELIVERED.canTransitionTo(OrderStatus.SHIPPED));
-        assertFalse(OrderStatus.CANCELLED.canTransitionTo(OrderStatus.CART));
-    }
-
-    @Test
-    void finalStatesAreDeliveredAndCancelled() {
-        assertTrue(OrderStatus.DELIVERED.isFinal());
-        assertTrue(OrderStatus.CANCELLED.isFinal());
-        assertFalse(OrderStatus.PAID.isFinal());
+        assertFalse(OrderStatus.CANCELLED.canTransitionTo(OrderStatus.PENDING));
     }
 }

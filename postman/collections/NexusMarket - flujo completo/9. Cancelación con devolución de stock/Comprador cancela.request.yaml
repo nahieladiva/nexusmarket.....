@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base}}/api/orders/{{orderId2}}/cancel"
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: "{{buyerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test("CANCELLED", () => pm.expect(pm.response.json().status).to.eql("CANCELLED"));
+    language: text/javascript
+order: 3000

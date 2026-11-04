@@ -1,8 +1,6 @@
 package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.ProductJpaEntity;
-import application.domain.enums.ProductStatus;
-import application.domain.enums.ProductType;
 import application.domain.models.Product;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductCode;
@@ -26,8 +24,7 @@ public class ProductEntityMapper {
         entity.setPriceAmount(product.getPrice().getAmount());
         entity.setPriceCurrency(product.getPrice().getCurrency().getCurrencyCode());
         entity.setSellerId(product.getSellerId().toString());
-        entity.setType(product.getType().name());
-        entity.setStatus(product.getStatus().name());
+        entity.setActive(product.isActive());
         entity.setCreatedAt(product.getCreatedAt());
         return entity;
     }
@@ -40,8 +37,7 @@ public class ProductEntityMapper {
             entity.getDescription(),
             Money.of(entity.getPriceAmount().toPlainString(), entity.getPriceCurrency()),
             UserId.of(entity.getSellerId()),
-            ProductType.valueOf(entity.getType()),
-            ProductStatus.valueOf(entity.getStatus()),
+            entity.isActive(),
             entity.getCreatedAt());
     }
 }
