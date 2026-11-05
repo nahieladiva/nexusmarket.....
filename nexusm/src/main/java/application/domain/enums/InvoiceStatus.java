@@ -1,6 +1,6 @@
 package application.domain.enums;
 
-import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 /**
  * Status of the invoice generated when an order is paid.
@@ -27,7 +27,7 @@ public enum InvoiceStatus {
      */
     public void requireCanVoid() {
         if (this == VOIDED) {
-            throw new BusinessRuleException("Invoice is already voided");
+            throw new ResourceStateConflictException("Invoice is already voided");
         }
     }
 }

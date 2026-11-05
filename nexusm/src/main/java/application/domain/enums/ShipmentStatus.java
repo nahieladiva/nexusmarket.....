@@ -1,6 +1,7 @@
 package application.domain.enums;
 
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public enum ShipmentStatus {
      */
     public void requireCanTransitionTo(ShipmentStatus target) {
         if (!canTransitionTo(target)) {
-            throw new BusinessRuleException(
+            throw new ResourceStateConflictException(
                     "Shipment status cannot change from " + this + " to " + target);
         }
     }

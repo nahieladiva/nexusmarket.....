@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.InvoiceStatus;
 import application.domain.enums.OrderStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.valueobjects.InvoiceId;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.OrderId;
@@ -57,7 +58,7 @@ public final class Invoice {
     public static Invoice issueFor(Order order, InvoiceId id, String invoiceNumber, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
         if (!order.wasPaid() || order.getStatus() == OrderStatus.CANCELLED) {
-            throw new BusinessRuleException(
+            throw new ResourceStateConflictException(
                 "Only a paid order can be invoiced (current status: " + order.getStatus() + ")");
         }
         return new Invoice(id, invoiceNumber, order.getId(), order.getBuyerId(),

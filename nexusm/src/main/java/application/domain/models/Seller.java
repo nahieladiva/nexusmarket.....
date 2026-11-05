@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.PhoneNumber;
@@ -82,7 +83,7 @@ public class Seller extends User {
      */
     public void requireApprovedToPublish() {
         if (!status.canPublishProducts()) {
-            throw new BusinessRuleException("Seller must be approved to publish products");
+            throw new ResourceStateConflictException("Seller must be approved to publish products");
         }
     }
 

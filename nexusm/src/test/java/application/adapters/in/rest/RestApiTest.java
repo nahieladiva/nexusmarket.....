@@ -155,6 +155,47 @@ public abstract class RestApiTest {
         return email;
     }
 
+    /** Creates a warehouse of the seller and returns its id. */
+    protected String createWarehouse(String sellerToken) throws Exception {
+        return read(send(post("/api/v1/seller/warehouses"), sellerToken, """
+            {"name":"Warehouse %d","address":%s,"location":%s}""".formatted(next(), ADDRESS, LOCATION))
+            .andExpect(status().isCreated()), "$.id");
+    }
+
+    /** Registers a physical product of the seller, still unpublished, and returns its id. */
+    protected String createProduct(String sellerToken) throws Exception {
+        return read(send(post("/api/v1/seller/products"), sellerToken, """
+            {"code":"TEC-%06d","type":"PHYSICAL","name":"Headphones","description":"Bluetooth",
+             "price":{"amount":"150000.00","currency":"COP"}}""".formatted(next()))
+            .andExpect(status().isCreated()), "$.id");
+    }
+
+    /** Registers a product, publishes it, and stores units in a new warehouse. */
+    protected StockedProduct stockedProduct(String sellerToken, int units) throws Exception {
+        String productId = createProduct(sellerToken);
+        String warehouseId = createWarehouse(sellerToken);
+        send(post("/api/v1/seller/products/" + productId + "/publish"), sellerToken)
+            .andExpect(status().isOk());
+        send(post("/api/v1/seller/inventory"), sellerToken, """
+            {"productId":"%s","warehouseId":"%s","onHand":%d,"reorderThreshold":1,"location":%s}"""
+            .formatted(productId, warehouseId, units, LOCATION))
+            .andExpect(status().isCreated());
+        return new StockedProduct(productId, warehouseId);
+    }
+
+    /** Puts a unit of the product in the cart of the buyer and places the order. Returns its id. */
+    protected String placeOrder(String buyerToken, String productId) throws Exception {
+        send(post("/api/v1/buyer/cart/items"), buyerToken,
+            "{\"productId\":\"%s\",\"quantity\":1}".formatted(productId))
+            .andExpect(status().isOk());
+        return read(send(post("/api/v1/buyer/orders"), buyerToken)
+            .andExpect(status().isCreated()), "$.id");
+    }
+
+    /** A published product with stock, and the warehouse that holds it. */
+    protected record StockedProduct(String productId, String warehouseId) {
+    }
+
     /** Logs in a new user of the given role. */
     protected String tokenFor(UserRole role) throws Exception {
         return switch (role) {

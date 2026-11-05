@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.ProductStatus;
 import application.domain.enums.ProductType;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.exceptions.ForbiddenActionException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductCode;
@@ -75,7 +76,7 @@ public final class Product {
 
     private void requireEditable() {
         if (status.isTerminal()) {
-            throw new BusinessRuleException("A discontinued product cannot be modified");
+            throw new ResourceStateConflictException("A discontinued product cannot be modified");
         }
     }
 
@@ -129,7 +130,7 @@ public final class Product {
      */
     public void suspend() {
         if (status == ProductStatus.BLOCKED) {
-            throw new BusinessRuleException("A blocked product can only be unblocked by an administrator");
+            throw new ResourceStateConflictException("A blocked product can only be unblocked by an administrator");
         }
         changeStatus(ProductStatus.SUSPENDED);
     }
@@ -149,7 +150,7 @@ public final class Product {
      */
     public void unblock() {
         if (status != ProductStatus.BLOCKED) {
-            throw new BusinessRuleException("Product " + code + " is not blocked");
+            throw new ResourceStateConflictException("Product " + code + " is not blocked");
         }
         changeStatus(ProductStatus.SUSPENDED);
     }

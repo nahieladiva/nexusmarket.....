@@ -9,30 +9,68 @@ import application.domain.exceptions.InvalidCredentialsException;
 import application.domain.exceptions.InvalidTokenException;
 import application.domain.exceptions.OrderStateTransitionException;
 import application.domain.exceptions.ResourceNotFoundException;
+import application.domain.exceptions.ResourceStateConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * Translates domain exceptions into HTTP responses with a uniform format.
+ * Translates exceptions into HTTP responses, always with the {@link ErrorResponse} format.
+ *
+ * <p>Spring picks the most specific handler, so {@link ResourceStateConflictException} answers 409
+ * although it extends {@link BusinessRuleException}, which answers 422.</p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex,
-                                                        HttpServletRequest request) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidBody(MethodArgumentNotValidException ex,
+                                                           HttpServletRequest request) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .sorted()
+            .collect(Collectors.joining("; "));
+        return build(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidParameter(MethodArgumentTypeMismatchException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Invalid value for parameter " + ex.getName(), request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex,
+                                                              HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "The request body is missing or malformed", request);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Missing parameter " + ex.getParameterName(), request);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidValue(IllegalArgumentException ex,
+                                                            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler({InvalidCredentialsException.class, InvalidTokenException.class})
@@ -47,30 +85,10 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({InsufficientStockException.class, OrderStateTransitionException.class,
-        DuplicateResourceException.class, BusinessRuleException.class, IllegalStateException.class})
-    public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex,
                                                         HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex,
-                                                          HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ErrorResponse> handleMissingField(NullPointerException ex,
-                                                            HttpServletRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "A required field is missing";
-        return build(HttpStatus.BAD_REQUEST, message, request);
-    }
-
-    @ExceptionHandler({HttpMessageNotReadableException.class,
-        MissingServletRequestParameterException.class})
-    public ResponseEntity<ErrorResponse> handleMalformed(Exception ex, HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "Malformed request: " + ex.getMessage(), request);
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -79,11 +97,42 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, "Route not found", request);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed", request);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMedia(HttpMediaTypeNotSupportedException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type", request);
+    }
+
+    @ExceptionHandler({DuplicateResourceException.class, ResourceStateConflictException.class,
+        OrderStateTransitionException.class, InsufficientStockException.class})
+    public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
+                                                        HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    /** A unique constraint of the database failed: two requests raced past the domain checks. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseConflict(DataIntegrityViolationException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "The operation conflicts with existing data", request);
+    }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex,
+                                                            HttpServletRequest request) {
+        return build(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unhandled error at {}", request.getRequestURI(), ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR,
-            "An internal server error occurred", request);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "An internal server error occurred", request);
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message,

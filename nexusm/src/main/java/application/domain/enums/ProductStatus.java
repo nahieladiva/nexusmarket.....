@@ -1,6 +1,7 @@
 package application.domain.enums;
 
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -50,7 +51,7 @@ public enum ProductStatus {
      */
     public void requireCanTransitionTo(ProductStatus target) {
         if (!canTransitionTo(target)) {
-            throw new BusinessRuleException(
+            throw new ResourceStateConflictException(
                     "Product status cannot change from " + this + " to " + target);
         }
     }

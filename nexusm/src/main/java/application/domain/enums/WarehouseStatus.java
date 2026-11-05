@@ -1,6 +1,7 @@
 package application.domain.enums;
 
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 /**
  * Operational status of a warehouse. Only active warehouses can receive
@@ -24,7 +25,7 @@ public enum WarehouseStatus {
      */
     public void requireCanTransitionTo(WarehouseStatus target) {
         if (this == target) {
-            throw new BusinessRuleException("Warehouse is already " + target);
+            throw new ResourceStateConflictException("Warehouse is already " + target);
         }
     }
 }

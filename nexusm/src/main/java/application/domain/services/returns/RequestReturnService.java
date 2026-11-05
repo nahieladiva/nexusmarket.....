@@ -1,7 +1,7 @@
 package application.domain.services.returns;
 
 import application.domain.enums.UserRole;
-import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Order;
 import application.domain.models.ReturnRequest;
@@ -48,7 +48,7 @@ public class RequestReturnService {
         order.requireBelongsTo(buyer.getId());
         List<ReturnRequest> previous = returnRequestRepository.findByOrderId(orderId);
         if (previous.stream().anyMatch(existing -> existing.getStatus().isOpen())) {
-            throw new BusinessRuleException("Order " + orderId + " already has an open return");
+            throw new ResourceStateConflictException("Order " + orderId + " already has an open return");
         }
         Quantity alreadyReturned = Quantity.of(previous.stream()
             .filter(existing -> existing.getProductId().equals(productId))

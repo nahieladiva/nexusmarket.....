@@ -2,6 +2,7 @@ package application.domain.models;
 
 import application.domain.enums.ReturnStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ProductId;
@@ -73,7 +74,7 @@ public final class ReturnRequest {
         Objects.requireNonNull(order, "Order is required");
         Objects.requireNonNull(alreadyReturned, "Already returned quantity is required");
         if (!order.getStatus().allowsReturns()) {
-            throw new BusinessRuleException("Only products of delivered orders can be returned");
+            throw new ResourceStateConflictException("Only products of delivered orders can be returned");
         }
         OrderItem purchased = order.getItems().stream()
             .filter(item -> item.getProductId().equals(productId))

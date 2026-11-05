@@ -1,6 +1,7 @@
 package application.domain.enums;
 
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 /**
  * Status of a refund to the buyer, processed by an administrator.
@@ -26,7 +27,7 @@ public enum RefundStatus {
      */
     public void requireCanTransitionTo(RefundStatus target) {
         if (!canTransitionTo(target)) {
-            throw new BusinessRuleException(
+            throw new ResourceStateConflictException(
                     "Refund status cannot change from " + this + " to " + target);
         }
     }

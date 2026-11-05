@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.RefundStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.RefundId;
@@ -57,7 +58,7 @@ public final class Refund {
     public static Refund forReturn(ReturnRequest returnRequest, RefundId id, LocalDateTime now) {
         Objects.requireNonNull(returnRequest, "Return is required");
         if (!returnRequest.getStatus().entitlesRefund()) {
-            throw new BusinessRuleException("Only a return received in the warehouse can be refunded");
+            throw new ResourceStateConflictException("Only a return received in the warehouse can be refunded");
         }
         return new Refund(id, returnRequest.getOrderId(), returnRequest.getBuyerId(),
             returnRequest.getId(), returnRequest.getRefundAmount(), RefundStatus.PENDING, now, null);
@@ -71,10 +72,10 @@ public final class Refund {
     public static Refund forCancelledOrder(Order order, RefundId id, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
         if (order.getStatus() != OrderStatus.CANCELLED) {
-            throw new BusinessRuleException("Only a cancelled order can be refunded");
+            throw new ResourceStateConflictException("Only a cancelled order can be refunded");
         }
         if (!order.wasPaid()) {
-            throw new BusinessRuleException("An order that was never paid cannot be refunded");
+            throw new ResourceStateConflictException("An order that was never paid cannot be refunded");
         }
         return new Refund(id, order.getId(), order.getBuyerId(), null, order.getTotal(),
             RefundStatus.PENDING, now, null);

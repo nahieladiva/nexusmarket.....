@@ -3,7 +3,7 @@ package application.domain.services.order;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.StockMovementType;
 import application.domain.enums.UserRole;
-import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Inventory;
 import application.domain.models.Order;
@@ -60,7 +60,7 @@ public class CancelOrderService {
             order.requireBelongsTo(actor.getId());
         }
         if (!shipmentRepository.findByOrderId(orderId).isEmpty()) {
-            throw new BusinessRuleException("Order " + orderId + " has shipments and cannot be cancelled");
+            throw new ResourceStateConflictException("Order " + orderId + " has shipments and cannot be cancelled");
         }
         OrderStatus previous = order.getStatus();
         List<Inventory> released = orderFulfillmentDomainService.cancel(order);

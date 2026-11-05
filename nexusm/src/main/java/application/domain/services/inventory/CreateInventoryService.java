@@ -2,6 +2,7 @@ package application.domain.services.inventory;
 
 import application.domain.enums.StockMovementType;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.exceptions.DuplicateResourceException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Inventory;
@@ -60,7 +61,7 @@ public class CreateInventoryService {
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
             .orElseThrow(() -> new ResourceNotFoundException("Warehouse", warehouseId.toString()));
         if (!warehouse.isActive()) {
-            throw new BusinessRuleException("Stock cannot be registered in an inactive warehouse");
+            throw new ResourceStateConflictException("Stock cannot be registered in an inactive warehouse");
         }
         if (inventoryRepository.findByProductIdAndWarehouseId(productId, warehouseId).isPresent()) {
             throw new DuplicateResourceException("The product already has inventory in that warehouse");

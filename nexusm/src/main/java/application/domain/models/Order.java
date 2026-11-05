@@ -2,6 +2,7 @@ package application.domain.models;
 
 import application.domain.enums.OrderStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.exceptions.ForbiddenActionException;
 import application.domain.exceptions.OrderStateTransitionException;
 import application.domain.valueobjects.Money;
@@ -105,7 +106,7 @@ public final class Order {
      */
     public void assignWarehouses(Map<ProductId, WarehouseId> allocation) {
         if (status != OrderStatus.PENDING_PAYMENT) {
-            throw new BusinessRuleException("Warehouses can only be assigned to orders pending payment");
+            throw new ResourceStateConflictException("Warehouses can only be assigned to orders pending payment");
         }
         Objects.requireNonNull(allocation, "Warehouse allocation is required");
         List<OrderItem> assigned = new ArrayList<>();

@@ -1,6 +1,6 @@
 package application.domain.enums;
 
-import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 
 /**
  * Status of an issued JWT. A revoked token is rejected even if it has not expired,
@@ -25,7 +25,7 @@ public enum TokenStatus {
      */
     public void requireCanRevoke() {
         if (this == REVOKED) {
-            throw new BusinessRuleException("Token is already revoked");
+            throw new ResourceStateConflictException("Token is already revoked");
         }
     }
 }

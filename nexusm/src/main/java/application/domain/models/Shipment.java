@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.ShipmentStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ResourceStateConflictException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ShipmentId;
@@ -62,7 +63,7 @@ public final class Shipment {
                                       Address shippingAddress, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
         if (order.getStatus() != OrderStatus.PAID) {
-            throw new BusinessRuleException(
+            throw new ResourceStateConflictException(
                 "Only a paid order can be shipped (current status: " + order.getStatus() + ")");
         }
         if (!order.shippingWarehouses().contains(warehouseId)) {
