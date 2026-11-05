@@ -25,6 +25,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -127,6 +128,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex,
                                                             HttpServletRequest request) {
         return build(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), request);
+    }
+
+    /** The client closed the connection: it is not a server error and nobody can read an answer. */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleClientDisconnected(AsyncRequestNotUsableException ex) {
+        log.debug("The client disconnected: {}", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
