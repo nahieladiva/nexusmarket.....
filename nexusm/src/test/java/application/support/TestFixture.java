@@ -11,6 +11,9 @@ import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.models.Warehouse;
 import application.domain.services.inventory.RecordStockMovementService;
+import application.domain.services.invoice.ConsultInvoiceService;
+import application.domain.services.invoice.IssueInvoiceService;
+import application.domain.services.invoice.VoidInvoiceService;
 import application.domain.services.order.CancelOrderService;
 import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
@@ -57,6 +60,7 @@ public class TestFixture {
     public final InMemoryInventoryRepository inventories = new InMemoryInventoryRepository();
     public final InMemoryOrderRepository orders = new InMemoryOrderRepository();
     public final InMemoryCartRepository carts = new InMemoryCartRepository();
+    public final InMemoryInvoiceRepository invoices = new InMemoryInvoiceRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -86,6 +90,10 @@ public class TestFixture {
     public final CancelOrderService cancelOrder;
     public final ConsultOrderService consultOrder;
 
+    public final IssueInvoiceService issueInvoice;
+    public final VoidInvoiceService voidInvoice;
+    public final ConsultInvoiceService consultInvoice;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -113,8 +121,13 @@ public class TestFixture {
         recordStockMovement = new RecordStockMovementService(movements, events, notifier, products, clock, ids);
         notifyOrderStatusChange = new NotifyOrderStatusChangeService(events, notifier, clock);
         placeOrder = new PlaceOrderService(carts, orders, products, consultCart, allocation, events, clock, ids);
-        payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange, clock);
-        cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange);
+        issueInvoice = new IssueInvoiceService(invoices, clock, ids);
+        voidInvoice = new VoidInvoiceService(invoices, clock);
+        consultInvoice = new ConsultInvoiceService(invoices);
+        payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
+            issueInvoice, clock);
+        cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
+            voidInvoice);
         consultOrder = new ConsultOrderService(orders, products);
     }
 

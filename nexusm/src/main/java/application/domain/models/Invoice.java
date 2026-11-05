@@ -16,7 +16,8 @@ import java.util.Objects;
  *
  * <p>Rules:</p>
  * <ul>
- *   <li>It is issued only for a {@code PAID} order, and an order has one invoice.</li>
+ *   <li>It is issued only for an order that was paid and is not cancelled, and an order has
+ *       one invoice.</li>
  *   <li>The invoice total is the order total.</li>
  *   <li>It is voided when the order is cancelled after payment; a voided invoice never changes.</li>
  * </ul>
@@ -51,11 +52,11 @@ public final class Invoice {
     /**
      * Issues the invoice of a paid order.
      *
-     * @throws BusinessRuleException when the order is not paid
+     * @throws BusinessRuleException when the order was not paid or is cancelled
      */
     public static Invoice issueFor(Order order, InvoiceId id, String invoiceNumber, LocalDateTime now) {
         Objects.requireNonNull(order, "Order is required");
-        if (order.getStatus() != OrderStatus.PAID) {
+        if (!order.wasPaid() || order.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessRuleException(
                 "Only a paid order can be invoiced (current status: " + order.getStatus() + ")");
         }

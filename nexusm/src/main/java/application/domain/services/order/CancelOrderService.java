@@ -11,6 +11,7 @@ import application.domain.models.User;
 import application.domain.ports.out.OrderRepository;
 import application.domain.services.DomainService;
 import application.domain.services.inventory.RecordStockMovementService;
+import application.domain.services.invoice.VoidInvoiceService;
 import application.domain.valueobjects.OrderId;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.Objects;
 
 /**
  * Cancels an order. The buyer who owns it or an administrator can do it, and reserved stock goes
- * back to its warehouse.
+ * back to its warehouse, and its invoice is voided.
  */
 @DomainService
 public class CancelOrderService {
@@ -27,15 +28,18 @@ public class CancelOrderService {
     private final OrderFulfillmentDomainService orderFulfillmentDomainService;
     private final RecordStockMovementService recordStockMovementService;
     private final NotifyOrderStatusChangeService notifyOrderStatusChangeService;
+    private final VoidInvoiceService voidInvoiceService;
 
     public CancelOrderService(OrderRepository orderRepository,
                               OrderFulfillmentDomainService orderFulfillmentDomainService,
                               RecordStockMovementService recordStockMovementService,
-                              NotifyOrderStatusChangeService notifyOrderStatusChangeService) {
+                              NotifyOrderStatusChangeService notifyOrderStatusChangeService,
+                              VoidInvoiceService voidInvoiceService) {
         this.orderRepository = Objects.requireNonNull(orderRepository);
         this.orderFulfillmentDomainService = Objects.requireNonNull(orderFulfillmentDomainService);
         this.recordStockMovementService = Objects.requireNonNull(recordStockMovementService);
         this.notifyOrderStatusChangeService = Objects.requireNonNull(notifyOrderStatusChangeService);
+        this.voidInvoiceService = Objects.requireNonNull(voidInvoiceService);
     }
 
     public Order execute(User actor, OrderId orderId) {
@@ -55,6 +59,7 @@ public class CancelOrderService {
                 shippable.get(i).getQuantity().getValue(), "Released by cancelled order",
                 actor.getId(), saved.getId().toString());
         }
+        voidInvoiceService.execute(saved);
         notifyOrderStatusChangeService.execute(saved, previous);
         return saved;
     }

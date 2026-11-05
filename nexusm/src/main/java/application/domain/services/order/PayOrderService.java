@@ -12,13 +12,15 @@ import application.domain.ports.out.ClockPort;
 import application.domain.ports.out.OrderRepository;
 import application.domain.services.DomainService;
 import application.domain.services.inventory.RecordStockMovementService;
+import application.domain.services.invoice.IssueInvoiceService;
 import application.domain.valueobjects.OrderId;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Registers the payment of an order: the buyer who owns it pays, its stock is reserved and, when
+ * Registers the payment of an order: the buyer who owns it pays, its stock is reserved, the invoice
+ * is issued and, when
  * no item requires shipment, the order is delivered right away.
  */
 @DomainService
@@ -28,17 +30,19 @@ public class PayOrderService {
     private final OrderFulfillmentDomainService orderFulfillmentDomainService;
     private final RecordStockMovementService recordStockMovementService;
     private final NotifyOrderStatusChangeService notifyOrderStatusChangeService;
+    private final IssueInvoiceService issueInvoiceService;
     private final ClockPort clock;
 
     public PayOrderService(OrderRepository orderRepository,
                            OrderFulfillmentDomainService orderFulfillmentDomainService,
                            RecordStockMovementService recordStockMovementService,
                            NotifyOrderStatusChangeService notifyOrderStatusChangeService,
-                           ClockPort clock) {
+                           IssueInvoiceService issueInvoiceService, ClockPort clock) {
         this.orderRepository = Objects.requireNonNull(orderRepository);
         this.orderFulfillmentDomainService = Objects.requireNonNull(orderFulfillmentDomainService);
         this.recordStockMovementService = Objects.requireNonNull(recordStockMovementService);
         this.notifyOrderStatusChangeService = Objects.requireNonNull(notifyOrderStatusChangeService);
+        this.issueInvoiceService = Objects.requireNonNull(issueInvoiceService);
         this.clock = Objects.requireNonNull(clock);
     }
 
@@ -57,6 +61,7 @@ public class PayOrderService {
                 -shippable.get(i).getQuantity().getValue(), "Reserved for paid order",
                 buyer.getId(), saved.getId().toString());
         }
+        issueInvoiceService.execute(saved);
         notifyOrderStatusChangeService.execute(saved, previous);
         return saved;
     }
