@@ -64,4 +64,11 @@ public enum ReturnStatus {
     public boolean isOpen() {
         return this == REQUESTED || this == APPROVED;
     }
+
+    /**
+     * Every return that was not rejected counts against the units bought.
+     */
+    public boolean countsAsReturned() {
+        return this != REJECTED;
+    }
 }

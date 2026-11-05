@@ -246,6 +246,20 @@ public final class Order {
         return items.stream().anyMatch(item -> productIds.contains(item.getProductId()));
     }
 
+    /**
+     * Warehouse that shipped the given product.
+     *
+     * @throws BusinessRuleException when the order has no warehouse for that product
+     */
+    public WarehouseId warehouseOf(ProductId productId) {
+        return items.stream()
+            .filter(item -> item.getProductId().equals(productId) && item.hasWarehouse())
+            .map(OrderItem::getWarehouseId)
+            .findFirst()
+            .orElseThrow(() -> new BusinessRuleException(
+                "Order " + id + " has no warehouse for product " + productId));
+    }
+
     /** Total units per product. */
     public Map<ProductId, Integer> unitsByProduct() {
         Map<ProductId, Integer> result = new HashMap<>();

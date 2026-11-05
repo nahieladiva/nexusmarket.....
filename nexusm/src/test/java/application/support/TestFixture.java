@@ -20,6 +20,11 @@ import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
 import application.domain.services.order.PayOrderService;
 import application.domain.services.order.PlaceOrderService;
+import application.domain.services.returns.ApproveReturnService;
+import application.domain.services.returns.ConsultReturnService;
+import application.domain.services.returns.ReceiveReturnService;
+import application.domain.services.returns.RejectReturnService;
+import application.domain.services.returns.RequestReturnService;
 import application.domain.services.shipment.ApplyShipmentProgressService;
 import application.domain.services.shipment.ConfirmDeliveryService;
 import application.domain.services.shipment.ConsultShipmentService;
@@ -69,6 +74,7 @@ public class TestFixture {
     public final InMemoryCartRepository carts = new InMemoryCartRepository();
     public final InMemoryInvoiceRepository invoices = new InMemoryInvoiceRepository();
     public final InMemoryShipmentRepository shipments = new InMemoryShipmentRepository();
+    public final InMemoryReturnRequestRepository returns = new InMemoryReturnRequestRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -107,6 +113,12 @@ public class TestFixture {
     public final DispatchShipmentService dispatchShipment;
     public final ConfirmDeliveryService confirmDelivery;
     public final ConsultShipmentService consultShipment;
+
+    public final RequestReturnService requestReturn;
+    public final ApproveReturnService approveReturn;
+    public final RejectReturnService rejectReturn;
+    public final ReceiveReturnService receiveReturn;
+    public final ConsultReturnService consultReturn;
 
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
@@ -151,6 +163,12 @@ public class TestFixture {
         dispatchShipment = new DispatchShipmentService(shipments, applyShipmentProgress, clock);
         confirmDelivery = new ConfirmDeliveryService(shipments, applyShipmentProgress, clock);
         consultShipment = new ConsultShipmentService(shipments, consultOrder);
+
+        requestReturn = new RequestReturnService(returns, orders, clock, ids);
+        approveReturn = new ApproveReturnService(returns, clock);
+        rejectReturn = new RejectReturnService(returns, clock);
+        receiveReturn = new ReceiveReturnService(returns, orders, inventoryDomain, recordStockMovement);
+        consultReturn = new ConsultReturnService(returns, consultOrder);
     }
 
     // ---------- Datos de apoyo
