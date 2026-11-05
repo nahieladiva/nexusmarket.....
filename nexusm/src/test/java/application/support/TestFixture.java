@@ -43,6 +43,16 @@ import application.domain.services.returns.ConsultReturnService;
 import application.domain.services.returns.ReceiveReturnService;
 import application.domain.services.returns.RejectReturnService;
 import application.domain.services.returns.RequestReturnService;
+import application.domain.services.user.AddAddressService;
+import application.domain.services.user.ApproveSellerService;
+import application.domain.services.user.ConsultUserService;
+import application.domain.services.user.RegisterBuyerService;
+import application.domain.services.user.RegisterSellerService;
+import application.domain.services.user.RegisterStaffUserService;
+import application.domain.services.user.RemoveAddressService;
+import application.domain.services.user.SuspendSellerService;
+import application.domain.services.user.UpdateProfileService;
+import application.domain.services.user.ValidateUserUniquenessService;
 import application.domain.services.warehouse.ActivateWarehouseService;
 import application.domain.services.warehouse.ConsultWarehouseService;
 import application.domain.services.warehouse.CreateMarketplaceWarehouseService;
@@ -63,7 +73,7 @@ import application.domain.services.cart.ConsultCartService;
 import application.domain.services.cart.RemoveItemFromCartService;
 import application.domain.services.inventory.InventoryDomainService;
 import application.domain.services.order.OrderFulfillmentDomainService;
-import application.domain.services.PasswordPolicy;
+import application.domain.services.user.PasswordPolicy;
 import application.domain.services.inventory.WarehouseAllocationService;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
@@ -171,6 +181,16 @@ public class TestFixture {
     public final DeactivateWarehouseService deactivateWarehouse;
     public final ConsultWarehouseService consultWarehouse;
 
+    public final RegisterBuyerService registerBuyer;
+    public final RegisterSellerService registerSeller;
+    public final RegisterStaffUserService registerStaffUser;
+    public final ApproveSellerService approveSeller;
+    public final SuspendSellerService suspendSeller;
+    public final UpdateProfileService updateProfile;
+    public final AddAddressService addAddress;
+    public final RemoveAddressService removeAddress;
+    public final ConsultUserService consultUser;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -250,6 +270,19 @@ public class TestFixture {
         activateWarehouse = new ActivateWarehouseService(warehouses);
         deactivateWarehouse = new DeactivateWarehouseService(warehouses);
         consultWarehouse = new ConsultWarehouseService(warehouses);
+
+        ValidateUserUniquenessService userUniqueness = new ValidateUserUniquenessService(users);
+        PasswordPolicy passwordPolicy = new PasswordPolicy();
+        registerBuyer = new RegisterBuyerService(users, userUniqueness, passwordPolicy, passwordEncoder, clock, ids);
+        registerSeller = new RegisterSellerService(users, userUniqueness, passwordPolicy, passwordEncoder, clock, ids);
+        registerStaffUser = new RegisterStaffUserService(users, userUniqueness, passwordPolicy, passwordEncoder,
+            clock, ids);
+        approveSeller = new ApproveSellerService(users, notifier);
+        suspendSeller = new SuspendSellerService(users, notifier);
+        updateProfile = new UpdateProfileService(users);
+        addAddress = new AddAddressService(users);
+        removeAddress = new RemoveAddressService(users);
+        consultUser = new ConsultUserService(users);
     }
 
     // ---------- Datos de apoyo

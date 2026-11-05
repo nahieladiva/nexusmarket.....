@@ -1,12 +1,14 @@
-package application.domain.services;
+package application.domain.services.user;
 
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.services.DomainService;
 
 /**
  * Password rule: at least {@value #MIN_LENGTH} characters, with at least one letter
  * and one digit.
  */
-public final class PasswordPolicy {
+@DomainService
+public class PasswordPolicy {
 
     public static final int MIN_LENGTH = 8;
 

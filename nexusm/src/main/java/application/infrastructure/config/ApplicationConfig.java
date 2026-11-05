@@ -1,7 +1,6 @@
 package application.infrastructure.config;
 
 import application.domain.services.DomainService;
-import application.domain.services.PasswordPolicy;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -22,10 +21,6 @@ public class ApplicationConfig {
         return Clock.systemDefaultZone();
     }
 
-    @Bean
-    public PasswordPolicy passwordPolicy() {
-        return new PasswordPolicy();
-    }
 
 
 }

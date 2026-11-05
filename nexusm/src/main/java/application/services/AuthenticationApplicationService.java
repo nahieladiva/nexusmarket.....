@@ -16,7 +16,7 @@ import application.domain.ports.out.PasswordEncoderPort;
 import application.domain.ports.out.TokenProviderPort;
 import application.domain.ports.out.TokenStorePort;
 import application.domain.ports.out.UserRepository;
-import application.domain.services.PasswordPolicy;
+import application.domain.services.user.PasswordPolicy;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.PhoneNumber;
