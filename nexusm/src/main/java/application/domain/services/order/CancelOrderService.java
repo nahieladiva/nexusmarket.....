@@ -20,12 +20,6 @@ import application.domain.valueobjects.OrderId;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Cancels an order that has no shipments. The buyer who owns it or an administrator can do it, and
- * reserved stock goes
- * back to its warehouse. If it was paid, its invoice is voided and a refund is created.
- */
-@DomainService
 public class CancelOrderService {
 
     private final OrderRepository orderRepository;

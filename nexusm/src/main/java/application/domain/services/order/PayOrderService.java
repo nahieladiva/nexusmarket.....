@@ -20,8 +20,7 @@ import java.util.Objects;
 
 /**
  * Registers the payment of an order: the buyer who owns it pays, its stock is reserved, the invoice
- * is issued and, when
- * no item requires shipment, the order is delivered right away.
+ * is issued and, when no item requires shipment, the order is delivered right away.
  */
 @DomainService
 public class PayOrderService {
