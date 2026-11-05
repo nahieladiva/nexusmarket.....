@@ -191,7 +191,8 @@ Autenticación:
 
 El JWT lleva el rol del usuario, y `JwtAuthenticationFilter` lo convierte en una autoridad con el prefijo `ROLE_`
 de Spring Security. Son los 5 valores de `UserRole`. `AdminSeeder` crea el administrador inicial con el
-rol `ADMINISTRATOR`.
+rol `ADMINISTRATOR`. La autenticación es solo con JWT: la configuración excluye el usuario en
+memoria que Spring Security crearía por defecto.
 
 ## 9. Eventos de dominio
 
