@@ -1,5 +1,7 @@
 package application.support;
 
+import application.domain.valueobjects.ProductId;
+import application.domain.enums.ProductType;
 import application.domain.enums.SellerStatus;
 import application.domain.models.Administrator;
 import application.domain.models.Buyer;
@@ -8,13 +10,19 @@ import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.models.Warehouse;
+import application.domain.services.inventory.RecordStockMovementService;
+import application.domain.services.order.CancelOrderService;
+import application.domain.services.order.ConsultOrderService;
+import application.domain.services.order.NotifyOrderStatusChangeService;
+import application.domain.services.order.PayOrderService;
+import application.domain.services.order.PlaceOrderService;
 import application.domain.services.cart.AddItemToCartService;
 import application.domain.services.cart.ChangeCartItemQuantityService;
 import application.domain.services.cart.ClearCartService;
 import application.domain.services.cart.ConsultCartService;
 import application.domain.services.cart.RemoveItemFromCartService;
 import application.domain.services.InventoryDomainService;
-import application.domain.services.OrderFulfillmentDomainService;
+import application.domain.services.order.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
 import application.domain.services.WarehouseAllocationService;
 import application.domain.valueobjects.Address;
@@ -71,6 +79,13 @@ public class TestFixture {
     public final RemoveItemFromCartService removeItemFromCart;
     public final ClearCartService clearCart;
 
+    public final RecordStockMovementService recordStockMovement;
+    public final NotifyOrderStatusChangeService notifyOrderStatusChange;
+    public final PlaceOrderService placeOrder;
+    public final PayOrderService payOrder;
+    public final CancelOrderService cancelOrder;
+    public final ConsultOrderService consultOrder;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -94,6 +109,13 @@ public class TestFixture {
         changeCartItemQuantity = new ChangeCartItemQuantityService(carts, consultCart);
         removeItemFromCart = new RemoveItemFromCartService(carts, consultCart);
         clearCart = new ClearCartService(carts, consultCart);
+
+        recordStockMovement = new RecordStockMovementService(movements, events, notifier, products, clock, ids);
+        notifyOrderStatusChange = new NotifyOrderStatusChangeService(events, notifier, clock);
+        placeOrder = new PlaceOrderService(carts, orders, products, consultCart, allocation, events, clock, ids);
+        payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange, clock);
+        cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange);
+        consultOrder = new ConsultOrderService(orders, products);
     }
 
     // ---------- Datos de apoyo
@@ -122,6 +144,13 @@ public class TestFixture {
 
     public Warehouse warehouse(String name) {
         return warehouseService.createWarehouse(name, address(), WarehouseLocation.of("A", "1", "1"));
+    }
+
+    public Product digitalProduct(Seller seller, String code, String price) {
+        Product product = Product.register(ProductId.random(), ProductCode.of(code), ProductType.DIGITAL,
+            "Digital " + code, "Digital product", Money.of(price, "COP"), seller.getId(), NOW);
+        product.publish();
+        return products.save(product);
     }
 
     public Product product(Seller seller, String code, String price) {

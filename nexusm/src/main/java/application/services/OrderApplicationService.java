@@ -20,7 +20,7 @@ import application.domain.ports.out.IdGeneratorPort;
 import application.domain.ports.out.NotificationPort;
 import application.domain.ports.out.OrderRepository;
 import application.domain.ports.out.ProductRepository;
-import application.domain.services.OrderFulfillmentDomainService;
+import application.domain.services.order.OrderFulfillmentDomainService;
 import application.domain.services.WarehouseAllocationService;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ProductId;

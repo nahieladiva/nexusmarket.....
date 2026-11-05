@@ -1,8 +1,11 @@
-package application.domain.services;
+package application.domain.services.order;
 
 import application.domain.models.Inventory;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
+import application.domain.services.DomainService;
+import application.domain.services.InventoryDomainService;
+import application.domain.services.WarehouseAllocationService;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.WarehouseId;
 import java.time.LocalDateTime;
@@ -24,7 +27,8 @@ import java.util.Objects;
  * </ul>
  * This service does not persist the order; the use case does.
  */
-public final class OrderFulfillmentDomainService {
+@DomainService
+public class OrderFulfillmentDomainService {
 
     private final InventoryDomainService inventoryDomainService;
     private final WarehouseAllocationService warehouseAllocationService;

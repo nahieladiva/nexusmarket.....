@@ -4,7 +4,6 @@ import application.domain.ports.out.InventoryRepository;
 import application.domain.ports.out.WarehouseRepository;
 import application.domain.services.DomainService;
 import application.domain.services.InventoryDomainService;
-import application.domain.services.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
 import application.domain.services.WarehouseAllocationService;
 import java.time.Clock;
@@ -43,10 +42,4 @@ public class ApplicationConfig {
         return new WarehouseAllocationService(inventoryRepository, warehouseRepository);
     }
 
-    @Bean
-    public OrderFulfillmentDomainService orderFulfillmentDomainService(
-            InventoryDomainService inventoryDomainService,
-            WarehouseAllocationService warehouseAllocationService) {
-        return new OrderFulfillmentDomainService(inventoryDomainService, warehouseAllocationService);
-    }
 }

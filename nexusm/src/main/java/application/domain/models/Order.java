@@ -2,6 +2,7 @@ package application.domain.models;
 
 import application.domain.enums.OrderStatus;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ForbiddenActionException;
 import application.domain.exceptions.OrderStateTransitionException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.OrderId;
@@ -228,6 +229,17 @@ public final class Order {
 
     public boolean belongsTo(UserId userId) {
         return buyerId.equals(userId);
+    }
+
+    /**
+     * Validates that the order belongs to the given user (RG-03).
+     *
+     * @throws ForbiddenActionException when it belongs to another user
+     */
+    public void requireBelongsTo(UserId userId) {
+        if (!belongsTo(userId)) {
+            throw new ForbiddenActionException("Order " + id + " belongs to another buyer");
+        }
     }
 
     public boolean containsAnyProduct(Set<ProductId> productIds) {
