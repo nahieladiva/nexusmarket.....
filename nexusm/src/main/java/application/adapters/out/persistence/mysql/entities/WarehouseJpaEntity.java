@@ -1,7 +1,12 @@
 package application.adapters.out.persistence.mysql.entities;
 
+import application.domain.enums.WarehouseStatus;
+import application.domain.enums.WarehouseType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -11,8 +16,6 @@ import lombok.Setter;
 
 /**
  * JPA entity of a warehouse ({@code warehouses} table).
- * {@code type} and {@code status} store the names of
- * {@link application.domain.enums.WarehouseType} and {@link application.domain.enums.WarehouseStatus}.
  */
 @Entity
 @Table(name = "warehouses")
@@ -25,8 +28,9 @@ public class WarehouseJpaEntity {
     @Column(name = "id", length = 36, nullable = false)
     private String id;
 
-    @Column(name = "type", length = 20, nullable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", columnDefinition = "VARCHAR(20)", nullable = false)
+    private WarehouseType type;
 
     @Column(name = "owner_seller_id", length = 36)
     private String ownerSellerId;
@@ -58,6 +62,7 @@ public class WarehouseJpaEntity {
     @Column(name = "bin", nullable = false)
     private String bin;
 
-    @Column(name = "status", length = 20, nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", columnDefinition = "VARCHAR(20)", nullable = false)
+    private WarehouseStatus status;
 }

@@ -1,7 +1,11 @@
 package application.adapters.out.persistence.mysql.entities;
 
+import application.domain.enums.ProductType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,8 +41,9 @@ public class OrderItemJpaEntity {
     @Column(name = "product_id", nullable = false, length = 36)
     private String productId;
 
-    @Column(name = "product_type", nullable = false, length = 20)
-    private String productType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_type", nullable = false, columnDefinition = "VARCHAR(20)")
+    private ProductType productType;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;

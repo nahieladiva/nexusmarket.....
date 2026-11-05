@@ -1,7 +1,12 @@
 package application.adapters.out.persistence.mysql.entities;
 
+import application.domain.enums.ProductStatus;
+import application.domain.enums.ProductType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -14,8 +19,6 @@ import lombok.Setter;
 
 /**
  * JPA entity of a product ({@code products} table).
- * {@code type} and {@code status} store the names of
- * {@link application.domain.enums.ProductType} and {@link application.domain.enums.ProductStatus}.
  */
 @Entity
 @Table(name = "products")
@@ -31,8 +34,9 @@ public class ProductJpaEntity {
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
 
-    @Column(name = "type", nullable = false, length = 20)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, columnDefinition = "VARCHAR(20)")
+    private ProductType type;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -49,8 +53,9 @@ public class ProductJpaEntity {
     @Column(name = "seller_id", nullable = false, length = 36)
     private String sellerId;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20)")
+    private ProductStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

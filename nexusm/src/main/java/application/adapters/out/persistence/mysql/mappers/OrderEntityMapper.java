@@ -2,8 +2,6 @@ package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.OrderItemJpaEntity;
 import application.adapters.out.persistence.mysql.entities.OrderJpaEntity;
-import application.domain.enums.OrderStatus;
-import application.domain.enums.ProductType;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.valueobjects.Money;
@@ -27,7 +25,7 @@ public class OrderEntityMapper {
         OrderJpaEntity entity = new OrderJpaEntity();
         entity.setId(order.getId().toString());
         entity.setBuyerId(order.getBuyerId().toString());
-        entity.setStatus(order.getStatus().name());
+        entity.setStatus(order.getStatus());
         entity.setTotalAmount(order.getTotal().getAmount());
         entity.setTotalCurrency(order.getTotal().getCurrency().getCurrencyCode());
         entity.setPaidAt(order.getPaidAt().orElse(null));
@@ -36,7 +34,7 @@ public class OrderEntityMapper {
         order.getItems().forEach(item -> {
             OrderItemJpaEntity itemEntity = new OrderItemJpaEntity();
             itemEntity.setProductId(item.getProductId().toString());
-            itemEntity.setProductType(item.getProductType().name());
+            itemEntity.setProductType(item.getProductType());
             itemEntity.setQuantity(item.getQuantity().getValue());
             itemEntity.setUnitPriceAmount(item.getUnitPrice().getAmount());
             itemEntity.setUnitPriceCurrency(item.getUnitPrice().getCurrency().getCurrencyCode());
@@ -56,7 +54,7 @@ public class OrderEntityMapper {
             OrderId.of(entity.getId()),
             UserId.of(entity.getBuyerId()),
             items,
-            OrderStatus.valueOf(entity.getStatus()),
+            entity.getStatus(),
             entity.getPaidAt(),
             entity.getCreatedAt(),
             entity.getUpdatedAt());
@@ -65,7 +63,7 @@ public class OrderEntityMapper {
     private OrderItem toOrderItem(OrderItemJpaEntity entity) {
         return new OrderItem(
             ProductId.of(entity.getProductId()),
-            ProductType.valueOf(entity.getProductType()),
+            entity.getProductType(),
             Quantity.of(entity.getQuantity()),
             Money.of(entity.getUnitPriceAmount().toPlainString(), entity.getUnitPriceCurrency()),
             entity.getWarehouseId() == null ? null : WarehouseId.of(entity.getWarehouseId()));

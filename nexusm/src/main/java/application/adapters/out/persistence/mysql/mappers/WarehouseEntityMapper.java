@@ -1,8 +1,6 @@
 package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.WarehouseJpaEntity;
-import application.domain.enums.WarehouseStatus;
-import application.domain.enums.WarehouseType;
 import application.domain.models.Warehouse;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.UserId;
@@ -20,7 +18,7 @@ public class WarehouseEntityMapper {
     public WarehouseJpaEntity toEntity(Warehouse warehouse) {
         WarehouseJpaEntity entity = new WarehouseJpaEntity();
         entity.setId(warehouse.getId().toString());
-        entity.setType(warehouse.getType().name());
+        entity.setType(warehouse.getType());
         entity.setOwnerSellerId(warehouse.getOwnerSellerId().map(UserId::toString).orElse(null));
         entity.setName(warehouse.getName());
         entity.setStreet(warehouse.getAddress().getStreet());
@@ -31,19 +29,19 @@ public class WarehouseEntityMapper {
         entity.setAisle(warehouse.getLocation().getAisle());
         entity.setShelf(warehouse.getLocation().getShelf());
         entity.setBin(warehouse.getLocation().getBin());
-        entity.setStatus(warehouse.getStatus().name());
+        entity.setStatus(warehouse.getStatus());
         return entity;
     }
 
     public Warehouse toDomain(WarehouseJpaEntity entity) {
         return new Warehouse(
             WarehouseId.of(entity.getId()),
-            WarehouseType.valueOf(entity.getType()),
+            entity.getType(),
             entity.getOwnerSellerId() == null ? null : UserId.of(entity.getOwnerSellerId()),
             entity.getName(),
             new Address(entity.getStreet(), entity.getCity(), entity.getState(),
                 entity.getZipCode(), entity.getCountry()),
             new WarehouseLocation(entity.getAisle(), entity.getShelf(), entity.getBin()),
-            WarehouseStatus.valueOf(entity.getStatus()));
+            entity.getStatus());
     }
 }

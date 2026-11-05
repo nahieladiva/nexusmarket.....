@@ -1,7 +1,12 @@
 package application.adapters.out.persistence.mysql.entities;
 
+import application.domain.enums.SellerStatus;
+import application.domain.enums.UserRole;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -41,8 +46,9 @@ public class UserJpaEntity {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "role", nullable = false, length = 20)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, columnDefinition = "VARCHAR(20)")
+    private UserRole role;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -51,9 +57,10 @@ public class UserJpaEntity {
     @Column(name = "business_name")
     private String businessName;
 
-    /** Sellers only: name of {@link application.domain.enums.SellerStatus}. */
-    @Column(name = "seller_status", length = 20)
-    private String sellerStatus;
+    /** Sellers only. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "seller_status", columnDefinition = "VARCHAR(20)")
+    private SellerStatus sellerStatus;
 
     /** Buyers only. */
     @Column(name = "shipping_street")
@@ -83,7 +90,7 @@ public class UserJpaEntity {
     private List<AddressEmbeddable> addresses = new ArrayList<>();
 
     public UserJpaEntity(String id, String fullName, String email, String phone,
-                         String role, String passwordHash, LocalDateTime createdAt) {
+                         UserRole role, String passwordHash, LocalDateTime createdAt) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;

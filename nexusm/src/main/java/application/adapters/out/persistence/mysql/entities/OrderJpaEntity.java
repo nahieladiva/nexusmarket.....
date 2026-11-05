@@ -1,8 +1,12 @@
 package application.adapters.out.persistence.mysql.entities;
 
+import application.domain.enums.OrderStatus;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -33,8 +37,9 @@ public class OrderJpaEntity {
     @Column(name = "buyer_id", nullable = false, length = 36)
     private String buyerId;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(20)")
+    private OrderStatus status;
 
     @Column(name = "total_amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal totalAmount;

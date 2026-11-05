@@ -2,7 +2,6 @@ package application.adapters.out.persistence.mysql.mappers;
 
 import application.adapters.out.persistence.mysql.entities.AddressEmbeddable;
 import application.adapters.out.persistence.mysql.entities.UserJpaEntity;
-import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
 import application.domain.models.Administrator;
 import application.domain.models.Buyer;
@@ -30,12 +29,12 @@ public class UserEntityMapper {
             user.getFullName(),
             user.getEmail().getValue(),
             user.getPhone().getValue(),
-            user.getRole().name(),
+            user.getRole(),
             user.getPasswordHash(),
             user.getCreatedAt());
         if (user instanceof Seller seller) {
             entity.setBusinessName(seller.getBusinessName());
-            entity.setSellerStatus(seller.getStatus().name());
+            entity.setSellerStatus(seller.getStatus());
         } else if (user instanceof Buyer buyer) {
             Address address = buyer.getDefaultShippingAddress();
             entity.setShippingStreet(address.getStreet());
@@ -52,7 +51,7 @@ public class UserEntityMapper {
     }
 
     public User toDomain(UserJpaEntity entity) {
-        UserRole role = UserRole.valueOf(entity.getRole());
+        UserRole role = entity.getRole();
         UserId id = UserId.of(entity.getId());
         Email email = Email.of(entity.getEmail());
         PhoneNumber phone = PhoneNumber.of(entity.getPhone());
@@ -67,7 +66,7 @@ public class UserEntityMapper {
                     entity.getShippingState(), entity.getShippingZip(), entity.getShippingCountry()),
                 addresses, entity.getCreatedAt());
             case SELLER -> new Seller(id, entity.getFullName(), email, phone, entity.getPasswordHash(),
-                entity.getBusinessName(), addresses, SellerStatus.valueOf(entity.getSellerStatus()),
+                entity.getBusinessName(), addresses, entity.getSellerStatus(),
                 entity.getCreatedAt());
             case LOGISTICS_OPERATOR -> new LogisticsOperator(id, entity.getFullName(), email, phone,
                 entity.getPasswordHash(), addresses, entity.getCreatedAt());
