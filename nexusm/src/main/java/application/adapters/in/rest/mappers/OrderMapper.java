@@ -13,17 +13,19 @@ public class OrderMapper {
         return new OrderResponse(
             order.getId().toString(),
             order.getBuyerId().toString(),
-            order.getStatus().name(),
+            order.getStatus(),
             order.getTotal().getAmount().toPlainString(),
             order.getTotal().getCurrency().getCurrencyCode(),
+            order.getPaidAt().orElse(null),
             order.getCreatedAt(),
             order.getUpdatedAt(),
             order.getItems().stream().map(this::toItemResponse).toList());
     }
 
-    public OrderItemResponse toItemResponse(OrderItem item) {
+    private OrderItemResponse toItemResponse(OrderItem item) {
         return new OrderItemResponse(
             item.getProductId().toString(),
+            item.getProductType(),
             item.getQuantity().getValue(),
             item.getUnitPrice().getAmount().toPlainString(),
             item.getUnitPrice().getCurrency().getCurrencyCode(),

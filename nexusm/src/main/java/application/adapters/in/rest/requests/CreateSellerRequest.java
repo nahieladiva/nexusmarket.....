@@ -1,5 +1,8 @@
 package application.adapters.in.rest.requests;
 
-public record CreateSellerRequest(String fullName, String email, String phone,
-                                  String password, String businessName) {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateSellerRequest(@NotBlank String fullName, @NotBlank String email,
+                                  @NotBlank String phone, @NotBlank String password,
+                                  @NotBlank String businessName) {
 }

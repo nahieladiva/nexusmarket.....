@@ -5,7 +5,6 @@ import application.adapters.in.rest.security.SecurityErrorHandler;
 import application.domain.ports.in.AccountPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,7 +35,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(errorHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/register/buyer", "/api/auth/login").permitAll()
+                .requestMatchers("/api/v1/public/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtAuthenticationFilter(accountPort),
                 UsernamePasswordAuthenticationFilter.class);
