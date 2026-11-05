@@ -17,10 +17,15 @@ import application.domain.enums.SellerStatus;
 import application.domain.enums.UserRole;
 import application.domain.enums.WarehouseStatus;
 import application.domain.enums.WarehouseType;
+import application.domain.models.Administrator;
+import application.domain.models.Buyer;
+import application.domain.models.LogisticsOperator;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.models.Product;
 import application.domain.models.Seller;
+import application.domain.models.Supervisor;
+import application.domain.models.User;
 import application.domain.models.Warehouse;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.Money;
@@ -37,7 +42,9 @@ import application.support.TestFixture;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -56,6 +63,7 @@ class EnumColumnsPersistenceTest {
 
     private static final LocalDateTime NOW = TestFixture.NOW;
     private static final Money PRICE = Money.of("1000.00", "COP");
+    private static final String HASH = "hashed:Password123";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -85,6 +93,33 @@ class EnumColumnsPersistenceTest {
         Seller stored = (Seller) users.findById(id).orElseThrow();
         assertEquals(UserRole.SELLER, stored.getRole());
         assertEquals(SellerStatus.SUSPENDED, stored.getStatus());
+    }
+
+    @Test
+    void everyRoleIsRebuiltAsItsUserType() {
+        PhoneNumber phone = PhoneNumber.of("+573001234567");
+        List<User> all = List.of(
+            new Buyer(UserId.random(), "Buyer", Email.of("buyer@mail.com"), phone, HASH,
+                TestFixture.address(), List.of(), NOW),
+            new Seller(UserId.random(), "Seller", Email.of("seller@mail.com"), phone, HASH, "Store",
+                List.of(), SellerStatus.APPROVED, NOW),
+            new LogisticsOperator(UserId.random(), "Operator", Email.of("operator@mail.com"), phone,
+                HASH, List.of(), NOW),
+            new Administrator(UserId.random(), "Admin", Email.of("admin@mail.com"), phone, HASH,
+                List.of(), NOW),
+            new Supervisor(UserId.random(), "Supervisor", Email.of("supervisor@mail.com"), phone, HASH,
+                List.of(), NOW));
+        all.forEach(users::save);
+        flushAndClear();
+
+        for (User user : all) {
+            User stored = users.findById(user.getId()).orElseThrow();
+            assertEquals(user.getClass(), stored.getClass());
+            assertEquals(user.getRole(), stored.getRole());
+            assertEquals(user.getRole().name(), column("role", "users", user.getId()));
+        }
+        assertEquals(EnumSet.allOf(UserRole.class),
+            all.stream().map(User::getRole).collect(Collectors.toSet()));
     }
 
     @Test

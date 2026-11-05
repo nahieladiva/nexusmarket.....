@@ -302,7 +302,7 @@ public class TestFixture {
         addAddress = new AddAddressService(users);
         removeAddress = new RemoveAddressService(users);
         consultUser = new ConsultUserService(users);
-        changePassword = new ChangePasswordService(users, passwordPolicy, passwordEncoder);
+        changePassword = new ChangePasswordService(users, passwordPolicy, passwordEncoder, tokenStore);
 
         resolveActor = new ResolveActorService(users);
         login = new LoginService(users, passwordEncoder, tokenProvider, tokenStore, clock, ids);

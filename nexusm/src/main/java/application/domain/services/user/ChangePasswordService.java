@@ -3,6 +3,7 @@ package application.domain.services.user;
 import application.domain.exceptions.InvalidCredentialsException;
 import application.domain.models.User;
 import application.domain.ports.out.PasswordEncoderPort;
+import application.domain.ports.out.TokenStorePort;
 import application.domain.ports.out.UserRepository;
 import application.domain.services.DomainService;
 
@@ -18,12 +19,14 @@ public class ChangePasswordService {
     private final UserRepository userRepository;
     private final PasswordPolicy passwordPolicy;
     private final PasswordEncoderPort passwordEncoder;
+    private final TokenStorePort tokenStore;
 
     public ChangePasswordService(UserRepository userRepository, PasswordPolicy passwordPolicy,
-                                 PasswordEncoderPort passwordEncoder) {
+                                 PasswordEncoderPort passwordEncoder, TokenStorePort tokenStore) {
         this.userRepository = Objects.requireNonNull(userRepository);
         this.passwordPolicy = Objects.requireNonNull(passwordPolicy);
         this.passwordEncoder = Objects.requireNonNull(passwordEncoder);
+        this.tokenStore = Objects.requireNonNull(tokenStore);
     }
 
     public User execute(User user, String currentPassword, String newPassword) {
@@ -32,6 +35,8 @@ public class ChangePasswordService {
         }
         passwordPolicy.validate(newPassword);
         user.changePasswordHash(passwordEncoder.encode(newPassword));
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        tokenStore.revokeAllForUser(saved.getId());
+        return saved;
     }
 }

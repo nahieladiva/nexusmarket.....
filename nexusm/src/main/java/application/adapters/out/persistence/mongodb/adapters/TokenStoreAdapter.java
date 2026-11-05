@@ -9,6 +9,7 @@ import application.domain.valueobjects.UserId;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,14 @@ public class TokenStoreAdapter implements TokenStorePort {
         return repository.findById(tokenId).map(doc -> new IssuedToken(doc.getTokenId(),
             UserId.of(doc.getUserId()), doc.getIssuedAt(),
             LocalDateTime.ofInstant(doc.getExpiresAt().toInstant(), zone), toStatus(doc.getStatus())));
+    }
+
+    @Override
+    public void revokeAllForUser(UserId userId) {
+        List<IssuedTokenDocument> active =
+            repository.findByUserIdAndStatus(userId.toString(), TokenStatus.ACTIVE.name());
+        active.forEach(doc -> doc.setStatus(TokenStatus.REVOKED.name()));
+        repository.saveAll(active);
     }
 
     /**
