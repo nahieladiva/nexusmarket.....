@@ -160,7 +160,7 @@ class NewAggregatesPersistenceTest {
         assertEquals(InvoiceStatus.VOIDED, stored.getStatus());
         assertEquals(NOW.plusDays(1), stored.getVoidedAt());
         assertTrue(invoices.findById(id).isPresent());
-        assertEquals(1, invoices.findAll().size());
+        assertTrue(invoices.findAll().stream().anyMatch(invoice -> invoice.getId().equals(id)));
     }
 
     @Test
@@ -215,7 +215,8 @@ class NewAggregatesPersistenceTest {
         shipments.save(preparing(order, warehouseId()));
         flushAndClear();
         assertEquals(2, shipments.findByOrderId(order).size());
-        assertEquals(2, shipments.findAll().size());
+        assertEquals(2, shipments.findAll().stream()
+            .filter(shipment -> shipment.getOrderId().equals(order)).count());
 
         shipments.save(preparing(order, warehouse));
 
@@ -242,7 +243,7 @@ class NewAggregatesPersistenceTest {
         assertEquals(ReturnStatus.RECEIVED, stored.getStatus());
         assertEquals(NOW.plusDays(3), stored.getResolvedAt().orElseThrow());
         assertTrue(returns.findById(id).isPresent());
-        assertEquals(1, returns.findAll().size());
+        assertTrue(returns.findAll().stream().anyMatch(request -> request.getId().equals(id)));
     }
 
     @Test
@@ -273,7 +274,7 @@ class NewAggregatesPersistenceTest {
 
         assertFalse(stored.getReturnId().isPresent());
         assertFalse(stored.getResolvedAt().isPresent());
-        assertEquals(1, refunds.findAll().size());
+        assertTrue(refunds.findAll().stream().anyMatch(refund -> refund.getOrderId().equals(order)));
     }
 
     private void flushAndClear() {

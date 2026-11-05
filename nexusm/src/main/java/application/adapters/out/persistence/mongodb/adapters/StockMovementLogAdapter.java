@@ -11,13 +11,22 @@ import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseId;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * MongoDB adapter of {@link StockMovementLogPort}.
+ *
+ * <p>MongoDB does not take part in the MySQL transaction, so a movement is written only after that
+ * transaction commits. If it rolls back, the history stays clean.</p>
  */
 @Component
 public class StockMovementLogAdapter implements StockMovementLogPort {
+
+    private static final Logger log = LoggerFactory.getLogger(StockMovementLogAdapter.class);
 
     private final StockMovementMongoRepository repository;
 
@@ -27,18 +36,26 @@ public class StockMovementLogAdapter implements StockMovementLogPort {
 
     @Override
     public void record(StockMovement movement) {
-        StockMovementDocument doc = new StockMovementDocument();
-        doc.setId(movement.id());
-        doc.setProductId(movement.productId().toString());
-        doc.setWarehouseId(movement.warehouseId().toString());
-        doc.setType(movement.type().name());
-        doc.setDelta(movement.delta());
-        doc.setResultingOnHand(movement.resultingOnHand().getValue());
-        doc.setReason(movement.reason());
-        doc.setPerformedBy(movement.performedBy() == null ? null : movement.performedBy().toString());
-        doc.setReference(movement.reference());
-        doc.setOccurredAt(movement.occurredAt());
-        repository.save(doc);
+        StockMovementDocument document = toDocument(movement);
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            repository.save(document);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                saveAfterCommit(document);
+            }
+        });
+    }
+
+    /** The stock already changed in MySQL, so a failure here must not reach the client as an error. */
+    private void saveAfterCommit(StockMovementDocument document) {
+        try {
+            repository.save(document);
+        } catch (RuntimeException ex) {
+            log.error("Stock movement {} was not recorded", document.getId(), ex);
+        }
     }
 
     @Override
@@ -47,6 +64,21 @@ public class StockMovementLogAdapter implements StockMovementLogPort {
                 productId.toString(), warehouseId.toString()).stream()
             .map(this::toDomain)
             .toList();
+    }
+
+    private StockMovementDocument toDocument(StockMovement movement) {
+        StockMovementDocument document = new StockMovementDocument();
+        document.setId(movement.id());
+        document.setProductId(movement.productId().toString());
+        document.setWarehouseId(movement.warehouseId().toString());
+        document.setType(movement.type().name());
+        document.setDelta(movement.delta());
+        document.setResultingOnHand(movement.resultingOnHand().getValue());
+        document.setReason(movement.reason());
+        document.setPerformedBy(movement.performedBy() == null ? null : movement.performedBy().toString());
+        document.setReference(movement.reference());
+        document.setOccurredAt(movement.occurredAt());
+        return document;
     }
 
     private StockMovement toDomain(StockMovementDocument doc) {
