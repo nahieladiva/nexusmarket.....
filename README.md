@@ -32,8 +32,16 @@ cd nexusm
 ```
 
 Las pruebas de `application.domain.services` usan repositorios en memoria y no necesitan bases
-de datos. `NexusmarketApplicationTests` (contexto completo) está deshabilitada porque
-necesita MySQL y MongoDB arriba.
+de datos. `NexusmarketApplicationTests` levanta el contexto completo con H2 y MongoDB simulado,
+así que tampoco necesita bases externas.
+
+Las pruebas `*IT` usan el MySQL y el MongoDB reales y no corren con `./mvnw test`:
+
+```bash
+docker compose up -d mysql mongo
+cd nexusm
+./mvnw test -Dtest=*IT
+```
 
 ## Arquitectura
 

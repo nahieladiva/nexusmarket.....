@@ -42,7 +42,7 @@ para no comparar el SDD con clases viejas.
 | `SUMMARY` | Comprobaciones correctas y fallidas por tipo |
 | `FAILURES` | El SDD y el código no coinciden. El programa termina con código 1 |
 | `WARNINGS` | Posibles diferencias que hay que revisar a mano. No hacen fallar la ejecución |
-| `UNCLASSIFIED` | Citas que no son código, como rutas o imágenes de Docker. También incluye lo que aún no existe, como `revokeAllForUser` |
+| `UNCLASSIFIED` | Citas que no son código, como rutas o imágenes de Docker. Conviene revisarlas: aquí también caería el nombre de un método planeado que aún no existe |
 
 ### Límites
 

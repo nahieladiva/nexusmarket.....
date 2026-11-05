@@ -79,9 +79,9 @@ Paquete: `application.domain.services.user`. La vista general está en [Services
 - **Propósito:** un usuario cambia su contraseña.
 - **Quién lo usa:** `AccountPort.changePassword`
 - **Entradas:** `User execute(User user, String currentPassword, String newPassword)`
-- **Reglas de negocio:** exige la contraseña actual, y la nueva cumple `PasswordPolicy`.
+- **Reglas de negocio:** exige la contraseña actual, y la nueva cumple `PasswordPolicy`. Después revoca todos los tokens activos del usuario con `TokenStorePort.revokeAllForUser`, incluida la sesión actual, así que debe iniciar sesión otra vez. Si la contraseña no cambia, las sesiones siguen abiertas.
 - **Excepciones:** `InvalidCredentialsException`, `BusinessRuleException`.
-- **Estados que cambia:** ninguno.
+- **Estados que cambia:** los `IssuedToken` del usuario pasan de `ACTIVE` a `REVOKED`.
 
 ### `ConsultUserService`
 

@@ -135,7 +135,7 @@ Implementa los puertos de salida.
 
 | Paquete | Responsabilidad |
 |---|---|
-| `persistence.mysql` | Usuarios, productos, bodegas, inventario y pedidos |
+| `persistence.mysql` | Usuarios, productos, bodegas, inventario, carritos, pedidos, facturas, envíos, devoluciones y reembolsos |
 | `persistence.mongodb` | Bitácora de auditoría, historial de stock y tokens emitidos |
 | `security` | `BCryptPasswordEncoderAdapter` y `JjwtTokenProviderAdapter` |
 | `events` | `SpringDomainEventPublisherAdapter` y `DomainEventAuditListener` |
@@ -147,18 +147,30 @@ Implementa los puertos de salida.
 |---|---|
 | `config/ApplicationConfig` | Registra los servicios de dominio como beans |
 | `config/AdminSeeder` | Crea el administrador inicial al arrancar, si no existe |
-| `database/DatabaseConfig` | Configuración de persistencia |
+| `database/DatabaseConfig` | Crea los índices de `issued_tokens` en MongoDB: el TTL de `expiresAt` y el de `userId` |
 | `security/SecurityConfig` | Reglas de acceso HTTP y sesión sin estado |
 
 ## 7. Persistencia
 
 | Base | Datos | Motivo |
 |---|---|---|
-| MySQL | Usuarios, productos, bodegas, inventario y pedidos | Datos relacionales que requieren integridad |
+| MySQL | Usuarios, productos, bodegas, inventario, carritos, pedidos, facturas, envíos, devoluciones y reembolsos | Datos relacionales que requieren integridad |
 | MongoDB | Auditoría, historial de stock y tokens | Registros de solo adición; los tokens expiran con un índice TTL |
 
-`Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` ya existen en el dominio, pero todavía no
-tienen tablas ni adaptadores. Se agregan en la Fase 3.
+Cada agregado de MySQL tiene su entidad JPA, su repositorio de Spring Data, su mapper y su adaptador,
+en `persistence.mysql`. Las tablas de los agregados nuevos son `carts`, `cart_items`, `invoices`,
+`shipments`, `return_requests` y `refunds`.
+
+La base de datos también protege estas reglas con restricciones únicas: un carrito por comprador, una
+factura por pedido, un número por factura y un envío por bodega en cada pedido.
+
+Las columnas de estado, tipo y rol usan el enum del dominio con `@Enumerated(EnumType.STRING)`. Se
+declaran con `columnDefinition = "VARCHAR(20)"` para que MySQL guarde el nombre de la constante en una
+columna de texto, sin un tipo `ENUM` nativo ni restricciones `CHECK`: así, un valor nuevo del enum no
+exige cambiar la tabla.
+
+Las pruebas usan H2 con un dialecto sin restricciones `CHECK`, y las clases `*IT` repiten la persistencia sobre el
+MySQL y el MongoDB reales.
 
 ## 8. Seguridad y reglas generales
 
@@ -174,6 +186,12 @@ Autenticación:
 2. El sistema guarda un `IssuedToken` en estado `ACTIVE`.
 3. En cada petición se verifican la firma, la expiración y el estado del token.
 4. Al cerrar sesión, el token pasa a `REVOKED` y se rechaza aunque no haya expirado.
+5. Al cambiar la contraseña, `ChangePasswordService` revoca todos los tokens activos del usuario con
+   `TokenStorePort.revokeAllForUser`, incluida la sesión actual.
+
+El JWT lleva el rol del usuario, y `JwtAuthenticationFilter` lo convierte en una autoridad con el prefijo `ROLE_`
+de Spring Security. Son los 5 valores de `UserRole`. `AdminSeeder` crea el administrador inicial con el
+rol `ADMINISTRATOR`.
 
 ## 9. Eventos de dominio
 
@@ -200,6 +218,5 @@ Este documento describe el código actual. Estos cambios ya están planeados:
 
 | Fase | Cambio |
 |---|---|
-| 3 | Persistencia de `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` |
 | 4 | Un controlador por rol bajo `/api/v1` |
 | 5 | Bloqueo optimista y escrituras en MongoDB después del commit |

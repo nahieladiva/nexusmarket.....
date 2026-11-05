@@ -784,6 +784,4 @@ Todas heredan de `DomainException`.
 
 | Tema | Estado actual | Se corrige en |
 |---|---|---|
-| Persistencia | `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` no tienen tablas | Fase 3 |
-| Cambio de contraseña | Los tokens ya emitidos siguen válidos hasta expirar; se agrega `revokeAllForUser` a `TokenStorePort` | Fase 3 |
 | Escrituras en MongoDB | `@Transactional` solo cubre MySQL; el historial y la auditoría se escribirán después del commit (`AFTER_COMMIT`) | Fase 5 |
