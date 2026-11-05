@@ -20,6 +20,10 @@ import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
 import application.domain.services.order.PayOrderService;
 import application.domain.services.order.PlaceOrderService;
+import application.domain.services.refund.ConsultRefundService;
+import application.domain.services.refund.CreateRefundService;
+import application.domain.services.refund.ProcessRefundService;
+import application.domain.services.refund.RejectRefundService;
 import application.domain.services.returns.ApproveReturnService;
 import application.domain.services.returns.ConsultReturnService;
 import application.domain.services.returns.ReceiveReturnService;
@@ -75,6 +79,7 @@ public class TestFixture {
     public final InMemoryInvoiceRepository invoices = new InMemoryInvoiceRepository();
     public final InMemoryShipmentRepository shipments = new InMemoryShipmentRepository();
     public final InMemoryReturnRequestRepository returns = new InMemoryReturnRequestRepository();
+    public final InMemoryRefundRepository refunds = new InMemoryRefundRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -120,6 +125,10 @@ public class TestFixture {
     public final ReceiveReturnService receiveReturn;
     public final ConsultReturnService consultReturn;
 
+    public final ProcessRefundService processRefund;
+    public final RejectRefundService rejectRefund;
+    public final ConsultRefundService consultRefund;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -147,13 +156,14 @@ public class TestFixture {
         recordStockMovement = new RecordStockMovementService(movements, events, notifier, products, clock, ids);
         notifyOrderStatusChange = new NotifyOrderStatusChangeService(events, notifier, clock);
         placeOrder = new PlaceOrderService(carts, orders, products, consultCart, allocation, events, clock, ids);
+        CreateRefundService createRefund = new CreateRefundService(refunds, clock, ids);
         issueInvoice = new IssueInvoiceService(invoices, clock, ids);
         voidInvoice = new VoidInvoiceService(invoices, clock);
         consultInvoice = new ConsultInvoiceService(invoices);
         payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
             issueInvoice, clock);
         cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
-            voidInvoice, shipments);
+            voidInvoice, shipments, createRefund);
         consultOrder = new ConsultOrderService(orders, products);
 
         ApplyShipmentProgressService applyShipmentProgress =
@@ -167,8 +177,13 @@ public class TestFixture {
         requestReturn = new RequestReturnService(returns, orders, clock, ids);
         approveReturn = new ApproveReturnService(returns, clock);
         rejectReturn = new RejectReturnService(returns, clock);
-        receiveReturn = new ReceiveReturnService(returns, orders, inventoryDomain, recordStockMovement);
+        receiveReturn = new ReceiveReturnService(returns, orders, inventoryDomain, recordStockMovement,
+            createRefund);
         consultReturn = new ConsultReturnService(returns, consultOrder);
+
+        processRefund = new ProcessRefundService(refunds, notifier, clock);
+        rejectRefund = new RejectRefundService(refunds, notifier, clock);
+        consultRefund = new ConsultRefundService(refunds, consultOrder);
     }
 
     // ---------- Datos de apoyo
