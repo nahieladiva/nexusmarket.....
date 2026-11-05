@@ -66,6 +66,10 @@ import application.domain.services.shipment.ConsultShipmentService;
 import application.domain.services.shipment.CreateShipmentService;
 import application.domain.services.shipment.DispatchShipmentService;
 import application.domain.services.shipment.PackShipmentService;
+import application.domain.services.authorization.LoginService;
+import application.domain.services.authorization.LogoutService;
+import application.domain.services.authorization.ResolveActorService;
+import application.domain.services.authorization.ValidateTokenService;
 import application.domain.services.cart.AddItemToCartService;
 import application.domain.services.cart.ChangeCartItemQuantityService;
 import application.domain.services.cart.ClearCartService;
@@ -191,6 +195,11 @@ public class TestFixture {
     public final RemoveAddressService removeAddress;
     public final ConsultUserService consultUser;
 
+    public final ResolveActorService resolveActor;
+    public final LoginService login;
+    public final ValidateTokenService validateToken;
+    public final LogoutService logout;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -283,6 +292,11 @@ public class TestFixture {
         addAddress = new AddAddressService(users);
         removeAddress = new RemoveAddressService(users);
         consultUser = new ConsultUserService(users);
+
+        resolveActor = new ResolveActorService(users);
+        login = new LoginService(users, passwordEncoder, tokenProvider, tokenStore, clock, ids);
+        validateToken = new ValidateTokenService(tokenProvider, tokenStore, clock);
+        logout = new LogoutService(tokenStore, validateToken);
     }
 
     // ---------- Datos de apoyo
