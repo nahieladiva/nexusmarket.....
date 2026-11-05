@@ -20,6 +20,13 @@ import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
 import application.domain.services.order.PayOrderService;
 import application.domain.services.order.PlaceOrderService;
+import application.domain.services.product.ChangeProductPriceService;
+import application.domain.services.product.ConsultProductService;
+import application.domain.services.product.DiscontinueProductService;
+import application.domain.services.product.PublishProductService;
+import application.domain.services.product.RegisterProductService;
+import application.domain.services.product.SuspendProductService;
+import application.domain.services.product.UpdateProductService;
 import application.domain.services.refund.ConsultRefundService;
 import application.domain.services.refund.CreateRefundService;
 import application.domain.services.refund.ProcessRefundService;
@@ -129,6 +136,14 @@ public class TestFixture {
     public final RejectRefundService rejectRefund;
     public final ConsultRefundService consultRefund;
 
+    public final RegisterProductService registerProduct;
+    public final UpdateProductService updateProduct;
+    public final ChangeProductPriceService changeProductPrice;
+    public final PublishProductService publishProduct;
+    public final SuspendProductService suspendProduct;
+    public final DiscontinueProductService discontinueProduct;
+    public final ConsultProductService consultProduct;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -184,6 +199,14 @@ public class TestFixture {
         processRefund = new ProcessRefundService(refunds, notifier, clock);
         rejectRefund = new RejectRefundService(refunds, notifier, clock);
         consultRefund = new ConsultRefundService(refunds, consultOrder);
+
+        registerProduct = new RegisterProductService(products, events, clock, ids);
+        updateProduct = new UpdateProductService(products);
+        changeProductPrice = new ChangeProductPriceService(products);
+        publishProduct = new PublishProductService(products);
+        suspendProduct = new SuspendProductService(products);
+        discontinueProduct = new DiscontinueProductService(products);
+        consultProduct = new ConsultProductService(products);
     }
 
     // ---------- Datos de apoyo

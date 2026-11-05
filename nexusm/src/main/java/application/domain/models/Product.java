@@ -3,6 +3,7 @@ package application.domain.models;
 import application.domain.enums.ProductStatus;
 import application.domain.enums.ProductType;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ForbiddenActionException;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductCode;
 import application.domain.valueobjects.ProductId;
@@ -103,6 +104,17 @@ public final class Product {
      */
     public boolean isOwnedBy(UserId userId) {
         return this.sellerId.equals(userId);
+    }
+
+    /**
+     * Validates that the product belongs to the given seller (RG-03).
+     *
+     * @throws ForbiddenActionException when it belongs to another seller
+     */
+    public void requireOwnedBy(UserId userId) {
+        if (!isOwnedBy(userId)) {
+            throw new ForbiddenActionException("Product " + code + " belongs to another seller");
+        }
     }
 
     /**
