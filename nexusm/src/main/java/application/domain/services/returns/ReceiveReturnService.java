@@ -10,7 +10,7 @@ import application.domain.models.User;
 import application.domain.ports.out.OrderRepository;
 import application.domain.ports.out.ReturnRequestRepository;
 import application.domain.services.DomainService;
-import application.domain.services.InventoryDomainService;
+import application.domain.services.inventory.InventoryDomainService;
 import application.domain.services.inventory.RecordStockMovementService;
 import application.domain.services.refund.CreateRefundService;
 import application.domain.valueobjects.ReturnId;

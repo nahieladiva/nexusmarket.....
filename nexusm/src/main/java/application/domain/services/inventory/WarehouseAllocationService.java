@@ -1,9 +1,10 @@
-package application.domain.services;
+package application.domain.services.inventory;
 
 import application.domain.exceptions.InsufficientStockException;
 import application.domain.models.Inventory;
 import application.domain.models.OrderItem;
 import application.domain.models.Warehouse;
+import application.domain.services.DomainService;
 import application.domain.ports.out.InventoryRepository;
 import application.domain.ports.out.WarehouseRepository;
 import application.domain.valueobjects.ProductId;
@@ -23,7 +24,8 @@ import java.util.stream.Collectors;
  * <p>Rule: only active warehouses are considered, and among those with enough stock
  * the one with the most available units is chosen (to avoid draining small warehouses).</p>
  */
-public final class WarehouseAllocationService {
+@DomainService
+public class WarehouseAllocationService {
 
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;

@@ -1,5 +1,6 @@
 package application.support;
 
+import application.domain.models.Supervisor;
 import application.domain.models.LogisticsOperator;
 import application.domain.valueobjects.ProductId;
 import application.domain.enums.ProductType;
@@ -11,7 +12,13 @@ import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.models.Warehouse;
+import application.domain.services.inventory.AdjustStockService;
+import application.domain.services.inventory.ChangeReorderThresholdService;
+import application.domain.services.inventory.ConsultInventoryService;
+import application.domain.services.inventory.CreateInventoryService;
 import application.domain.services.inventory.RecordStockMovementService;
+import application.domain.services.inventory.RestockInventoryService;
+import application.domain.services.inventory.ValidateInventoryAccessService;
 import application.domain.services.invoice.ConsultInvoiceService;
 import application.domain.services.invoice.IssueInvoiceService;
 import application.domain.services.invoice.VoidInvoiceService;
@@ -47,10 +54,10 @@ import application.domain.services.cart.ChangeCartItemQuantityService;
 import application.domain.services.cart.ClearCartService;
 import application.domain.services.cart.ConsultCartService;
 import application.domain.services.cart.RemoveItemFromCartService;
-import application.domain.services.InventoryDomainService;
+import application.domain.services.inventory.InventoryDomainService;
 import application.domain.services.order.OrderFulfillmentDomainService;
 import application.domain.services.PasswordPolicy;
-import application.domain.services.WarehouseAllocationService;
+import application.domain.services.inventory.WarehouseAllocationService;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.Money;
@@ -144,6 +151,12 @@ public class TestFixture {
     public final DiscontinueProductService discontinueProduct;
     public final ConsultProductService consultProduct;
 
+    public final CreateInventoryService createInventory;
+    public final RestockInventoryService restockInventory;
+    public final AdjustStockService adjustStock;
+    public final ChangeReorderThresholdService changeReorderThreshold;
+    public final ConsultInventoryService consultInventory;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -207,6 +220,14 @@ public class TestFixture {
         suspendProduct = new SuspendProductService(products);
         discontinueProduct = new DiscontinueProductService(products);
         consultProduct = new ConsultProductService(products);
+
+        ValidateInventoryAccessService inventoryAccess = new ValidateInventoryAccessService(products, warehouses);
+        createInventory = new CreateInventoryService(inventories, products, warehouses, inventoryAccess,
+            recordStockMovement, ids);
+        restockInventory = new RestockInventoryService(inventoryDomain, inventoryAccess, recordStockMovement);
+        adjustStock = new AdjustStockService(inventories, inventoryAccess, recordStockMovement);
+        changeReorderThreshold = new ChangeReorderThresholdService(inventories, inventoryAccess);
+        consultInventory = new ConsultInventoryService(inventories, products, movements, inventoryAccess);
     }
 
     // ---------- Datos de apoyo
@@ -242,6 +263,13 @@ public class TestFixture {
             PhoneNumber.of("+573001234567"), "hashed:Clave123", List.of(), NOW);
         users.save(operator);
         return operator;
+    }
+
+    public Supervisor supervisor(String email) {
+        Supervisor supervisor = new Supervisor(UserId.random(), "Supervisor", Email.of(email),
+            PhoneNumber.of("+573001234568"), "hashed:Clave123", List.of(), NOW);
+        users.save(supervisor);
+        return supervisor;
     }
 
     public Product digitalProduct(Seller seller, String code, String price) {

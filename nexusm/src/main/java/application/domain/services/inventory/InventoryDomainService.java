@@ -1,8 +1,9 @@
-package application.domain.services;
+package application.domain.services.inventory;
 
 import application.domain.exceptions.InsufficientStockException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Inventory;
+import application.domain.services.DomainService;
 import application.domain.ports.out.InventoryRepository;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
@@ -13,7 +14,8 @@ import java.util.Objects;
 /**
  * Domain service for inventory management and reservation.
  */
-public final class InventoryDomainService {
+@DomainService
+public class InventoryDomainService {
 
     private final InventoryRepository inventoryRepository;
 

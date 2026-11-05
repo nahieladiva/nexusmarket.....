@@ -15,7 +15,7 @@ import application.domain.ports.out.IdGeneratorPort;
 import application.domain.ports.out.OrderRepository;
 import application.domain.ports.out.ProductRepository;
 import application.domain.services.DomainService;
-import application.domain.services.WarehouseAllocationService;
+import application.domain.services.inventory.WarehouseAllocationService;
 import application.domain.services.cart.ConsultCartService;
 import application.domain.valueobjects.OrderId;
 
