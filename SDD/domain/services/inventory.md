@@ -8,7 +8,7 @@ Paquete: `application.domain.services.inventory`. La vista general está en [Ser
 - **Quién lo usa:** `LogisticsOperatorPort.createInventory`, `SellerPort.createInventory`
 - **Entradas:** `Inventory execute(User actor, ProductId productId, WarehouseId warehouseId, Quantity onHand, Quantity reorderThreshold, WarehouseLocation location)`
 - **Reglas de negocio:** aplica `ValidateInventoryAccessService`. Hay un inventario por producto y bodega, la bodega debe estar activa y los productos `DIGITAL` no tienen inventario. Registra un movimiento `INITIAL`.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`, `DuplicateResourceException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`, `DuplicateResourceException`, `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** ninguno. Crea el `Inventory`.
 
 ### `RestockInventoryService`

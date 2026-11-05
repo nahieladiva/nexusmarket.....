@@ -33,7 +33,9 @@ frameworks, bases de datos ni protocolos.
 | Contraseñas | BCrypt |
 | Construcción | Maven (`mvnw.cmd`) |
 | Despliegue | Docker y Docker Compose |
-| Pruebas de API | Colección de Postman |
+| Documentación de la API | springdoc-openapi 3 (Swagger UI y OpenAPI 3) |
+| Validación | Jakarta Bean Validation en los DTO |
+| Pruebas de API | MockMvc y colección de Postman ejecutada con newman |
 
 ## 4. Capas y regla de dependencias
 
@@ -60,6 +62,7 @@ nexusm/src/main/java/application/
 ├── adapters/
 │   ├── in/rest/
 │   │   ├── controllers/
+│   │   ├── documentation/
 │   │   ├── mappers/
 │   │   ├── requests/
 │   │   ├── responses/
@@ -117,17 +120,24 @@ lectura.
 
 ### 6.3 `adapters.in.rest`
 
-Expone la API HTTP. Los controladores no contienen reglas de negocio y solo llaman a puertos de entrada.
-Hoy solo existe `AuthController`, con el registro de comprador, el login y el logout. Los controladores
-por rol llegan en la Fase 4.
+Expone la API HTTP bajo `/api/v1`. Hay un controlador por puerto de entrada: `PublicController`,
+`AccountController`, `BuyerController`, `SellerController`, `LogisticsController`,
+`AdministratorController` y `SupervisorController`. Cada uno usa solo su puerto y no contiene reglas de
+negocio. El usuario de las rutas de "lo propio" sale del JWT, y los ids de la URL llegan como value
+objects. La lista de rutas, roles y códigos de error está en [REST-API](../domain/REST-API.md).
 
 | Paquete | Responsabilidad |
 |---|---|
-| `controllers` | Reciben la petición, llaman al puerto de entrada y devuelven la respuesta |
-| `requests` | DTO de entrada |
+| `controllers` | Reciben la petición, llaman al puerto de entrada y devuelven la respuesta. `GlobalExceptionHandler` traduce las excepciones a códigos HTTP |
+| `documentation` | Anotaciones compuestas con las respuestas de OpenAPI de cada tipo de ruta |
+| `requests` | DTO de entrada, validados con `@Valid` |
 | `responses` | DTO de salida; ocultan el modelo interno |
 | `mappers` | Convierten entre DTO y objetos del dominio |
 | `security` | Filtro JWT, usuario autenticado y respuestas de error de seguridad |
+
+Los DTO comprueban la presencia y el rango de los datos. El formato lo validan los value objects: por
+ejemplo, `Email` recorta los espacios y pasa a minúsculas antes de validar, y por eso un correo
+duplicado se detecta aunque llegue con mayúsculas o espacios.
 
 ### 6.4 `adapters.out`
 
@@ -147,6 +157,7 @@ Implementa los puertos de salida.
 |---|---|
 | `config/ApplicationConfig` | Registra los servicios de dominio como beans |
 | `config/AdminSeeder` | Crea el administrador inicial al arrancar, si no existe |
+| `config/OpenApiConfig` | Título y versión de la API, esquema Bearer JWT y un grupo de OpenAPI por puerto |
 | `database/DatabaseConfig` | Crea los índices de `issued_tokens` en MongoDB: el TTL de `expiresAt` y el de `userId` |
 | `security/SecurityConfig` | Reglas de acceso HTTP y sesión sin estado |
 
@@ -176,9 +187,9 @@ MySQL y el MongoDB reales.
 
 | Regla | Descripción | Cómo se aplica |
 |---|---|---|
-| RG-01 | Toda operación requiere un usuario autenticado, salvo el catálogo público y el registro de comprador | `SecurityConfig` y filtro JWT |
+| RG-01 | Toda operación requiere un usuario autenticado, salvo `/api/v1/public` y la documentación de la API | `SecurityConfig` y filtro JWT |
 | RG-02 | Cada usuario tiene un solo rol | `User.role` es inmutable y `UserRole` define los 5 roles |
-| RG-03 | Nadie maneja información fuera de su rol | `User.requireRole` y métodos de propiedad como `Order.requireBelongsTo` y `Product.requireOwnedBy` |
+| RG-03 | Nadie maneja información fuera de su rol | Cada prefijo de `SecurityConfig` admite un solo rol, y el dominio lo repite con `User.requireRole` y con métodos de propiedad como `Order.requireBelongsTo` y `Product.requireOwnedBy` |
 
 Autenticación:
 
@@ -193,6 +204,12 @@ El JWT lleva el rol del usuario, y `JwtAuthenticationFilter` lo convierte en una
 de Spring Security. Son los 5 valores de `UserRole`. `AdminSeeder` crea el administrador inicial con el
 rol `ADMINISTRATOR`. La autenticación es solo con JWT: la configuración excluye el usuario en
 memoria que Spring Security crearía por defecto.
+
+### 8.1 Documentación de la API
+
+Swagger UI está en `/swagger-ui.html` y la especificación OpenAPI en `/v3/api-docs`, las dos sin token.
+Para probar una ruta protegida, se inicia sesión con `/api/v1/public/login` y se pega el token en el
+botón "Authorize". Hay un grupo por puerto, y cada ruta documenta sus códigos de respuesta.
 
 ## 9. Eventos de dominio
 
@@ -219,5 +236,4 @@ Este documento describe el código actual. Estos cambios ya están planeados:
 
 | Fase | Cambio |
 |---|---|
-| 4 | Un controlador por rol bajo `/api/v1` |
 | 5 | Bloqueo optimista y escrituras en MongoDB después del commit |

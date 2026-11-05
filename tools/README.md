@@ -24,6 +24,12 @@ El primer argumento es la carpeta del repositorio y el segundo, el archivo con e
 dependencias. Las clases se leen de `nexusm/target/classes`, así que hay que compilar antes de ejecutarlo
 para no comparar el SDD con clases viejas.
 
+Si cambian las rutas, esta opción imprime las secciones de `SDD/domain/REST-API.md` a partir del código:
+
+```powershell
+java tools/VerifySdd.java . nexusm/target/classpath.txt --print-rest-api
+```
+
 ### Qué comprueba
 
 - Cada clase, método, constante y paquete citado en `SDD/` existe, incluidos los diagramas.
@@ -33,6 +39,8 @@ para no comparar el SDD con clases viejas.
 - Los documentos de `SDD/domain/services/`: los 6 campos de cada servicio, que las entradas sean sus
   métodos públicos y que las excepciones citadas se puedan alcanzar.
 - Los puertos de salida: métodos y adaptador.
+- La API REST en `SDD/domain/REST-API.md`: cada ruta, su código de éxito y la operación del puerto que
+  llama. Cada controlador usa un solo puerto, y cada operación tiene exactamente una ruta.
 - `application.domain` no importa Spring, Lombok, Jakarta, `adapters` ni `infrastructure`.
 
 ### Cómo leer el resultado

@@ -8,7 +8,7 @@ Paquete: `application.domain.services.shipment`. La vista general está en [Serv
 - **Quién lo usa:** `LogisticsOperatorPort.createShipment`
 - **Entradas:** `Shipment execute(User operator, OrderId orderId, WarehouseId warehouseId)`
 - **Reglas de negocio:** solo un `LOGISTICS_OPERATOR`. Cada bodega del pedido tiene un solo envío. La dirección es `defaultShippingAddress` del comprador.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `DuplicateResourceException` si esa bodega ya tiene envío, `BusinessRuleException` si el pedido no está `PAID`, no sale de esa bodega o su comprador no existe.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `DuplicateResourceException` si esa bodega ya tiene envío, `BusinessRuleException` si el pedido no está `PAID`, no sale de esa bodega o su comprador no existe, `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** crea el `Shipment` en `PREPARING`.
 
 ### `PackShipmentService`
@@ -17,7 +17,7 @@ Paquete: `application.domain.services.shipment`. La vista general está en [Serv
 - **Quién lo usa:** `LogisticsOperatorPort.packShipment`
 - **Entradas:** `Shipment execute(User operator, ShipmentId shipmentId)`
 - **Reglas de negocio:** solo un `LOGISTICS_OPERATOR`.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si la transición no es válida.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si la transición no es válida.
 - **Estados que cambia:** `Shipment` de `PREPARING` a `PACKED`.
 
 ### `DispatchShipmentService`
@@ -26,7 +26,7 @@ Paquete: `application.domain.services.shipment`. La vista general está en [Serv
 - **Quién lo usa:** `LogisticsOperatorPort.dispatchShipment`
 - **Entradas:** `Shipment execute(User operator, ShipmentId shipmentId, String trackingNumber)`
 - **Reglas de negocio:** solo un `LOGISTICS_OPERATOR`. El número de guía es obligatorio. Después se aplica el avance del pedido.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si la transición no es válida, `IllegalArgumentException` si falta el número de guía.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si la transición no es válida, `IllegalArgumentException` si falta el número de guía.
 - **Estados que cambia:** `Shipment` de `PACKED` a `IN_TRANSIT`. Puede pasar el `Order` a `SHIPPED`.
 
 ### `ConfirmDeliveryService`
@@ -35,7 +35,7 @@ Paquete: `application.domain.services.shipment`. La vista general está en [Serv
 - **Quién lo usa:** `LogisticsOperatorPort.confirmDelivery`
 - **Entradas:** `Shipment execute(User operator, ShipmentId shipmentId)`
 - **Reglas de negocio:** solo un `LOGISTICS_OPERATOR`. Después se aplica el avance del pedido.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si la transición no es válida.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si la transición no es válida.
 - **Estados que cambia:** `Shipment` de `IN_TRANSIT` a `DELIVERED`. Puede pasar el `Order` a `DELIVERED`.
 
 ### `ApplyShipmentProgressService`

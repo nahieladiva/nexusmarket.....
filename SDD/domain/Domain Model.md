@@ -765,6 +765,7 @@ Todas heredan de `DomainException`.
 | `InvalidTokenException` | El token es inválido, expiró o fue revocado |
 | `OrderStateTransitionException` | Un pedido intenta una transición no permitida |
 | `ResourceNotFoundException` | Un recurso no existe |
+| `ResourceStateConflictException` | El estado actual de un recurso no permite la operación; hereda de `BusinessRuleException` |
 
 ## 13. Flujo del negocio
 

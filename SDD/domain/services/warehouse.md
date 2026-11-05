@@ -35,7 +35,7 @@ Paquete: `application.domain.services.warehouse`. La vista general está en [Ser
 - **Quién lo usa:** `AdministratorPort.activateWarehouse`, `SellerPort.activateWarehouse`
 - **Entradas:** `Warehouse execute(User actor, WarehouseId warehouseId)`
 - **Reglas de negocio:** aplica `Warehouse.requireManagedBy`.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si ya está activa.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si ya está activa.
 - **Estados que cambia:** `Warehouse` de `INACTIVE` a `ACTIVE`.
 
 ### `DeactivateWarehouseService`
@@ -44,7 +44,7 @@ Paquete: `application.domain.services.warehouse`. La vista general está en [Ser
 - **Quién lo usa:** `AdministratorPort.deactivateWarehouse`, `SellerPort.deactivateWarehouse`
 - **Entradas:** `Warehouse execute(User actor, WarehouseId warehouseId)`
 - **Reglas de negocio:** aplica `Warehouse.requireManagedBy`. Una bodega inactiva no recibe stock ni participa en la asignación de pedidos.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si ya está inactiva.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si ya está inactiva.
 - **Estados que cambia:** `Warehouse` de `ACTIVE` a `INACTIVE`.
 
 ### `ConsultWarehouseService`

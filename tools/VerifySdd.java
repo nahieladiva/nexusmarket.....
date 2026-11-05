@@ -1,6 +1,7 @@
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -16,12 +17,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -61,6 +64,12 @@ public class VerifySdd {
         "LogisticsOperatorPort", "`LOGISTICS_OPERATOR`",
         "AdministratorPort", "`ADMINISTRATOR`",
         "SupervisorPort", "`SUPERVISOR`");
+
+    private static final String PRINT_ROUTES_OPTION = "--print-rest-api";
+    private static final String CONTROLLERS_PACKAGE = "application.adapters.in.rest.controllers.";
+
+    /** The JWT filter uses this operation, so it has no route. */
+    private static final String OPERATION_WITHOUT_ROUTE = "AccountPort.validateToken";
 
     private static final String ACTOR_SERVICE = "ResolveActorService";
     private static final String ANNOTATION_NAME = "DomainService";
@@ -103,8 +112,10 @@ public class VerifySdd {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.err.println("Usage: java tools/VerifySdd.java <repositoryDir> <classpathFile>");
+        boolean printRoutes = args.length == 3 && args[2].equals(PRINT_ROUTES_OPTION);
+        if (args.length != 2 && !printRoutes) {
+            System.err.println("Usage: java tools/VerifySdd.java <repositoryDir> <classpathFile> ["
+                + PRINT_ROUTES_OPTION + "]");
             System.exit(2);
         }
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
@@ -113,8 +124,14 @@ public class VerifySdd {
         loadClasses(Path.of(args[1]));
         readBytecode(classNames.stream()
             .filter(name -> name.startsWith("application.domain")
-                || name.startsWith("application.adapters.useCases"))
+                || name.startsWith("application.adapters.useCases")
+                || name.startsWith(CONTROLLERS_PACKAGE))
             .toList());
+        List<RestRoute> routes = findRestRoutes();
+        if (printRoutes) {
+            printRestRoutes(routes);
+            return;
+        }
 
         Path sdd = repository.resolve("SDD");
         List<Path> documents;
@@ -135,6 +152,7 @@ public class VerifySdd {
         Set<String> auxiliary = checkMatrix(sdd, services, operationsByService, usersByService);
         checkServiceDetails(documents, services, operationsByService, usersByService, auxiliary);
         checkOutputPorts(sdd);
+        checkRestApi(sdd, routes, callsByOperation.keySet());
         checkModelApiIsCited(sdd);
         checkDomainImports();
         printReport(services.size());
@@ -840,6 +858,162 @@ public class VerifySdd {
         notCited.remove("IllegalStateException");
         if (!notCited.isEmpty()) {
             warnings.add("exception not cited in " + name + ": " + notCited);
+        }
+    }
+
+    // ---- REST routes
+
+    /** A handler of a controller: its route, its success code and the port operation it calls. */
+    private record RestRoute(String controller, String port, String prefix, String httpMethod,
+                             String path, int status, String operation) {
+
+        String row() {
+            return "| `%s` | `%s` | %d | `%s` |".formatted(httpMethod, path, status, operation);
+        }
+
+        String header() {
+            return "**Prefijo:** `%s`. **Rol:** %s. **Puerto:** `%s`."
+                .formatted(prefix, ROLE_OF_PORT.get(port), port);
+        }
+    }
+
+    private static List<RestRoute> findRestRoutes() throws Exception {
+        List<RestRoute> routes = new ArrayList<>();
+        for (String name : classNames) {
+            if (!name.startsWith(CONTROLLERS_PACKAGE) || !name.endsWith("Controller")) {
+                continue;
+            }
+            Class<?> controller = load(name);
+            List<String> ports = Arrays.stream(controller.getDeclaredFields())
+                .map(field -> field.getType())
+                .filter(type -> type.getName().startsWith("application.domain.ports.in."))
+                .map(Class::getSimpleName)
+                .toList();
+            if (ports.size() == 1) {
+                pass("REST API");
+            } else {
+                fail("REST API", controller.getSimpleName() + " must use one port: " + ports);
+                continue;
+            }
+            String prefix = mappingPath(annotationNamed(controller.getAnnotations(), "RequestMapping"));
+            for (Method method : controller.getDeclaredMethods()) {
+                if (Modifier.isPublic(method.getModifiers()) && !method.isSynthetic()) {
+                    routes.add(routeOf(controller, ports.get(0), prefix, method));
+                }
+            }
+        }
+        routes.sort(Comparator.comparing(RestRoute::controller).thenComparing(RestRoute::path)
+            .thenComparing(RestRoute::httpMethod));
+        return routes;
+    }
+
+    private static RestRoute routeOf(Class<?> controller, String port, String prefix, Method method)
+            throws Exception {
+        for (Annotation annotation : method.getAnnotations()) {
+            String type = annotation.annotationType().getSimpleName();
+            if (type.matches("(Get|Post|Put|Patch|Delete)Mapping")) {
+                return new RestRoute(controller.getSimpleName(), port, prefix,
+                    type.replace("Mapping", "").toUpperCase(Locale.ROOT),
+                    prefix + mappingPath(annotation), statusOf(method),
+                    portOperationOf(controller, method));
+            }
+        }
+        throw new IllegalStateException("Handler without a mapping: " + method);
+    }
+
+    private static Annotation annotationNamed(Annotation[] annotations, String name) {
+        return Arrays.stream(annotations)
+            .filter(annotation -> annotation.annotationType().getSimpleName().equals(name))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private static String mappingPath(Annotation mapping) throws Exception {
+        String[] paths = (String[]) mapping.annotationType().getMethod("value").invoke(mapping);
+        return paths.length == 0 ? "" : paths[0];
+    }
+
+    private static int statusOf(Method method) throws Exception {
+        Annotation responseStatus = annotationNamed(method.getAnnotations(), "ResponseStatus");
+        if (responseStatus == null) {
+            return 200;
+        }
+        Object status = responseStatus.annotationType().getMethod("value").invoke(responseStatus);
+        return (int) status.getClass().getMethod("value").invoke(status);
+    }
+
+    private static String portOperationOf(Class<?> controller, Method method) {
+        MethodNode node = callGraph.get(key(controller.getName().replace('.', '/'), method.getName(),
+            descriptorOf(method)));
+        Set<String> operations = new TreeSet<>();
+        if (node != null) {
+            for (String call : node.calls) {
+                String[] parts = call.split("#", 3);
+                if (parts[0].startsWith("application/domain/ports/in/")) {
+                    operations.add(simpleName(parts[0]) + "." + parts[1]);
+                }
+            }
+        }
+        if (operations.size() != 1) {
+            fail("REST API", controller.getSimpleName() + "." + method.getName()
+                + " must call one port operation: " + operations);
+            return "?";
+        }
+        return operations.iterator().next();
+    }
+
+    private static void printRestRoutes(List<RestRoute> routes) {
+        String controller = null;
+        for (RestRoute route : routes) {
+            if (!route.controller().equals(controller)) {
+                controller = route.controller();
+                System.out.printf("%n## `%s`%n%n%s%n%n", controller, route.header());
+                System.out.println("| Método | Ruta | Éxito | Operación |");
+                System.out.println("|---|---|---|---|");
+            }
+            System.out.println(route.row());
+        }
+    }
+
+    private static void checkRestApi(Path sdd, List<RestRoute> routes, Set<String> operations)
+            throws Exception {
+        List<String> lines = Files.readAllLines(sdd.resolve("domain/REST-API.md"), StandardCharsets.UTF_8);
+        Map<String, Set<String>> cited = new TreeMap<>();
+        String controller = null;
+        for (String line : lines) {
+            Matcher heading = Pattern.compile("^## `(\\w+Controller)`").matcher(line);
+            if (heading.find()) {
+                controller = heading.group(1);
+                cited.put(controller, new TreeSet<>());
+            } else if (line.startsWith("## ")) {
+                controller = null;
+            } else if (controller != null && line.startsWith("| `")) {
+                cited.get(controller).add(line.trim());
+            }
+        }
+        Map<String, Set<String>> actual = new TreeMap<>();
+        for (RestRoute route : routes) {
+            actual.computeIfAbsent(route.controller(), key -> new TreeSet<>()).add(route.row());
+            if (lines.contains(route.header())) {
+                pass("REST API");
+            } else {
+                fail("REST API", "missing section header: " + route.header());
+            }
+        }
+        compare("REST API", "controllers", cited.keySet(), actual.keySet());
+        actual.forEach((name, rows) ->
+            compare("REST API", name + " routes", cited.getOrDefault(name, Set.of()), rows));
+
+        Map<String, Long> routesByOperation = routes.stream()
+            .collect(Collectors.groupingBy(RestRoute::operation, Collectors.counting()));
+        for (String operation : operations) {
+            long count = routesByOperation.getOrDefault(operation, 0L);
+            long expected = operation.equals(OPERATION_WITHOUT_ROUTE) ? 0 : 1;
+            if (count == expected) {
+                pass("REST API");
+            } else {
+                fail("REST API", operation + " has " + count + " routes");
+            }
         }
     }
 

@@ -35,7 +35,7 @@ Paquete: `application.domain.services.user`. La vista general está en [Services
 - **Quién lo usa:** `AdministratorPort.approveSeller`
 - **Entradas:** `Seller execute(User administrator, UserId sellerId)`
 - **Reglas de negocio:** solo un `ADMINISTRATOR`. Se notifica al vendedor.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si no es vendedor o ya está aprobado.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si no es vendedor o ya está aprobado, `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** `Seller` de `PENDING_APPROVAL` o `SUSPENDED` a `APPROVED`.
 
 ### `SuspendSellerService`
@@ -44,7 +44,7 @@ Paquete: `application.domain.services.user`. La vista general está en [Services
 - **Quién lo usa:** `AdministratorPort.suspendSeller`
 - **Entradas:** `Seller execute(User administrator, UserId sellerId)`
 - **Reglas de negocio:** solo un `ADMINISTRATOR`. Sus productos dejan de estar disponibles. Se notifica al vendedor.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`, `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** `Seller` de `APPROVED` a `SUSPENDED`.
 
 ### `UpdateProfileService`

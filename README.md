@@ -1,39 +1,208 @@
 # NexusMarket
 
-Marketplace en Java 17 + Spring Boot 4 con arquitectura hexagonal.
-MySQL guarda los datos del negocio y MongoDB la bitácora de auditoría, el historial de
-stock y la base de tokens JWT. Todo corre en Docker Desktop.
+API REST de un marketplace, hecha en Java 17 y Spring Boot 4 con arquitectura hexagonal. Vendedores,
+compradores, operadores logísticos, administradores y supervisores participan en un mismo flujo: catálogo,
+inventario, carrito, pago, factura, envío, devolución y reembolso.
 
-## Cómo correrlo
+MySQL guarda los datos del negocio. MongoDB guarda la bitácora de auditoría, el historial de stock y los
+tokens JWT emitidos. Todo corre con Docker.
 
-Requisito: Docker Desktop abierto.
+## Arquitectura
+
+```
+nexusm/src/main/java/application
+├── domain                ← núcleo en Java puro: no depende de Spring, Lombok ni Jakarta
+│   ├── models, valueobjects, enums, events, exceptions
+│   ├── services          ← un servicio por caso de uso
+│   └── ports
+│       ├── in   (7)      ← lo que el sistema ofrece, un puerto por rol
+│       └── out  (19)     ← lo que el sistema necesita del exterior
+├── adapters
+│   ├── in/rest           ← controladores por puerto, DTOs, filtro JWT, errores, OpenAPI
+│   ├── useCases          ← implementan los puertos de entrada y definen las transacciones
+│   └── out               ← MySQL, MongoDB, JWT, BCrypt, reloj, IDs, eventos, notificaciones
+└── infrastructure        ← configuración de Spring, seguridad, OpenAPI y Mongo
+```
+
+Una petición entra por un controlador, pasa a su puerto de entrada, el caso de uso delega en los servicios
+de dominio, y estos usan los puertos de salida. Las dependencias siempre apuntan hacia el dominio.
+
+El diseño completo está en el [SDD](SDD/Software%20Architecture/Software%20Architecture.md).
+
+## Roles
+
+| Rol | Prefijo | Qué hace |
+|---|---|---|
+| Anónimo | `/api/v1/public` | Ve el catálogo, se registra como comprador e inicia sesión |
+| Cualquier usuario autenticado | `/api/v1/account` | Maneja su perfil, sus direcciones y su contraseña, y cierra sesión |
+| `BUYER` | `/api/v1/buyer` | Compra, paga, consulta sus pedidos y pide devoluciones |
+| `SELLER` | `/api/v1/seller` | Maneja sus productos, sus bodegas y su stock |
+| `LOGISTICS_OPERATOR` | `/api/v1/logistics` | Maneja stock, envíos y devoluciones recibidas |
+| `ADMINISTRATOR` | `/api/v1/admin` | Registra usuarios, modera productos, aprueba devoluciones y procesa reembolsos |
+| `SUPERVISOR` | `/api/v1/supervisor` | Consulta todo, sin modificar nada |
+
+Cada usuario tiene un solo rol, y cada prefijo solo admite el suyo. Las rutas de "lo propio" no llevan el id
+del usuario: sale del JWT.
+
+## Cómo ejecutar con Docker
+
+Requisito: Docker Desktop abierto. Desde la raíz del repositorio:
 
 ```bash
 docker compose up -d --build
 ```
 
-La primera vez tarda unos minutos porque descarga las dependencias de Maven.
-La API queda en `http://localhost:8080`. Para ver los logs (incluidas las notificaciones):
+La primera vez tarda unos minutos porque descarga las dependencias. La API queda en
+`http://localhost:8080`.
 
-```bash
-docker compose logs -f api
+Al arrancar se crea un administrador: **admin@nexusmarket.com / Admin2026**. Se cambia con las variables
+`ADMIN_EMAIL` y `ADMIN_PASSWORD`.
+
+| Acción | Comando |
+|---|---|
+| Ver los logs | `docker compose logs -f api` |
+| Apagar y conservar los datos | `docker compose stop` |
+| Apagar y borrar los datos | `docker compose down -v` |
+
+## Cómo usar Swagger
+
+1. Abra `http://localhost:8080/swagger-ui.html`.
+2. Arriba a la derecha elija el grupo, por ejemplo `public`.
+3. Ejecute `POST /api/v1/public/login` con el administrador y copie el `token` de la respuesta.
+4. Pulse **Authorize**, pegue el token sin la palabra `Bearer` y confirme.
+5. Elija el grupo del rol, por ejemplo `admin`, y pruebe sus rutas.
+
+La especificación OpenAPI está en `http://localhost:8080/v3/api-docs`, con un grupo por rol, por ejemplo
+`/v3/api-docs/buyer`.
+
+## Cómo usar Postman
+
+En [postman/](postman) están la colección y el environment. Cada petición guarda los tokens y los ids que
+necesitan las siguientes, y cada ejecución crea sus propios usuarios y productos, así que se puede repetir.
+
+**Desde Postman:** importe los dos archivos, elija el environment `NexusMarket local` y ejecute la colección
+con el Collection Runner, en orden.
+
+**Con newman en Docker,** sin instalar nada. Desde la raíz, en PowerShell:
+
+```powershell
+docker run --rm -v "${PWD}/postman:/etc/newman" postman/newman:6-alpine run NexusMarket.postman_collection.json -e NexusMarket.postman_environment.json --env-var baseUrl=http://host.docker.internal:8080
 ```
 
-Para apagar todo: `docker compose down` (agregue `-v` para borrar también los datos).
+`host.docker.internal` es la forma de llegar al `localhost:8080` de su equipo desde el contenedor de newman.
 
-Al arrancar se crea un administrador: **admin@nexusmarket.com / Admin2026**
-(se cambia con las variables `ADMIN_EMAIL` y `ADMIN_PASSWORD`).
+La colección recorre el flujo completo: el administrador crea usuarios; el vendedor prepara bodega, producto
+e inventario; el comprador paga; se factura, se envía y se entrega; hay devolución, reembolso, cancelación,
+bloqueo de producto y cambio de contraseña con revocación de sesiones; y al final los casos 400, 401, 403,
+404, 409 y 422.
 
-### Pruebas
+## Endpoints por rol
+
+La lista completa, con el código de éxito y la operación de cada ruta, está en
+[REST-API](SDD/domain/REST-API.md).
+
+### Público: `/api/v1/public`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `POST /buyers` | Registra un comprador |
+| `POST /login` | Inicia sesión y devuelve el JWT |
+| `GET /products?keyword=` | Busca en el catálogo |
+| `GET /products/{productId}` | Consulta un producto publicado |
+
+### Cuenta: `/api/v1/account`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `GET`, `PATCH /profile` | Consulta y actualiza el perfil |
+| `POST /addresses`, `POST /addresses/remove` | Agrega y quita direcciones |
+| `PUT /password` | Cambia la contraseña y cierra todas las sesiones |
+| `POST /logout` | Cierra la sesión actual |
+
+### Comprador: `/api/v1/buyer`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `GET`, `DELETE /cart` | Consulta y vacía el carrito |
+| `POST /cart/items`, `PATCH`, `DELETE /cart/items/{productId}` | Maneja las líneas del carrito |
+| `POST /orders`, `GET /orders`, `GET /orders/{orderId}` | Crea un pedido desde el carrito y lo consulta |
+| `POST /orders/{orderId}/pay`, `/cancel` | Paga y cancela |
+| `GET /orders/{orderId}/invoice`, `/shipments`, `/refunds` | Consulta factura, envíos y reembolsos |
+| `POST`, `GET /orders/{orderId}/returns` | Pide y consulta devoluciones |
+
+### Vendedor: `/api/v1/seller`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `POST`, `GET /products`, `PATCH /products/{productId}` | Registra, lista y edita productos |
+| `PUT /products/{productId}/price` | Cambia el precio |
+| `POST /products/{productId}/publish`, `/suspend`, `/discontinue` | Cambia el estado del producto |
+| `POST`, `GET /warehouses`, `GET`, `PUT /warehouses/{warehouseId}` | Maneja sus bodegas |
+| `POST /warehouses/{warehouseId}/activate`, `/deactivate` | Activa y desactiva una bodega |
+| `POST`, `GET /inventory`, `GET /inventory/{productId}/{warehouseId}` | Crea y consulta inventario |
+| `POST /inventory/restock`, `/adjust`, `PUT /inventory/threshold` | Reabastece, ajusta y cambia el punto de reorden |
+| `GET /inventory/{productId}/{warehouseId}/movements` | Consulta el historial de stock |
+| `GET /orders`, `GET /orders/{orderId}` | Consulta los pedidos con sus productos |
+
+### Operador logístico: `/api/v1/logistics`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `POST`, `GET /shipments` | Prepara y lista envíos |
+| `POST /shipments/{shipmentId}/pack`, `/dispatch`, `/deliver` | Avanza el envío |
+| `GET /orders/{orderId}/shipments` | Consulta los envíos de un pedido |
+| `POST /returns/{returnId}/receive`, `GET /returns` | Recibe y lista devoluciones |
+| `POST`, `GET /inventory`, `GET /inventory/low-stock` | Crea, lista y revisa inventario |
+| `POST /inventory/restock`, `/adjust`, `PUT /inventory/threshold` | Maneja el stock |
+| `GET /inventory/{productId}/{warehouseId}`, `.../movements` | Consulta inventario e historial |
+| `GET /warehouses`, `GET /warehouses/{warehouseId}`, `.../inventory` | Consulta bodegas y su inventario |
+| `GET /orders`, `GET /orders/{orderId}`, `GET /products` | Consulta pedidos y productos |
+
+### Administrador: `/api/v1/admin`
+
+| Método y ruta | Qué hace |
+|---|---|
+| `POST /sellers`, `POST /staff` | Registra vendedores y personal interno |
+| `POST /sellers/{sellerId}/approve`, `/suspend` | Aprueba y suspende vendedores |
+| `GET /users`, `GET /users/{userId}` | Consulta usuarios |
+| `POST`, `GET /warehouses`, `GET`, `PUT /warehouses/{warehouseId}` | Maneja las bodegas del marketplace |
+| `POST /warehouses/{warehouseId}/activate`, `/deactivate` | Activa y desactiva bodegas |
+| `POST /products/{productId}/block`, `/unblock`, `/discontinue` | Modera productos |
+| `GET /products`, `GET /inventory`, `GET /inventory/low-stock` | Consulta catálogo e inventario |
+| `GET /inventory/{productId}/{warehouseId}`, `.../movements` | Consulta inventario e historial |
+| `GET /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/cancel` | Consulta y cancela pedidos |
+| `GET /orders/{orderId}/invoice`, `GET /invoices`, `GET /shipments` | Consulta facturas y envíos |
+| `POST /returns/{returnId}/approve`, `/reject`, `GET /returns` | Resuelve devoluciones |
+| `POST /refunds/{refundId}/process`, `/reject`, `GET /refunds` | Resuelve reembolsos |
+
+### Supervisor: `/api/v1/supervisor`
+
+Solo consulta: `GET /users`, `/users/{userId}`, `/products`, `/warehouses`, `/warehouses/{warehouseId}`,
+`/inventory`, `/inventory/low-stock`, `/inventory/{productId}/{warehouseId}`, `.../movements`, `/orders`,
+`/orders/{orderId}`, `/orders/{orderId}/invoice`, `/invoices`, `/shipments`, `/returns` y `/refunds`.
+
+## Errores
+
+Todos los errores tienen el mismo formato JSON: `timestamp`, `status`, `error`, `message` y `path`.
+
+| Código | Significado |
+|---|---|
+| 400 | Falta un dato o tiene un formato inválido |
+| 401 | Falta el token, es inválido o está revocado |
+| 403 | El rol no puede entrar, o el recurso es de otro usuario |
+| 404 | El recurso no existe |
+| 409 | El recurso está duplicado, o su estado o su stock no permiten la operación |
+| 422 | La operación rompe una regla de negocio |
+
+## Pruebas
 
 ```bash
 cd nexusm
-./mvnw test
+./mvnw clean test
 ```
 
-Las pruebas de `application.domain.services` usan repositorios en memoria y no necesitan bases
-de datos. `NexusmarketApplicationTests` levanta el contexto completo con H2 y MongoDB simulado,
-así que tampoco necesita bases externas.
+No necesitan bases de datos externas: las de dominio usan repositorios en memoria y las de la API usan el
+contexto real de Spring con H2.
 
 Las pruebas `*IT` usan el MySQL y el MongoDB reales y no corren con `./mvnw test`:
 
@@ -43,93 +212,15 @@ cd nexusm
 ./mvnw test -Dtest=*IT
 ```
 
-## Arquitectura
+[tools/VerifySdd.java](tools/README.md) comprueba que el SDD coincide con el código compilado.
 
-```
-nexusm/src/main/java/application
-├── domain                ← núcleo: no depende de Spring
-│   ├── models, valueobjects, enums, events, exceptions
-│   ├── services          ← reglas que involucran varios agregados
-│   └── ports
-│       ├── in   (7)      ← lo que el sistema ofrece (casos de uso)
-│       └── out  (19)     ← lo que el sistema necesita del exterior
-├── adapters
-│   ├── in/rest           ← controladores, DTOs, filtro JWT
-│   ├── out               ← MySQL, MongoDB, JWT, BCrypt, reloj, IDs, eventos, notificaciones
-│   └── useCases          ← implementación de los casos de uso (puertos de entrada)
-└── infrastructure        ← configuración de Spring, seguridad, Mongo
-```
+## Documentación
 
-El detalle de servicios, puertos y reglas de negocio está en `SDD/domain/Services.md`,
-`SDD/domain/Input-ports.md` y `SDD/domain/Output-ports.md`.
-
-## Flujo de prueba rápido
-
-Todas las rutas protegidas llevan el header `Authorization: Bearer <token>`.
-
-1. **Administrador inicia sesión**: `POST /api/auth/login` con `{"email":"admin@nexusmarket.com","password":"Admin2026"}`.
-2. **Vendedor se registra**: `POST /api/auth/register/seller`
-   ```json
-   {"fullName":"Luisa Pérez","email":"luisa@tienda.com","phone":"+573001234567",
-    "password":"Tienda2026","businessName":"Tienda Luisa"}
-   ```
-3. **Admin aprueba al vendedor**: `PATCH /api/users/{idVendedor}/approve`.
-4. **Admin crea una bodega**: `POST /api/warehouses`
-   ```json
-   {"name":"Bodega Norte",
-    "address":{"street":"Calle 10 # 43-20","city":"Medellín","state":"Antioquia","zipCode":"050021","country":"Colombia"},
-    "location":{"aisle":"A","shelf":"1","bin":"1"}}
-   ```
-5. **Vendedor inicia sesión y publica un producto**: `POST /api/products`
-   ```json
-   {"code":"TEC-0001","name":"Audífonos","description":"Bluetooth","price":{"amount":"150000","currency":"COP"}}
-   ```
-6. **Vendedor registra stock**: `POST /api/inventory`
-   ```json
-   {"productId":"...","warehouseId":"...","onHand":20,"reorderThreshold":5,
-    "location":{"aisle":"A","shelf":"1","bin":"1"}}
-   ```
-7. **Vendedor crea una promoción**: `POST /api/promotions`
-   ```json
-   {"productId":"...","discountPercent":20,"startDate":"2026-11-01","endDate":"2026-11-30"}
-   ```
-8. **Comprador se registra, inicia sesión y compra**: `POST /api/orders`
-   ```json
-   {"items":[{"productId":"...","quantity":2}]}
-   ```
-   El precio no se envía: lo calcula el sistema.
-9. **Admin confirma** (`PATCH /api/orders/{id}/confirm`), **envía** (`/ship`) y **entrega** (`/deliver`).
-10. **Historial de stock**: `GET /api/inventory/movements?productId=...&warehouseId=...`
-11. **Cerrar sesión**: `POST /api/auth/logout` — el token queda revocado aunque no haya expirado.
-
-## Endpoints (55)
-
-| Recurso | Método y ruta | Rol |
-|---|---|---|
-| Auth | `POST /api/auth/register/buyer`, `POST /api/auth/register/seller`, `POST /api/auth/login` | Público |
-| Auth | `POST /api/auth/logout` | Autenticado |
-| Usuarios | `GET /api/users/me`, `PATCH /api/users/me`, `POST /api/users/me/addresses`, `DELETE /api/users/me/addresses` | Autenticado |
-| Usuarios | `GET /api/users`, `GET /api/users/{id}`, `PATCH /api/users/{id}/approve` | ADMIN |
-| Productos | `GET /api/products?keyword=`, `GET /api/products/{id}` | Público |
-| Productos | `GET /api/products/mine`, `POST /api/products`, `PUT /api/products/{id}`, `PATCH /api/products/{id}/price`, `PATCH /api/products/{id}/availability` | SELLER (dueño) |
-| Productos | `GET /api/products/all` | ADMIN |
-| Bodegas | `GET /api/warehouses`, `GET /api/warehouses/{id}` | Autenticado |
-| Bodegas | `POST /api/warehouses`, `PUT /api/warehouses/{id}`, `PATCH /api/warehouses/{id}/status` | ADMIN |
-| Inventario | `POST /api/inventory`, `PATCH /api/inventory/restock`, `PATCH /api/inventory/adjust`, `PATCH /api/inventory/threshold`, `GET /api/inventory?productId=&warehouseId=`, `GET /api/inventory/availability`, `GET /api/inventory/warehouse/{id}`, `GET /api/inventory/all`, `GET /api/inventory/low-stock`, `GET /api/inventory/movements` | SELLER (dueño) o ADMIN |
-| Pedidos | `POST /api/orders`, `GET /api/orders/mine` | BUYER |
-| Pedidos | `GET /api/orders/seller` | SELLER |
-| Pedidos | `GET /api/orders`, `PATCH /api/orders/{id}/confirm`, `/ship`, `/deliver` | ADMIN |
-| Pedidos | `PATCH /api/orders/{id}/cancel` | BUYER (dueño) o ADMIN |
-| Pedidos | `GET /api/orders/{id}` | Comprador dueño, vendedor con productos en el pedido, o ADMIN |
-| Promociones | `GET /api/promotions/active`, `GET /api/promotions/product/{id}`, `GET /api/promotions/price/{id}` | Público |
-| Promociones | `POST /api/promotions`, `PATCH /api/promotions/{id}/end` | SELLER (dueño) |
-
-## Códigos de error
-
-| Código | Cuándo |
+| Documento | Contenido |
 |---|---|
-| 400 | Datos con formato inválido (email, teléfono E.164, SKU `XXX-0000`, JSON mal formado) |
-| 401 | Sin token, token inválido, expirado o revocado; credenciales incorrectas |
-| 403 | El rol no tiene permiso, o el recurso es de otro usuario |
-| 404 | El recurso no existe |
-| 409 | Se viola una regla de negocio (stock insuficiente, transición de estado inválida, duplicado, etc.) |
+| [Software Architecture](SDD/Software%20Architecture/Software%20Architecture.md) | Arquitectura, persistencia, seguridad y despliegue |
+| [Domain Model](SDD/domain/Domain%20Model.md) | Entidades, agregados y reglas |
+| [Domain Value Objects](SDD/domain/Domain%20Value%20Objects.md) | Value objects y enums |
+| [Services](SDD/domain/Services.md) | Matriz de trazabilidad de los servicios de dominio |
+| [Input-ports](SDD/domain/Input-ports.md), [Output-ports](SDD/domain/Output-ports.md) | Puertos |
+| [REST-API](SDD/domain/REST-API.md) | Rutas, roles y códigos de error |

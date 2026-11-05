@@ -17,7 +17,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `SellerPort.updateProduct`
 - **Entradas:** `Product execute(User seller, ProductId productId, String name, String description)`
 - **Reglas de negocio:** un valor `null` conserva el dato actual. Un producto `DISCONTINUED` no se edita.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`.
 - **Estados que cambia:** ninguno.
 
 ### `ChangeProductPriceService`
@@ -26,7 +26,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `SellerPort.changeProductPrice`
 - **Entradas:** `Product execute(User seller, ProductId productId, Money newPrice)`
 - **Reglas de negocio:** el precio es mayor que cero y conserva su moneda. Los carritos y pedidos existentes mantienen su precio.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`, `IllegalArgumentException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`, `IllegalArgumentException`.
 - **Estados que cambia:** ninguno.
 
 ### `PublishProductService`
@@ -35,7 +35,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `SellerPort.publishProduct`
 - **Entradas:** `Product execute(User actor, ProductId productId)`
 - **Reglas de negocio:** el vendedor debe estar `APPROVED` (`Seller.requireApprovedToPublish`). Un producto `BLOCKED` no se publica.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`.
 - **Estados que cambia:** `Product` de `DRAFT` o `SUSPENDED` a `PUBLISHED`.
 
 ### `SuspendProductService`
@@ -44,7 +44,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `SellerPort.suspendProduct`
 - **Entradas:** `Product execute(User seller, ProductId productId)`
 - **Reglas de negocio:** solo el vendedor. Un producto `BLOCKED` no se suspende, para que el vendedor no pueda levantar el bloqueo.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`.
 - **Estados que cambia:** `Product` de `PUBLISHED` a `SUSPENDED`.
 
 ### `DiscontinueProductService`
@@ -53,7 +53,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `AdministratorPort.discontinueProduct`, `SellerPort.discontinueProduct`
 - **Entradas:** `Product execute(User actor, ProductId productId)`
 - **Reglas de negocio:** lo hace el vendedor dueño o un administrador. Un producto `BLOCKED` primero debe desbloquearse.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`.
 - **Estados que cambia:** `Product` a `DISCONTINUED`.
 
 ### `BlockProductService`
@@ -62,7 +62,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `AdministratorPort.blockProduct`
 - **Entradas:** `Product execute(User administrator, ProductId productId)`
 - **Reglas de negocio:** solo un `ADMINISTRATOR`, sobre productos `PUBLISHED` o `SUSPENDED`. Se notifica al vendedor.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException`.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException`.
 - **Estados que cambia:** `Product` a `BLOCKED`.
 
 ### `UnblockProductService`
@@ -71,7 +71,7 @@ Paquete: `application.domain.services.product`. La vista general está en [Servi
 - **Quién lo usa:** `AdministratorPort.unblockProduct`
 - **Entradas:** `Product execute(User administrator, ProductId productId)`
 - **Reglas de negocio:** solo un `ADMINISTRATOR`. El vendedor decide después si lo publica. Se notifica al vendedor.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si no está bloqueado.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si no está bloqueado.
 - **Estados que cambia:** `Product` de `BLOCKED` a `SUSPENDED`.
 
 ### `ConsultProductService`

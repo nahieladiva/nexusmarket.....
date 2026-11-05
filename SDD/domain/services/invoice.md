@@ -8,7 +8,7 @@ Paquete: `application.domain.services.invoice`. La vista general está en [Servi
 - **Quién lo usa:** `PayOrderService`
 - **Entradas:** `Invoice execute(Order order)`
 - **Reglas de negocio:** un pedido tiene una sola factura. El número es `INV-` seguido del id del pedido. El pedido debe haberse pagado y no estar cancelado.
-- **Excepciones:** `DuplicateResourceException` si ya existe, `BusinessRuleException` si el pedido no se pagó o está cancelado.
+- **Excepciones:** `DuplicateResourceException` si ya existe, `ResourceStateConflictException` si el pedido no se pagó o está cancelado.
 - **Estados que cambia:** crea el `Invoice` en `ISSUED`.
 
 ### `VoidInvoiceService`
@@ -17,7 +17,7 @@ Paquete: `application.domain.services.invoice`. La vista general está en [Servi
 - **Quién lo usa:** `CancelOrderService`
 - **Entradas:** `void execute(Order order)`
 - **Reglas de negocio:** un pedido cancelado antes del pago no tiene factura, y entonces no hace nada.
-- **Excepciones:** `BusinessRuleException` si la factura ya estaba anulada.
+- **Excepciones:** `ResourceStateConflictException` si la factura ya estaba anulada.
 - **Estados que cambia:** `Invoice` de `ISSUED` a `VOIDED`.
 
 ### `ConsultInvoiceService`

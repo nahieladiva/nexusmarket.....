@@ -17,7 +17,7 @@ Paquete: `application.domain.services.order`. La vista general está en [Service
 - **Quién lo usa:** `BuyerPort.payOrder`
 - **Entradas:** `Order execute(User buyer, OrderId orderId)`
 - **Reglas de negocio:** solo paga el comprador dueño. Cada producto debe seguir disponible; si no, el pago se rechaza y el pedido sigue en `PENDING_PAYMENT`. Se asignan bodegas, se reserva el stock, se registran los movimientos `RESERVATION` y se emite la factura.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si un producto no está disponible o el pedido no está en `PENDING_PAYMENT`, `InsufficientStockException` si no hay stock (se comprueba antes que el estado del pedido).
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si un producto no está disponible o el pedido no está en `PENDING_PAYMENT`, `InsufficientStockException` si no hay stock (se comprueba antes que el estado del pedido), `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** `PENDING_PAYMENT` a `PAID`, o a `DELIVERED` si ningún ítem requiere envío. Crea el `Invoice` en `ISSUED`.
 
 ### `CancelOrderService`
@@ -26,7 +26,7 @@ Paquete: `application.domain.services.order`. La vista general está en [Service
 - **Quién lo usa:** `AdministratorPort.cancelOrder`, `BuyerPort.cancelOrder`
 - **Entradas:** `Order execute(User actor, OrderId orderId)`
 - **Reglas de negocio:** lo cancela el comprador dueño o un administrador. No se cancela un pedido con envíos. El stock reservado vuelve a su bodega con movimientos `RELEASE`. Si el pedido estaba pagado, se anula la factura y se crea un reembolso.
-- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `BusinessRuleException` si tiene envíos, `OrderStateTransitionException` si el estado no permite cancelarlo.
+- **Excepciones:** `ForbiddenActionException`, `ResourceNotFoundException`, `ResourceStateConflictException` si tiene envíos, `OrderStateTransitionException` si el estado no permite cancelarlo.
 - **Estados que cambia:** `PENDING_PAYMENT` o `PAID` a `CANCELLED`. `Invoice` de `ISSUED` a `VOIDED`. Crea el `Refund` en `PENDING` si estaba pagado.
 
 ### `ConsultOrderService`
@@ -44,7 +44,7 @@ Paquete: `application.domain.services.order`. La vista general está en [Service
 - **Quién lo usa:** `CancelOrderService`, `PayOrderService`
 - **Entradas:** `List<Inventory> confirm(Order order, LocalDateTime now)`; `List<Inventory> cancel(Order order)`
 - **Reglas de negocio:** al pagar, cada ítem que requiere envío recibe una bodega y se reserva su stock. Al cancelar un pedido pagado, el stock vuelve a la misma bodega. Cancelar un pedido sin pagar no toca el stock. No guarda el pedido: lo hace quien lo llama.
-- **Excepciones:** `InsufficientStockException` si no hay stock, `ResourceNotFoundException` si falta el inventario, `BusinessRuleException` si se confirma un pedido que no está en `PENDING_PAYMENT`, `OrderStateTransitionException` si se cancela un pedido que no se puede cancelar.
+- **Excepciones:** `InsufficientStockException` si no hay stock, `ResourceNotFoundException` si falta el inventario, `BusinessRuleException` si se confirma un pedido que no está en `PENDING_PAYMENT`, `OrderStateTransitionException` si se cancela un pedido que no se puede cancelar, `ResourceStateConflictException` si el estado del recurso no lo permite.
 - **Estados que cambia:** aplica `Order.pay` y `Order.cancel`.
 
 ### `NotifyOrderStatusChangeService`
