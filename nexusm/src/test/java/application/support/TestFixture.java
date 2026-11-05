@@ -1,5 +1,6 @@
 package application.support;
 
+import application.domain.models.LogisticsOperator;
 import application.domain.valueobjects.ProductId;
 import application.domain.enums.ProductType;
 import application.domain.enums.SellerStatus;
@@ -19,6 +20,12 @@ import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
 import application.domain.services.order.PayOrderService;
 import application.domain.services.order.PlaceOrderService;
+import application.domain.services.shipment.ApplyShipmentProgressService;
+import application.domain.services.shipment.ConfirmDeliveryService;
+import application.domain.services.shipment.ConsultShipmentService;
+import application.domain.services.shipment.CreateShipmentService;
+import application.domain.services.shipment.DispatchShipmentService;
+import application.domain.services.shipment.PackShipmentService;
 import application.domain.services.cart.AddItemToCartService;
 import application.domain.services.cart.ChangeCartItemQuantityService;
 import application.domain.services.cart.ClearCartService;
@@ -61,6 +68,7 @@ public class TestFixture {
     public final InMemoryOrderRepository orders = new InMemoryOrderRepository();
     public final InMemoryCartRepository carts = new InMemoryCartRepository();
     public final InMemoryInvoiceRepository invoices = new InMemoryInvoiceRepository();
+    public final InMemoryShipmentRepository shipments = new InMemoryShipmentRepository();
     public final InMemoryStockMovementLog movements = new InMemoryStockMovementLog();
     public final InMemoryTokenStore tokenStore = new InMemoryTokenStore();
     public final FakeTokenProvider tokenProvider = new FakeTokenProvider();
@@ -93,6 +101,12 @@ public class TestFixture {
     public final IssueInvoiceService issueInvoice;
     public final VoidInvoiceService voidInvoice;
     public final ConsultInvoiceService consultInvoice;
+
+    public final CreateShipmentService createShipment;
+    public final PackShipmentService packShipment;
+    public final DispatchShipmentService dispatchShipment;
+    public final ConfirmDeliveryService confirmDelivery;
+    public final ConsultShipmentService consultShipment;
 
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
@@ -127,8 +141,16 @@ public class TestFixture {
         payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
             issueInvoice, clock);
         cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
-            voidInvoice);
+            voidInvoice, shipments);
         consultOrder = new ConsultOrderService(orders, products);
+
+        ApplyShipmentProgressService applyShipmentProgress =
+            new ApplyShipmentProgressService(orders, shipments, notifyOrderStatusChange);
+        createShipment = new CreateShipmentService(shipments, orders, users, clock, ids);
+        packShipment = new PackShipmentService(shipments);
+        dispatchShipment = new DispatchShipmentService(shipments, applyShipmentProgress, clock);
+        confirmDelivery = new ConfirmDeliveryService(shipments, applyShipmentProgress, clock);
+        consultShipment = new ConsultShipmentService(shipments, consultOrder);
     }
 
     // ---------- Datos de apoyo
@@ -157,6 +179,13 @@ public class TestFixture {
 
     public Warehouse warehouse(String name) {
         return warehouseService.createWarehouse(name, address(), WarehouseLocation.of("A", "1", "1"));
+    }
+
+    public LogisticsOperator logisticsOperator(String email) {
+        LogisticsOperator operator = new LogisticsOperator(UserId.random(), "Operator", Email.of(email),
+            PhoneNumber.of("+573001234567"), "hashed:Clave123", List.of(), NOW);
+        users.save(operator);
+        return operator;
     }
 
     public Product digitalProduct(Seller seller, String code, String price) {

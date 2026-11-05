@@ -3,12 +3,14 @@ package application.domain.services.order;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.StockMovementType;
 import application.domain.enums.UserRole;
+import application.domain.exceptions.BusinessRuleException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Inventory;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.models.User;
 import application.domain.ports.out.OrderRepository;
+import application.domain.ports.out.ShipmentRepository;
 import application.domain.services.DomainService;
 import application.domain.services.inventory.RecordStockMovementService;
 import application.domain.services.invoice.VoidInvoiceService;
@@ -18,7 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Cancels an order. The buyer who owns it or an administrator can do it, and reserved stock goes
+ * Cancels an order that has no shipments. The buyer who owns it or an administrator can do it, and
+ * reserved stock goes
  * back to its warehouse, and its invoice is voided.
  */
 @DomainService
@@ -29,17 +32,20 @@ public class CancelOrderService {
     private final RecordStockMovementService recordStockMovementService;
     private final NotifyOrderStatusChangeService notifyOrderStatusChangeService;
     private final VoidInvoiceService voidInvoiceService;
+    private final ShipmentRepository shipmentRepository;
 
     public CancelOrderService(OrderRepository orderRepository,
                               OrderFulfillmentDomainService orderFulfillmentDomainService,
                               RecordStockMovementService recordStockMovementService,
                               NotifyOrderStatusChangeService notifyOrderStatusChangeService,
-                              VoidInvoiceService voidInvoiceService) {
+                              VoidInvoiceService voidInvoiceService,
+                              ShipmentRepository shipmentRepository) {
         this.orderRepository = Objects.requireNonNull(orderRepository);
         this.orderFulfillmentDomainService = Objects.requireNonNull(orderFulfillmentDomainService);
         this.recordStockMovementService = Objects.requireNonNull(recordStockMovementService);
         this.notifyOrderStatusChangeService = Objects.requireNonNull(notifyOrderStatusChangeService);
         this.voidInvoiceService = Objects.requireNonNull(voidInvoiceService);
+        this.shipmentRepository = Objects.requireNonNull(shipmentRepository);
     }
 
     public Order execute(User actor, OrderId orderId) {
@@ -48,6 +54,9 @@ public class CancelOrderService {
             .orElseThrow(() -> new ResourceNotFoundException("Order", orderId.toString()));
         if (actor.isBuyer()) {
             order.requireBelongsTo(actor.getId());
+        }
+        if (!shipmentRepository.findByOrderId(orderId).isEmpty()) {
+            throw new BusinessRuleException("Order " + orderId + " has shipments and cannot be cancelled");
         }
         OrderStatus previous = order.getStatus();
         List<Inventory> released = orderFulfillmentDomainService.cancel(order);
