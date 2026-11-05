@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import application.adapters.out.persistence.mongodb.repositories.AuditLogMongoRepository;
 import application.adapters.out.persistence.mongodb.repositories.IssuedTokenMongoRepository;
 import application.adapters.out.persistence.mongodb.repositories.StockMovementMongoRepository;
+import application.domain.enums.UserRole;
 import application.domain.ports.out.StockMovementLogPort;
 import application.domain.ports.out.TokenStorePort;
 import application.support.H2WithoutChecksDialect;
@@ -120,5 +121,47 @@ public abstract class RestApiTest {
 
     protected String adminToken() throws Exception {
         return login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    }
+
+    /** Registers a buyer and returns its email. */
+    protected String registerBuyer() throws Exception {
+        String email = uniqueEmail("buyer");
+        send(post("/api/v1/public/buyers"), null, """
+            {"fullName":"Buyer","email":"%s","phone":"+573001112233","password":"%s",
+             "defaultShippingAddress":%s}""".formatted(email, PASSWORD, ADDRESS))
+            .andExpect(status().isCreated());
+        return email;
+    }
+
+    /** Registers an approved seller and returns its email. */
+    protected String registerSeller() throws Exception {
+        String admin = adminToken();
+        String email = uniqueEmail("seller");
+        String id = read(send(post("/api/v1/admin/sellers"), admin, """
+            {"fullName":"Seller","email":"%s","phone":"+573001112233","password":"%s",
+             "businessName":"Store"}""".formatted(email, PASSWORD))
+            .andExpect(status().isCreated()), "$.id");
+        send(post("/api/v1/admin/sellers/" + id + "/approve"), admin).andExpect(status().isOk());
+        return email;
+    }
+
+    /** Registers internal staff with the given role and returns its email. */
+    protected String registerStaff(UserRole role) throws Exception {
+        String email = uniqueEmail("staff");
+        send(post("/api/v1/admin/staff"), adminToken(), """
+            {"role":"%s","fullName":"Staff","email":"%s","phone":"+573001112233","password":"%s"}"""
+            .formatted(role, email, PASSWORD))
+            .andExpect(status().isCreated());
+        return email;
+    }
+
+    /** Logs in a new user of the given role. */
+    protected String tokenFor(UserRole role) throws Exception {
+        return switch (role) {
+            case ADMINISTRATOR -> adminToken();
+            case BUYER -> login(registerBuyer(), PASSWORD);
+            case SELLER -> login(registerSeller(), PASSWORD);
+            case LOGISTICS_OPERATOR, SUPERVISOR -> login(registerStaff(role), PASSWORD);
+        };
     }
 }

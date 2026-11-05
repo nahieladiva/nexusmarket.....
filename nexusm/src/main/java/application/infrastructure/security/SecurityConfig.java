@@ -2,6 +2,7 @@ package application.infrastructure.security;
 
 import application.adapters.in.rest.security.JwtAuthenticationFilter;
 import application.adapters.in.rest.security.SecurityErrorHandler;
+import application.domain.enums.UserRole;
 import application.domain.ports.in.AccountPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,9 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Stateless JWT security with role-based access rules.
- * Ownership rules (for example, "only the product owner") are validated in the use cases.
- * The routes are reorganized by role in phase 4.
+ * Stateless JWT security. Each route prefix belongs to one role, and anything else is denied.
+ * Ownership rules (for example, "only the product owner") are validated in the domain services.
  */
 @Configuration
 @EnableWebSecurity
@@ -36,7 +36,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1/public/**").permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers("/api/v1/account/**").authenticated()
+                .requestMatchers("/api/v1/buyer/**").hasRole(UserRole.BUYER.name())
+                .requestMatchers("/api/v1/seller/**").hasRole(UserRole.SELLER.name())
+                .requestMatchers("/api/v1/logistics/**").hasRole(UserRole.LOGISTICS_OPERATOR.name())
+                .requestMatchers("/api/v1/admin/**").hasRole(UserRole.ADMINISTRATOR.name())
+                .requestMatchers("/api/v1/supervisor/**").hasRole(UserRole.SUPERVISOR.name())
+                .anyRequest().denyAll())
             .addFilterBefore(new JwtAuthenticationFilter(accountPort),
                 UsernamePasswordAuthenticationFilter.class);
         return http.build();

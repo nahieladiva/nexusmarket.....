@@ -45,9 +45,9 @@ class PublicControllerTest extends RestApiTest {
     }
 
     @Test
-    void theOldRoutesNoLongerExist() throws Exception {
-        send(post("/api/auth/login"), adminToken(), "{}")
-            .andExpect(status().isNotFound());
+    void theOldRoutesAreDenied() throws Exception {
+        send(post("/api/auth/login"), null, "{}").andExpect(status().isUnauthorized());
+        send(post("/api/auth/login"), adminToken(), "{}").andExpect(status().isForbidden());
     }
 
     @Test
