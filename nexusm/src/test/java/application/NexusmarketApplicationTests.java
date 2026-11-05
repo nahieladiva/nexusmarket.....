@@ -3,6 +3,7 @@ package application;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import application.adapters.out.persistence.mongodb.repositories.AuditLogMongoRepository;
 import application.adapters.out.persistence.mongodb.repositories.IssuedTokenMongoRepository;
@@ -48,6 +49,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -130,5 +132,10 @@ class NexusmarketApplicationTests {
     @Test
     void securityIsConfigured() {
         assertFalse(context.getBeansOfType(SecurityFilterChain.class).isEmpty());
+    }
+
+    @Test
+    void thereIsNoInMemoryUser() {
+        assertTrue(context.getBeansOfType(UserDetailsService.class).isEmpty());
     }
 }
