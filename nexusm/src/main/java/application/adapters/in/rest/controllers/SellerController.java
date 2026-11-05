@@ -26,6 +26,7 @@ import application.domain.valueobjects.ProductCode;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -58,7 +59,7 @@ public class SellerController {
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse registerProduct(@AuthenticationPrincipal AuthenticatedUser me,
-                                           @RequestBody CreateProductRequest request) {
+                                           @Valid @RequestBody CreateProductRequest request) {
         return productMapper.toResponse(port.registerProduct(me.userId(), ProductCode.of(request.code()),
             request.type(), request.name(), request.description(),
             productMapper.toDomain(request.price())));
@@ -67,7 +68,7 @@ public class SellerController {
     @PatchMapping("/products/{productId}")
     public ProductResponse updateProduct(@AuthenticationPrincipal AuthenticatedUser me,
                                          @PathVariable ProductId productId,
-                                         @RequestBody UpdateProductRequest request) {
+                                         @Valid @RequestBody UpdateProductRequest request) {
         return productMapper.toResponse(port.updateProduct(me.userId(), productId, request.name(),
             request.description()));
     }
@@ -75,7 +76,7 @@ public class SellerController {
     @PutMapping("/products/{productId}/price")
     public ProductResponse changeProductPrice(@AuthenticationPrincipal AuthenticatedUser me,
                                               @PathVariable ProductId productId,
-                                              @RequestBody PriceChangeRequest request) {
+                                              @Valid @RequestBody PriceChangeRequest request) {
         return productMapper.toResponse(port.changeProductPrice(me.userId(), productId,
             productMapper.toDomain(request.price())));
     }
@@ -106,7 +107,7 @@ public class SellerController {
     @PostMapping("/warehouses")
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseResponse createWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
-                                             @RequestBody CreateWarehouseRequest request) {
+                                             @Valid @RequestBody CreateWarehouseRequest request) {
         return warehouseMapper.toResponse(port.createWarehouse(me.userId(), request.name(),
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }
@@ -114,7 +115,7 @@ public class SellerController {
     @PutMapping("/warehouses/{warehouseId}")
     public WarehouseResponse updateWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                              @PathVariable WarehouseId warehouseId,
-                                             @RequestBody UpdateWarehouseRequest request) {
+                                             @Valid @RequestBody UpdateWarehouseRequest request) {
         return warehouseMapper.toResponse(port.updateWarehouse(me.userId(), warehouseId, request.name(),
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }
@@ -145,7 +146,7 @@ public class SellerController {
     @PostMapping("/inventory")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponse createInventory(@AuthenticationPrincipal AuthenticatedUser me,
-                                             @RequestBody CreateInventoryRequest request) {
+                                             @Valid @RequestBody CreateInventoryRequest request) {
         return inventoryMapper.toResponse(port.createInventory(me.userId(),
             ProductId.of(request.productId()), WarehouseId.of(request.warehouseId()),
             Quantity.of(request.onHand()), Quantity.of(request.reorderThreshold()),
@@ -154,21 +155,21 @@ public class SellerController {
 
     @PostMapping("/inventory/restock")
     public InventoryResponse restock(@AuthenticationPrincipal AuthenticatedUser me,
-                                     @RequestBody RestockRequest request) {
+                                     @Valid @RequestBody RestockRequest request) {
         return inventoryMapper.toResponse(port.restock(me.userId(), ProductId.of(request.productId()),
             WarehouseId.of(request.warehouseId()), Quantity.of(request.quantity()), request.reason()));
     }
 
     @PostMapping("/inventory/adjust")
     public InventoryResponse adjustStock(@AuthenticationPrincipal AuthenticatedUser me,
-                                         @RequestBody AdjustInventoryRequest request) {
+                                         @Valid @RequestBody AdjustInventoryRequest request) {
         return inventoryMapper.toResponse(port.adjustStock(me.userId(), ProductId.of(request.productId()),
             WarehouseId.of(request.warehouseId()), request.delta(), request.reason()));
     }
 
     @PutMapping("/inventory/threshold")
     public InventoryResponse changeReorderThreshold(@AuthenticationPrincipal AuthenticatedUser me,
-                                                    @RequestBody ThresholdRequest request) {
+                                                    @Valid @RequestBody ThresholdRequest request) {
         return inventoryMapper.toResponse(port.changeReorderThreshold(me.userId(),
             ProductId.of(request.productId()), WarehouseId.of(request.warehouseId()),
             Quantity.of(request.reorderThreshold())));

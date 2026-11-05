@@ -12,6 +12,7 @@ import application.domain.ports.in.PublicAccessPort;
 import application.domain.valueobjects.Email;
 import application.domain.valueobjects.PhoneNumber;
 import application.domain.valueobjects.ProductId;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,14 +41,14 @@ public class PublicController {
 
     @PostMapping("/buyers")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse registerBuyer(@RequestBody CreateBuyerRequest request) {
+    public UserResponse registerBuyer(@Valid @RequestBody CreateBuyerRequest request) {
         return userMapper.toResponse(port.registerBuyer(request.fullName(), Email.of(request.email()),
             PhoneNumber.of(request.phone()), request.password(),
             userMapper.toDomain(request.defaultShippingAddress())));
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest request) {
+    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         AuthSession session = port.login(Email.of(request.email()), request.password());
         return new AuthResponse(session.token(), TOKEN_TYPE, session.expiresAt(),
             userMapper.toResponse(session.user()));

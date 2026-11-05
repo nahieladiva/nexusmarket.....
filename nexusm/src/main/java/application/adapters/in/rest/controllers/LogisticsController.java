@@ -27,6 +27,7 @@ import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.ReturnId;
 import application.domain.valueobjects.ShipmentId;
 import application.domain.valueobjects.WarehouseId;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -59,7 +60,7 @@ public class LogisticsController {
     @PostMapping("/inventory")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponse createInventory(@AuthenticationPrincipal AuthenticatedUser me,
-                                             @RequestBody CreateInventoryRequest request) {
+                                             @Valid @RequestBody CreateInventoryRequest request) {
         return inventoryMapper.toResponse(port.createInventory(me.userId(),
             ProductId.of(request.productId()), WarehouseId.of(request.warehouseId()),
             Quantity.of(request.onHand()), Quantity.of(request.reorderThreshold()),
@@ -68,21 +69,21 @@ public class LogisticsController {
 
     @PostMapping("/inventory/restock")
     public InventoryResponse restock(@AuthenticationPrincipal AuthenticatedUser me,
-                                     @RequestBody RestockRequest request) {
+                                     @Valid @RequestBody RestockRequest request) {
         return inventoryMapper.toResponse(port.restock(me.userId(), ProductId.of(request.productId()),
             WarehouseId.of(request.warehouseId()), Quantity.of(request.quantity()), request.reason()));
     }
 
     @PostMapping("/inventory/adjust")
     public InventoryResponse adjustStock(@AuthenticationPrincipal AuthenticatedUser me,
-                                         @RequestBody AdjustInventoryRequest request) {
+                                         @Valid @RequestBody AdjustInventoryRequest request) {
         return inventoryMapper.toResponse(port.adjustStock(me.userId(), ProductId.of(request.productId()),
             WarehouseId.of(request.warehouseId()), request.delta(), request.reason()));
     }
 
     @PutMapping("/inventory/threshold")
     public InventoryResponse changeReorderThreshold(@AuthenticationPrincipal AuthenticatedUser me,
-                                                    @RequestBody ThresholdRequest request) {
+                                                    @Valid @RequestBody ThresholdRequest request) {
         return inventoryMapper.toResponse(port.changeReorderThreshold(me.userId(),
             ProductId.of(request.productId()), WarehouseId.of(request.warehouseId()),
             Quantity.of(request.reorderThreshold())));
@@ -123,7 +124,7 @@ public class LogisticsController {
     @PostMapping("/shipments")
     @ResponseStatus(HttpStatus.CREATED)
     public ShipmentResponse createShipment(@AuthenticationPrincipal AuthenticatedUser me,
-                                           @RequestBody CreateShipmentRequest request) {
+                                           @Valid @RequestBody CreateShipmentRequest request) {
         return shipmentMapper.toResponse(port.createShipment(me.userId(),
             OrderId.of(request.orderId()), WarehouseId.of(request.warehouseId())));
     }
@@ -137,7 +138,7 @@ public class LogisticsController {
     @PostMapping("/shipments/{shipmentId}/dispatch")
     public ShipmentResponse dispatchShipment(@AuthenticationPrincipal AuthenticatedUser me,
                                              @PathVariable ShipmentId shipmentId,
-                                             @RequestBody DispatchShipmentRequest request) {
+                                             @Valid @RequestBody DispatchShipmentRequest request) {
         return shipmentMapper.toResponse(port.dispatchShipment(me.userId(), shipmentId,
             request.trackingNumber()));
     }

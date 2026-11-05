@@ -33,6 +33,7 @@ import application.domain.valueobjects.RefundId;
 import application.domain.valueobjects.ReturnId;
 import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseId;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -68,7 +69,7 @@ public class AdministratorController {
     @PostMapping("/sellers")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse registerSeller(@AuthenticationPrincipal AuthenticatedUser me,
-                                       @RequestBody CreateSellerRequest request) {
+                                       @Valid @RequestBody CreateSellerRequest request) {
         return userMapper.toResponse(port.registerSeller(me.userId(), request.fullName(),
             Email.of(request.email()), PhoneNumber.of(request.phone()), request.password(),
             request.businessName()));
@@ -77,7 +78,7 @@ public class AdministratorController {
     @PostMapping("/staff")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse registerStaffUser(@AuthenticationPrincipal AuthenticatedUser me,
-                                          @RequestBody CreateStaffUserRequest request) {
+                                          @Valid @RequestBody CreateStaffUserRequest request) {
         return userMapper.toResponse(port.registerStaffUser(me.userId(), request.role(),
             request.fullName(), Email.of(request.email()), PhoneNumber.of(request.phone()),
             request.password()));
@@ -109,7 +110,7 @@ public class AdministratorController {
     @PostMapping("/warehouses")
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseResponse createWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
-                                             @RequestBody CreateWarehouseRequest request) {
+                                             @Valid @RequestBody CreateWarehouseRequest request) {
         return warehouseMapper.toResponse(port.createWarehouse(me.userId(), request.name(),
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }
@@ -117,7 +118,7 @@ public class AdministratorController {
     @PutMapping("/warehouses/{warehouseId}")
     public WarehouseResponse updateWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                              @PathVariable WarehouseId warehouseId,
-                                             @RequestBody UpdateWarehouseRequest request) {
+                                             @Valid @RequestBody UpdateWarehouseRequest request) {
         return warehouseMapper.toResponse(port.updateWarehouse(me.userId(), warehouseId, request.name(),
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }

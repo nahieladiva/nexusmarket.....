@@ -8,6 +8,7 @@ import application.adapters.in.rest.responses.MessageResponse;
 import application.adapters.in.rest.responses.UserResponse;
 import application.adapters.in.rest.security.AuthenticatedUser;
 import application.domain.ports.in.AccountPort;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,7 +40,7 @@ public class AccountController {
 
     @PatchMapping("/profile")
     public UserResponse updateProfile(@AuthenticationPrincipal AuthenticatedUser me,
-                                      @RequestBody UpdateProfileRequest request) {
+                                      @Valid @RequestBody UpdateProfileRequest request) {
         return userMapper.toResponse(port.updateProfile(me.userId(), request.fullName(),
             userMapper.toPhone(request.phone())));
     }
@@ -47,20 +48,20 @@ public class AccountController {
     @PostMapping("/addresses")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse addAddress(@AuthenticationPrincipal AuthenticatedUser me,
-                                   @RequestBody AddressRequest request) {
+                                   @Valid @RequestBody AddressRequest request) {
         return userMapper.toResponse(port.addAddress(me.userId(), userMapper.toDomain(request)));
     }
 
     /** An address has no id, so it is identified by its data and sent in the body. */
     @PostMapping("/addresses/remove")
     public UserResponse removeAddress(@AuthenticationPrincipal AuthenticatedUser me,
-                                      @RequestBody AddressRequest request) {
+                                      @Valid @RequestBody AddressRequest request) {
         return userMapper.toResponse(port.removeAddress(me.userId(), userMapper.toDomain(request)));
     }
 
     @PutMapping("/password")
     public MessageResponse changePassword(@AuthenticationPrincipal AuthenticatedUser me,
-                                          @RequestBody ChangePasswordRequest request) {
+                                          @Valid @RequestBody ChangePasswordRequest request) {
         port.changePassword(me.userId(), request.currentPassword(), request.newPassword());
         return new MessageResponse("Password changed; every session was closed");
     }

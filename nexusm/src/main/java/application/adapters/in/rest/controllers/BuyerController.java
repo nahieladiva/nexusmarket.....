@@ -20,6 +20,7 @@ import application.domain.ports.in.BuyerPort;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ public class BuyerController {
 
     @PostMapping("/cart/items")
     public CartResponse addCartItem(@AuthenticationPrincipal AuthenticatedUser me,
-                                    @RequestBody CartItemRequest request) {
+                                    @Valid @RequestBody CartItemRequest request) {
         return cartMapper.toResponse(port.addCartItem(me.userId(), ProductId.of(request.productId()),
             Quantity.of(request.quantity())));
     }
@@ -65,7 +66,7 @@ public class BuyerController {
     @PatchMapping("/cart/items/{productId}")
     public CartResponse changeCartItemQuantity(@AuthenticationPrincipal AuthenticatedUser me,
                                                @PathVariable ProductId productId,
-                                               @RequestBody CartItemQuantityRequest request) {
+                                               @Valid @RequestBody CartItemQuantityRequest request) {
         return cartMapper.toResponse(port.changeCartItemQuantity(me.userId(), productId,
             Quantity.of(request.quantity())));
     }
@@ -127,7 +128,7 @@ public class BuyerController {
     @ResponseStatus(HttpStatus.CREATED)
     public ReturnResponse requestReturn(@AuthenticationPrincipal AuthenticatedUser me,
                                         @PathVariable OrderId orderId,
-                                        @RequestBody CreateReturnRequest request) {
+                                        @Valid @RequestBody CreateReturnRequest request) {
         return returnMapper.toResponse(port.requestReturn(me.userId(), orderId,
             ProductId.of(request.productId()), Quantity.of(request.quantity()), request.reason()));
     }
