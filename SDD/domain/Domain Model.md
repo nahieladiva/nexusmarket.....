@@ -505,11 +505,9 @@ agregar el producto.
 | `create(...)` | Crea el pedido en `PENDING_PAYMENT` |
 | `addItem(OrderItem)` | Agrega una línea mientras el pedido está pendiente de pago |
 | `assignWarehouses(Map)` | Asigna la bodega de cada línea que requiere envío, antes del pago |
-| `pay(LocalDateTime)` | Registra el pago y guarda `paidAt`; exige bodega en las líneas que requieren envío |
-| `ship()` | Pasa el pedido a `SHIPPED`; falla si ningún ítem requiere envío |
-| `deliver()` | Pasa el pedido a `DELIVERED`; desde `PAID` solo si ningún ítem requiere envío |
+| `pay(LocalDateTime)` | Registra el pago y guarda `paidAt`; exige bodega en las líneas que requieren envío. Si ningún ítem requiere envío, entrega el pedido |
 | `cancel()` | Pasa el pedido a `CANCELLED` |
-| `applyShipmentProgress(List)` | Actualiza el estado según los envíos del pedido |
+| `applyShipmentProgress(List)` | Único medio para pasar a `SHIPPED` y a `DELIVERED` en pedidos con envíos |
 | `requiresShipment()` | Indica si algún ítem viaja en un envío |
 | `shippingWarehouses()` | Bodegas que deben despachar ítems del pedido |
 | `wasPaid()` | Indica si el pedido se pagó, aunque después se haya cancelado |
@@ -557,15 +555,7 @@ pago. Los ítems que no requieren envío nunca tienen bodega.
 
 **Relaciones.** Es parte de `Order` y referencia un `Product` y un `Warehouse`.
 
-### 5.5 `OrderLine`
-
-**Descripción.** Línea que pide el comprador al crear un pedido. Es un `record` con `productId` y
-`quantity`.
-
-**Reglas.** `quantity` debe ser mayor que cero. El cliente nunca envía el precio: el sistema lo toma del
-catálogo.
-
-### 5.6 `Invoice`
+### 5.5 `Invoice`
 
 **Descripción.** Factura de un pedido pagado.
 
@@ -794,6 +784,4 @@ Todas heredan de `DomainException`.
 
 | Tema | Estado actual | Se corrige en |
 |---|---|---|
-| Registro de productos | `ProductApplicationService` registra todo como `PHYSICAL` y publica de inmediato | Fase 2 |
-| Pago | `/api/orders/{id}/confirm` marca el pedido como pagado | Fase 4 |
 | Persistencia | `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` no tienen tablas | Fase 3 |

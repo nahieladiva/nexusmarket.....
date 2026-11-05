@@ -1,6 +1,5 @@
 package application.domain.ports.out;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -9,8 +8,4 @@ import java.time.LocalDateTime;
 public interface ClockPort {
 
     LocalDateTime now();
-
-    default LocalDate today() {
-        return now().toLocalDate();
-    }
 }

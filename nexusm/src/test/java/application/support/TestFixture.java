@@ -1,5 +1,7 @@
 package application.support;
 
+import application.domain.valueobjects.InventoryId;
+import application.domain.valueobjects.WarehouseId;
 import application.domain.models.Supervisor;
 import application.domain.models.LogisticsOperator;
 import application.domain.valueobjects.ProductId;
@@ -91,14 +93,6 @@ import application.domain.valueobjects.ProductCode;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseLocation;
-import application.services.AccessRules;
-import application.services.AuthenticationApplicationService;
-import application.services.InventoryApplicationService;
-import application.services.OrderApplicationService;
-import application.services.ProductApplicationService;
-import application.services.StockMovementRecorder;
-import application.services.UserApplicationService;
-import application.services.WarehouseApplicationService;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -128,12 +122,6 @@ public class TestFixture {
     public final FixedClock clock = new FixedClock(NOW);
     public final SequentialIdGenerator ids = new SequentialIdGenerator();
 
-    public final AuthenticationApplicationService auth;
-    public final UserApplicationService userService;
-    public final ProductApplicationService productService;
-    public final WarehouseApplicationService warehouseService;
-    public final InventoryApplicationService inventoryService;
-    public final OrderApplicationService orderService;
 
     public final ConsultCartService consultCart;
     public final AddItemToCartService addItemToCart;
@@ -208,22 +196,10 @@ public class TestFixture {
     public final LogoutService logout;
 
     public TestFixture() {
-        AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
         WarehouseAllocationService allocation = new WarehouseAllocationService(inventories, warehouses);
         OrderFulfillmentDomainService fulfillment = new OrderFulfillmentDomainService(inventoryDomain, allocation);
-        StockMovementRecorder recorder = new StockMovementRecorder(movements, events, notifier,
-            products, clock, ids);
 
-        auth = new AuthenticationApplicationService(users, passwordEncoder, tokenProvider, tokenStore,
-            clock, ids, new PasswordPolicy());
-        userService = new UserApplicationService(users, notifier);
-        productService = new ProductApplicationService(products, accessRules, events, clock, ids);
-        warehouseService = new WarehouseApplicationService(warehouses, ids);
-        inventoryService = new InventoryApplicationService(inventories, products, warehouses, movements,
-            recorder, accessRules, ids);
-        orderService = new OrderApplicationService(orders, products, fulfillment, allocation,
-            recorder, accessRules, events, notifier, clock, ids);
 
         consultCart = new ConsultCartService(carts, clock, ids);
         ValidateProductAvailabilityService productAvailability = new ValidateProductAvailabilityService(users);
@@ -337,7 +313,8 @@ public class TestFixture {
     }
 
     public Warehouse warehouse(String name) {
-        return warehouseService.createWarehouse(name, address(), WarehouseLocation.of("A", "1", "1"));
+        return warehouses.save(Warehouse.createMarketplaceWarehouse(WarehouseId.of(ids.newId()), name,
+            address(), WarehouseLocation.of("A", "1", "1")));
     }
 
     public LogisticsOperator logisticsOperator(String email) {
@@ -362,12 +339,14 @@ public class TestFixture {
     }
 
     public Product product(Seller seller, String code, String price) {
-        return productService.createProduct(seller.getId(), ProductCode.of(code), "Producto " + code,
-            "Descripción", Money.of(price, "COP"));
+        Product product = Product.register(ProductId.of(ids.newId()), ProductCode.of(code), ProductType.PHYSICAL,
+            "Product " + code, "Description", Money.of(price, "COP"), seller.getId(), NOW);
+        product.publish();
+        return products.save(product);
     }
 
     public Inventory stock(Seller seller, Product product, Warehouse warehouse, int onHand, int threshold) {
-        return inventoryService.createInventory(seller.getId(), product.getId(), warehouse.getId(),
-            Quantity.of(onHand), Quantity.of(threshold), WarehouseLocation.of("A", "1", "1"));
+        return inventories.save(new Inventory(InventoryId.of(ids.newId()), product.getId(), warehouse.getId(),
+            Quantity.of(onHand), Quantity.of(threshold), WarehouseLocation.of("A", "1", "1")));
     }
 }

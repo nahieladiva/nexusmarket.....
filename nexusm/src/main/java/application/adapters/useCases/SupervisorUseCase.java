@@ -28,11 +28,13 @@ import application.domain.valueobjects.WarehouseId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link SupervisorPort} by delegating to the domain services. It only reads.
  */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SupervisorUseCase implements SupervisorPort {
 

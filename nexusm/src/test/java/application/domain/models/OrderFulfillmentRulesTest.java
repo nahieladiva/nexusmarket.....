@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.ProductType;
 import application.domain.exceptions.BusinessRuleException;
-import application.domain.exceptions.OrderStateTransitionException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductId;
@@ -58,14 +57,16 @@ class OrderFulfillmentRulesTest {
 
     private Order deliveredOrder(OrderItem item) {
         Order order = Order.create(UserId.random(), List.of(item));
-        if (item.requiresShipment()) {
-            order.assignWarehouses(Map.of(item.getProductId(), firstWarehouse));
+        if (!item.requiresShipment()) {
+            order.pay(NOW);
+            return order;
         }
+        order.assignWarehouses(Map.of(item.getProductId(), firstWarehouse));
         order.pay(NOW);
-        if (item.requiresShipment()) {
-            order.ship();
-        }
-        order.deliver();
+        Shipment shipment = shipment(order, firstWarehouse);
+        dispatch(shipment);
+        shipment.confirmDelivery(NOW);
+        order.applyShipmentProgress(List.of(shipment));
         return order;
     }
 
@@ -104,25 +105,24 @@ class OrderFulfillmentRulesTest {
     }
 
     @Test
-    void digitalOnlyOrderGoesFromPaidToDeliveredWithoutWarehouse() {
+    void digitalOnlyOrderIsDeliveredWhenPaid() {
         Order order = Order.create(UserId.random(), List.of(digital()));
         order.pay(NOW);
         assertFalse(order.requiresShipment());
-        order.deliver();
+        assertTrue(order.wasPaid());
         assertEquals(OrderStatus.DELIVERED, order.getStatus());
     }
 
     @Test
-    void digitalOnlyOrderCannotBeShipped() {
+    void digitalOnlyOrderHasNoShipmentProgress() {
         Order order = Order.create(UserId.random(), List.of(digital()));
         order.pay(NOW);
-        assertThrows(BusinessRuleException.class, order::ship);
+        assertThrows(BusinessRuleException.class, () -> order.applyShipmentProgress(List.of()));
     }
 
     @Test
-    void orderWithPhysicalItemsCannotGoFromPaidToDelivered() {
-        Order order = paidOrderFromTwoWarehouses();
-        assertThrows(OrderStateTransitionException.class, order::deliver);
+    void orderWithPhysicalItemsStaysPaidAfterPayment() {
+        assertEquals(OrderStatus.PAID, paidOrderFromTwoWarehouses().getStatus());
     }
 
     @Test

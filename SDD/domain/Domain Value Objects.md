@@ -54,7 +54,7 @@ transiciones están permitidas, mediante `canTransitionTo` y `requireCanTransiti
 |---|---|
 | `add(Money)` | Suma de dos montos |
 | `subtract(Money)` | Resta; falla si el resultado es negativo |
-| `multiply(int)`, `multiply(BigDecimal)` | Monto multiplicado |
+| `multiply(int)` | Monto multiplicado |
 | `isGreaterThan(Money)`, `isLessThan(Money)` | Comparación |
 | `isZero()` | Indica si el monto es cero |
 
@@ -227,7 +227,7 @@ stateDiagram-v2
 ```
 
 La transición `PAID` a `DELIVERED` existe solo para pedidos sin ítems que requieran envío. El enum
-la declara, y `Order.deliver()` la rechaza si algún ítem requiere envío.
+la declara y `Order.pay(LocalDateTime)` es el único método que la usa.
 
 | Método | Regla |
 |---|---|

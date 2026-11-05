@@ -15,11 +15,13 @@ import application.domain.valueobjects.PhoneNumber;
 import application.domain.valueobjects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link AccountPort} by delegating to the domain services.
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AccountUseCase implements AccountPort {
 
@@ -32,6 +34,7 @@ public class AccountUseCase implements AccountPort {
     private final LogoutService logout;
 
     @Override
+    @Transactional(readOnly = true)
     public User findProfile(UserId userId) {
         return resolveActor.execute(userId);
     }
@@ -57,6 +60,7 @@ public class AccountUseCase implements AccountPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TokenClaims validateToken(String token) {
         return validateToken.execute(token);
     }

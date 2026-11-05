@@ -12,9 +12,11 @@ import application.domain.enums.OrderStatus;
 import application.domain.enums.ProductType;
 import application.domain.exceptions.BusinessRuleException;
 import application.domain.exceptions.OrderStateTransitionException;
+import application.domain.valueobjects.Address;
 import application.domain.valueobjects.Money;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
+import application.domain.valueobjects.ShipmentId;
 import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseId;
 
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test;
 class OrderTest {
 
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 1, 15, 10, 0);
+    private static final Address ADDRESS = Address.of("Street 1", "City", "State", "050001", "CO");
 
     private OrderItem item(String price) {
         return new OrderItem(ProductId.random(), ProductType.PHYSICAL, Quantity.of(1), Money.of(price, "USD"));
@@ -34,6 +37,14 @@ class OrderTest {
     private void payWithWarehouse(Order order) {
         order.assignWarehouses(Map.of(order.getItems().get(0).getProductId(), WarehouseId.random()));
         order.pay(NOW);
+    }
+
+    private Shipment dispatchedShipment(Order order) {
+        Shipment shipment = Shipment.prepareFor(order, ShipmentId.random(),
+            order.shippingWarehouses().iterator().next(), ADDRESS, NOW);
+        shipment.pack();
+        shipment.dispatch(UserId.random(), "TRACK-1", NOW);
+        return shipment;
     }
 
     @Test
@@ -71,17 +82,19 @@ class OrderTest {
         payWithWarehouse(order);
         assertEquals(OrderStatus.PAID, order.getStatus());
         assertTrue(order.hasReservedStock());
-        order.ship();
+        Shipment shipment = dispatchedShipment(order);
+        order.applyShipmentProgress(List.of(shipment));
         assertEquals(OrderStatus.SHIPPED, order.getStatus());
-        order.deliver();
+        shipment.confirmDelivery(NOW);
+        order.applyShipmentProgress(List.of(shipment));
         assertEquals(OrderStatus.DELIVERED, order.getStatus());
     }
 
     @Test
-    void rejectsInvalidTransition() {
+    void unpaidOrderCannotHaveShipments() {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
-        assertThrows(OrderStateTransitionException.class, order::ship);
-        assertThrows(OrderStateTransitionException.class, order::deliver);
+        assertThrows(BusinessRuleException.class,
+            () -> Shipment.prepareFor(order, ShipmentId.random(), WarehouseId.random(), ADDRESS, NOW));
     }
 
     @Test
@@ -96,7 +109,7 @@ class OrderTest {
     void shippedOrderCannotBeCancelled() {
         Order order = Order.create(UserId.random(), List.of(item("1.00")));
         payWithWarehouse(order);
-        order.ship();
+        order.applyShipmentProgress(List.of(dispatchedShipment(order)));
         assertThrows(OrderStateTransitionException.class, order::cancel);
     }
 

@@ -35,11 +35,13 @@ import application.domain.valueobjects.WarehouseLocation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link LogisticsOperatorPort} by delegating to the domain services.
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class LogisticsOperatorUseCase implements LogisticsOperatorPort {
 
@@ -89,26 +91,31 @@ public class LogisticsOperatorUseCase implements LogisticsOperatorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Inventory findInventory(UserId operatorId, ProductId productId, WarehouseId warehouseId) {
         return consultInventory.execute(resolveActor.execute(operatorId), productId, warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findInventoriesByWarehouse(UserId operatorId, WarehouseId warehouseId) {
         return consultInventory.findByWarehouse(resolveActor.execute(operatorId), warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findInventories(UserId operatorId) {
         return consultInventory.findAll(resolveActor.execute(operatorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findBelowReorderPoint(UserId operatorId) {
         return consultInventory.findBelowReorderPoint(resolveActor.execute(operatorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StockMovement> findMovements(UserId operatorId, ProductId productId,
                                              WarehouseId warehouseId) {
         return consultInventory.findMovements(resolveActor.execute(operatorId), productId, warehouseId);
@@ -135,11 +142,13 @@ public class LogisticsOperatorUseCase implements LogisticsOperatorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Shipment> findShipmentsByOrder(UserId operatorId, OrderId orderId) {
         return consultShipment.findByOrder(resolveActor.execute(operatorId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Shipment> findShipments(UserId operatorId) {
         return consultShipment.findAll(resolveActor.execute(operatorId));
     }
@@ -150,31 +159,37 @@ public class LogisticsOperatorUseCase implements LogisticsOperatorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReturnRequest> findReturns(UserId operatorId) {
         return consultReturn.findAll(resolveActor.execute(operatorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order findOrder(UserId operatorId, OrderId orderId) {
         return consultOrder.execute(resolveActor.execute(operatorId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> findOrders(UserId operatorId) {
         return consultOrder.findAll(resolveActor.execute(operatorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> findProducts(UserId operatorId) {
         return consultProduct.findAll(resolveActor.execute(operatorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Warehouse findWarehouse(UserId operatorId, WarehouseId warehouseId) {
         return consultWarehouse.execute(resolveActor.execute(operatorId), warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Warehouse> findWarehouses(UserId operatorId) {
         return consultWarehouse.findAll(resolveActor.execute(operatorId));
     }

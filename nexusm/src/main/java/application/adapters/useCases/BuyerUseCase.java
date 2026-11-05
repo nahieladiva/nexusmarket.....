@@ -29,11 +29,13 @@ import application.domain.valueobjects.UserId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link BuyerPort} by delegating to the domain services.
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class BuyerUseCase implements BuyerPort {
 
@@ -94,21 +96,25 @@ public class BuyerUseCase implements BuyerPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order findOrder(UserId buyerId, OrderId orderId) {
         return consultOrder.execute(resolveActor.execute(buyerId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> findOrders(UserId buyerId) {
         return consultOrder.findByBuyer(resolveActor.execute(buyerId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Invoice findInvoice(UserId buyerId, OrderId orderId) {
         return consultInvoice.findByOrder(resolveActor.execute(buyerId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Shipment> findShipments(UserId buyerId, OrderId orderId) {
         return consultShipment.findByOrder(resolveActor.execute(buyerId), orderId);
     }
@@ -120,11 +126,13 @@ public class BuyerUseCase implements BuyerPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReturnRequest> findReturns(UserId buyerId, OrderId orderId) {
         return consultReturn.findByOrder(resolveActor.execute(buyerId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Refund> findRefunds(UserId buyerId, OrderId orderId) {
         return consultRefund.findByOrder(resolveActor.execute(buyerId), orderId);
     }

@@ -126,7 +126,8 @@ public final class Order {
     }
 
     /**
-     * Registers the payment of the order.
+     * Registers the payment of the order. An order with no items that require shipment is
+     * delivered at this moment; any other order advances only with its shipments.
      *
      * @throws BusinessRuleException when some item that requires shipment has no assigned warehouse
      */
@@ -141,31 +142,9 @@ public final class Order {
         }
         transitionTo(OrderStatus.PAID);
         this.paidAt = now;
-    }
-
-    /**
-     * Moves the order to {@code SHIPPED}.
-     *
-     * @throws BusinessRuleException when no item requires shipment
-     */
-    public void ship() {
-        if (status == OrderStatus.PAID && !requiresShipment()) {
-            throw new BusinessRuleException("Order " + id + " has no items that require shipment");
+        if (!requiresShipment()) {
+            transitionTo(OrderStatus.DELIVERED);
         }
-        transitionTo(OrderStatus.SHIPPED);
-    }
-
-    /**
-     * Moves the order to {@code DELIVERED}. From {@code PAID} this is allowed only when no item
-     * requires shipment.
-     *
-     * @throws OrderStateTransitionException when the transition is not allowed
-     */
-    public void deliver() {
-        if (status == OrderStatus.PAID && requiresShipment()) {
-            throw new OrderStateTransitionException(id, status, OrderStatus.DELIVERED);
-        }
-        transitionTo(OrderStatus.DELIVERED);
     }
 
     public void cancel() {
@@ -195,11 +174,11 @@ public final class Order {
         }
         if (status == OrderStatus.PAID
                 && shipments.stream().allMatch(shipment -> shipment.getStatus().hasLeftWarehouse())) {
-            ship();
+            transitionTo(OrderStatus.SHIPPED);
         }
         if (status == OrderStatus.SHIPPED
                 && shipments.stream().allMatch(shipment -> shipment.getStatus().isTerminal())) {
-            deliver();
+            transitionTo(OrderStatus.DELIVERED);
         }
     }
 

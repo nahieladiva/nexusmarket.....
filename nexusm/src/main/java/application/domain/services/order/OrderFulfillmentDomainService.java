@@ -21,7 +21,6 @@ import java.util.Objects;
  * <ul>
  *   <li>When the order is paid, each item that requires shipment gets a warehouse and its stock
  *       is reserved.</li>
- *   <li>An order with no items that require shipment is delivered as soon as it is paid.</li>
  *   <li>When a paid order is cancelled, the stock goes back to the same warehouse.</li>
  *   <li>Cancelling an order pending payment does not touch the stock, because it was never reserved.</li>
  * </ul>
@@ -57,9 +56,6 @@ public class OrderFulfillmentDomainService {
                 touched.add(inventoryDomainService.reserve(
                     item.getProductId(), item.getWarehouseId(), item.getQuantity()));
             }
-        }
-        if (!order.requiresShipment()) {
-            order.deliver();
         }
         return touched;
     }

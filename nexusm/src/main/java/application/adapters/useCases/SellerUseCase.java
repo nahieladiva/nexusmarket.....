@@ -38,11 +38,13 @@ import application.domain.valueobjects.WarehouseLocation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link SellerPort} by delegating to the domain services.
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class SellerUseCase implements SellerPort {
 
@@ -98,6 +100,7 @@ public class SellerUseCase implements SellerPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> findProducts(UserId sellerId) {
         return consultProduct.findBySeller(resolveActor.execute(sellerId));
     }
@@ -125,11 +128,13 @@ public class SellerUseCase implements SellerPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Warehouse findWarehouse(UserId sellerId, WarehouseId warehouseId) {
         return consultWarehouse.execute(resolveActor.execute(sellerId), warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Warehouse> findWarehouses(UserId sellerId) {
         return consultWarehouse.findBySeller(resolveActor.execute(sellerId));
     }
@@ -162,26 +167,31 @@ public class SellerUseCase implements SellerPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Inventory findInventory(UserId sellerId, ProductId productId, WarehouseId warehouseId) {
         return consultInventory.execute(resolveActor.execute(sellerId), productId, warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findInventories(UserId sellerId) {
         return consultInventory.findBySeller(resolveActor.execute(sellerId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StockMovement> findMovements(UserId sellerId, ProductId productId, WarehouseId warehouseId) {
         return consultInventory.findMovements(resolveActor.execute(sellerId), productId, warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order findOrder(UserId sellerId, OrderId orderId) {
         return consultOrder.execute(resolveActor.execute(sellerId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> findOrders(UserId sellerId) {
         return consultOrder.findBySeller(resolveActor.execute(sellerId));
     }

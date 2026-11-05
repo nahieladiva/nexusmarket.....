@@ -2,7 +2,7 @@ package application.infrastructure.security;
 
 import application.adapters.in.rest.security.JwtAuthenticationFilter;
 import application.adapters.in.rest.security.SecurityErrorHandler;
-import application.domain.ports.in.AuthenticationPort;
+import application.domain.ports.in.AccountPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,13 +22,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String ADMIN = "ADMINISTRATOR";
-    private static final String SELLER = "SELLER";
-    private static final String BUYER = "BUYER";
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationPort authenticationPort) throws Exception {
+                                                   AccountPort accountPort) throws Exception {
         SecurityErrorHandler errorHandler = new SecurityErrorHandler();
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -40,33 +36,9 @@ public class SecurityConfig {
                 .accessDeniedHandler(errorHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
-                // Authentication
-                .requestMatchers(HttpMethod.POST, "/api/auth/register/**", "/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/**").authenticated()
-                // Users
-                .requestMatchers("/api/users/me", "/api/users/me/**").authenticated()
-                .requestMatchers("/api/users", "/api/users/**").hasRole(ADMIN)
-                // Products
-                .requestMatchers(HttpMethod.GET, "/api/products/mine").hasRole(SELLER)
-                .requestMatchers(HttpMethod.GET, "/api/products/all").hasRole(ADMIN)
-                .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                .requestMatchers("/api/products", "/api/products/**").hasRole(SELLER)
-                // Warehouses
-                .requestMatchers(HttpMethod.GET, "/api/warehouses", "/api/warehouses/**").authenticated()
-                .requestMatchers("/api/warehouses", "/api/warehouses/**").hasRole(ADMIN)
-                // Inventory
-                .requestMatchers("/api/inventory", "/api/inventory/**").hasAnyRole(SELLER, ADMIN)
-                // Orders
-                .requestMatchers(HttpMethod.POST, "/api/orders").hasRole(BUYER)
-                .requestMatchers(HttpMethod.GET, "/api/orders/mine").hasRole(BUYER)
-                .requestMatchers(HttpMethod.GET, "/api/orders/seller").hasRole(SELLER)
-                .requestMatchers(HttpMethod.GET, "/api/orders").hasRole(ADMIN)
-                .requestMatchers(HttpMethod.PATCH, "/api/orders/*/confirm", "/api/orders/*/ship",
-                    "/api/orders/*/deliver").hasRole(ADMIN)
-                .requestMatchers(HttpMethod.PATCH, "/api/orders/*/cancel").hasAnyRole(BUYER, ADMIN)
-                .requestMatchers("/api/orders/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/auth/register/buyer", "/api/auth/login").permitAll()
                 .anyRequest().authenticated())
-            .addFilterBefore(new JwtAuthenticationFilter(authenticationPort),
+            .addFilterBefore(new JwtAuthenticationFilter(accountPort),
                 UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

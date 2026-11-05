@@ -52,7 +52,7 @@ class CartServicesTest {
 
     @Test
     void suspendedProductCannotBeAdded() {
-        f.productService.changeAvailability(seller.getId(), product.getId(), false);
+        f.suspendProduct.execute(seller, product.getId());
         assertThrows(BusinessRuleException.class,
             () -> f.addItemToCart.execute(buyer, product.getId(), Quantity.of(1)));
     }

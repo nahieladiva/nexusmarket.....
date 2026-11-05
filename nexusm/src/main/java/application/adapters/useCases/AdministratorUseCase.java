@@ -52,11 +52,13 @@ import application.domain.valueobjects.WarehouseLocation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements {@link AdministratorPort} by delegating to the domain services.
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AdministratorUseCase implements AdministratorPort {
 
@@ -112,11 +114,13 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findUser(UserId administratorId, UserId userId) {
         return consultUser.execute(resolveActor.execute(administratorId), userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> findUsers(UserId administratorId) {
         return consultUser.findAll(resolveActor.execute(administratorId));
     }
@@ -146,11 +150,13 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Warehouse findWarehouse(UserId administratorId, WarehouseId warehouseId) {
         return consultWarehouse.execute(resolveActor.execute(administratorId), warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Warehouse> findWarehouses(UserId administratorId) {
         return consultWarehouse.findAll(resolveActor.execute(administratorId));
     }
@@ -171,26 +177,31 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> findProducts(UserId administratorId) {
         return consultProduct.findAll(resolveActor.execute(administratorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Inventory findInventory(UserId administratorId, ProductId productId, WarehouseId warehouseId) {
         return consultInventory.execute(resolveActor.execute(administratorId), productId, warehouseId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findInventories(UserId administratorId) {
         return consultInventory.findAll(resolveActor.execute(administratorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Inventory> findBelowReorderPoint(UserId administratorId) {
         return consultInventory.findBelowReorderPoint(resolveActor.execute(administratorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StockMovement> findMovements(UserId administratorId, ProductId productId,
                                              WarehouseId warehouseId) {
         return consultInventory.findMovements(resolveActor.execute(administratorId), productId, warehouseId);
@@ -202,26 +213,31 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order findOrder(UserId administratorId, OrderId orderId) {
         return consultOrder.execute(resolveActor.execute(administratorId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> findOrders(UserId administratorId) {
         return consultOrder.findAll(resolveActor.execute(administratorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Invoice findInvoice(UserId administratorId, OrderId orderId) {
         return consultInvoice.findByOrder(resolveActor.execute(administratorId), orderId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Invoice> findInvoices(UserId administratorId) {
         return consultInvoice.findAll(resolveActor.execute(administratorId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Shipment> findShipments(UserId administratorId) {
         return consultShipment.findAll(resolveActor.execute(administratorId));
     }
@@ -237,6 +253,7 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReturnRequest> findReturns(UserId administratorId) {
         return consultReturn.findAll(resolveActor.execute(administratorId));
     }
@@ -252,6 +269,7 @@ public class AdministratorUseCase implements AdministratorPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Refund> findRefunds(UserId administratorId) {
         return consultRefund.findAll(resolveActor.execute(administratorId));
     }

@@ -2,7 +2,7 @@ package application.adapters.in.rest.security;
 
 import application.domain.exceptions.InvalidTokenException;
 import application.domain.models.TokenClaims;
-import application.domain.ports.in.AuthenticationPort;
+import application.domain.ports.in.AccountPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,10 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER = "Bearer ";
 
-    private final AuthenticationPort authenticationPort;
+    private final AccountPort accountPort;
 
-    public JwtAuthenticationFilter(AuthenticationPort authenticationPort) {
-        this.authenticationPort = Objects.requireNonNull(authenticationPort);
+    public JwtAuthenticationFilter(AccountPort accountPort) {
+        this.accountPort = Objects.requireNonNull(accountPort);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith(BEARER)) {
             String token = header.substring(BEARER.length()).trim();
             try {
-                TokenClaims claims = authenticationPort.validateToken(token);
+                TokenClaims claims = accountPort.validateToken(token);
                 AuthenticatedUser principal = new AuthenticatedUser(claims.userId(), claims.role(), token);
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, null,

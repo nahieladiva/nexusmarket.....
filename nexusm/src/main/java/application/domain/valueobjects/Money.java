@@ -62,10 +62,6 @@ public final class Money {
         return new Money(this.amount.multiply(BigDecimal.valueOf(multiplier)), this.currency);
     }
 
-    public Money multiply(BigDecimal multiplier) {
-        return new Money(this.amount.multiply(multiplier), this.currency);
-    }
-
     public boolean isGreaterThan(Money other) {
         validateSameCurrency(other);
         return this.amount.compareTo(other.amount) > 0;
