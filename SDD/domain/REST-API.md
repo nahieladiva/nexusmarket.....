@@ -39,7 +39,7 @@ Todos los errores tienen el mismo formato, con `ErrorResponse`:
 | 403 | El rol no puede entrar, o el recurso es de otro usuario | `SecurityErrorHandler`, `ForbiddenActionException` |
 | 404 | El recurso o la ruta no existen | `ResourceNotFoundException` |
 | 405 | El método HTTP no aplica a esa ruta | Spring |
-| 409 | El recurso está duplicado, o su estado o su stock no permiten la operación | `DuplicateResourceException`, `ResourceStateConflictException`, `OrderStateTransitionException`, `InsufficientStockException`, restricciones únicas de la base de datos |
+| 409 | El recurso está duplicado, su estado o su stock no permiten la operación, u otra petición lo cambió primero | `DuplicateResourceException`, `ResourceStateConflictException`, `OrderStateTransitionException`, `InsufficientStockException`, restricciones únicas de la base de datos, bloqueo optimista |
 | 415 | Falta el `Content-Type` del cuerpo | Spring |
 | 422 | La operación rompe una regla de negocio | `BusinessRuleException` |
 | 500 | Error inesperado; no muestra detalles internos | Cualquier otra excepción |

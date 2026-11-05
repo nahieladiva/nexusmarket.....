@@ -183,6 +183,35 @@ exige cambiar la tabla.
 Las pruebas usan H2 con un dialecto sin restricciones `CHECK`, y las clases `*IT` repiten la persistencia sobre el
 MySQL y el MongoDB reales.
 
+### 7.1 Transacciones
+
+Cada operación de un puerto de entrada es una transacción de MySQL, definida en `adapters.useCases`. Si algo
+falla a mitad, MySQL revierte todo: un pago que falla no deja stock reservado, factura ni cambio de estado.
+`ConsistencyIT` lo comprueba sobre el MySQL real.
+
+### 7.2 Bloqueo optimista
+
+`Inventory`, `Order` y `Cart` tienen un campo `version`, y sus entidades JPA usan `@Version`. Cuando dos
+peticiones cambian la misma fila a la vez, la primera en confirmar gana y la segunda falla, en vez de
+sobrescribir el dato. `GlobalExceptionHandler` responde 409 y el cliente puede leer el recurso y reintentar.
+Así no se pierden unidades de stock ni se paga dos veces un pedido.
+
+El dominio solo conserva `version` como un dato más: no conoce JPA. El mapper lo lleva a la entidad, y Hibernate
+compara y aumenta la versión.
+
+### 7.3 Consistencia entre MySQL y MongoDB
+
+MongoDB no participa en la transacción de MySQL, así que cada escritura decide qué pasa si la transacción falla:
+
+| Escritura en MongoDB | Cuándo ocurre | Si MySQL revierte | Si MongoDB falla |
+|---|---|---|---|
+| Historial de stock | Después del commit (`StockMovementLogAdapter`) | No queda historial | La operación sigue siendo válida y el fallo queda en el log |
+| Auditoría | Después del commit (`DomainEventAuditListener`, `AFTER_COMMIT`) | No queda auditoría | La operación sigue siendo válida y el fallo queda en el log |
+| Revocación de tokens al cambiar la contraseña | Dentro de la transacción | Las sesiones quedan cerradas aunque la contraseña no cambie: el usuario solo inicia sesión otra vez | Falla la operación y MySQL revierte el cambio de contraseña |
+
+La revocación es la excepción a propósito: si se hiciera después del commit y fallara, la contraseña habría
+cambiado y las sesiones anteriores seguirían abiertas, que es el caso inseguro.
+
 ## 8. Seguridad y reglas generales
 
 | Regla | Descripción | Cómo se aplica |
@@ -230,10 +259,3 @@ lógica de negocio.
 La API espera a que ambas bases estén saludables. Sus datos de conexión, la clave JWT y las
 credenciales del administrador inicial se pasan por variables de entorno.
 
-## 11. Estado de transición
-
-Este documento describe el código actual. Estos cambios ya están planeados:
-
-| Fase | Cambio |
-|---|---|
-| 5 | Bloqueo optimista y escrituras en MongoDB después del commit |

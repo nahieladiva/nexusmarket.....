@@ -212,6 +212,9 @@ cd nexusm
 ./mvnw test -Dtest=*IT
 ```
 
+`./mvnw clean test` también genera el informe de cobertura de JaCoCo en
+`nexusm/target/site/jacoco/index.html`.
+
 [tools/VerifySdd.java](tools/README.md) comprueba que el SDD coincide con el código compilado.
 
 ## Documentación

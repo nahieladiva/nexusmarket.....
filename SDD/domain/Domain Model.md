@@ -395,6 +395,7 @@ y `Shipment`.
 | `onHand` | `Quantity` | Sí |
 | `reorderThreshold` | `Quantity` | Sí |
 | `location` | `WarehouseLocation` | No |
+| `version` | `Long` (nulo hasta guardarlo) | No |
 
 | Comportamiento | Descripción |
 |---|---|
@@ -447,6 +448,7 @@ y `Shipment`.
 | `buyerId` | `UserId` |
 | `items` | `Map<ProductId, CartItem>` |
 | `updatedAt` | `LocalDateTime` |
+| `version` | `Long` (nulo hasta guardarlo) |
 
 | Comportamiento | Descripción |
 |---|---|
@@ -503,6 +505,7 @@ agregar el producto.
 | `paidAt` | `LocalDateTime` (opcional) | Sí |
 | `createdAt` | `LocalDateTime` | No |
 | `updatedAt` | `LocalDateTime` | Sí |
+| `version` | `Long` (nulo hasta guardarlo) | No |
 
 | Comportamiento | Descripción |
 |---|---|
@@ -780,9 +783,3 @@ Todas heredan de `DomainException`.
 | Logística | `Shipment`, `Order` | `prepareFor`, `pack`, `dispatch`, `applyShipmentProgress` |
 | Entrega | `Shipment`, `Order` | `confirmDelivery`, `applyShipmentProgress` |
 | Posventa | `ReturnRequest`, `Refund` | `request`, `approve`, `markAsReceived`, `forReturn`, `process` |
-
-## 14. Pendientes temporales
-
-| Tema | Estado actual | Se corrige en |
-|---|---|---|
-| Escrituras en MongoDB | `@Transactional` solo cubre MySQL; el historial y la auditoría se escribirán después del commit (`AFTER_COMMIT`) | Fase 5 |
