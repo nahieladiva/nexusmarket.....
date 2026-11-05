@@ -7,6 +7,23 @@ inventario, carrito, pago, factura, envío, devolución y reembolso.
 MySQL guarda los datos del negocio. MongoDB guarda la bitácora de auditoría, el historial de stock y los
 tokens JWT emitidos. Todo corre con Docker.
 
+**Empiece aquí:** [SETUP.md](SETUP.md) explica paso a paso cómo instalarlo y probarlo en Windows. Con la
+aplicación arriba, la API se puede probar en [Swagger](http://localhost:8080/swagger-ui.html).
+
+## Estado del proyecto
+
+El proyecto está terminado: el flujo completo funciona de punta a punta contra MySQL y MongoDB reales.
+
+| Tema | Estado |
+|---|---|
+| API | 117 rutas en 7 controladores, uno por puerto de entrada |
+| Seguridad | JWT con 5 roles y revocación de sesiones |
+| Consistencia | Transacciones, bloqueo optimista e historial de MongoDB después del commit |
+| Pruebas | 386 pruebas automáticas y 22 pruebas de integración con las bases reales |
+| Cobertura del dominio | 91,7 % de instrucciones y 94,1 % de líneas, medida con JaCoCo |
+| Colección de Postman | 121 peticiones y 207 comprobaciones con newman |
+| Documentación | SDD comprobado contra el código con `tools/VerifySdd.java` |
+
 ## Arquitectura
 
 ```
@@ -221,6 +238,7 @@ cd nexusm
 
 | Documento | Contenido |
 |---|---|
+| [SETUP](SETUP.md) | Instalación y pruebas paso a paso en Windows |
 | [Software Architecture](SDD/Software%20Architecture/Software%20Architecture.md) | Arquitectura, persistencia, seguridad y despliegue |
 | [Domain Model](SDD/domain/Domain%20Model.md) | Entidades, agregados y reglas |
 | [Domain Value Objects](SDD/domain/Domain%20Value%20Objects.md) | Value objects y enums |
