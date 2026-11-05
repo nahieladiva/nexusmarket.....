@@ -1,5 +1,5 @@
-# NexusMarket: MySQL + MongoDB + API Spring Boot
-# Uso:  docker compose up -d --build      (la API queda en http://localhost:8080)
+# NexusMarket: MySQL + MongoDB + Spring Boot API
+# Usage: docker compose up -d --build     (the API listens on http://localhost:8080)
 services:
   mysql:
     image: mysql:8.0
@@ -44,7 +44,7 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MONGODB_URI: mongodb://mongo:27017/nexusmarket
-      JWT_SECRET: ${JWT_SECRET:-nexusmarket-clave-de-desarrollo-cambiar-0123456789}
+      JWT_SECRET: ${JWT_SECRET:-nexusmarket-development-secret-change-it-0123456789}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@nexusmarket.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin2026}
       TZ: America/Bogota

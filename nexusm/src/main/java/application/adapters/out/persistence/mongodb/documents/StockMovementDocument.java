@@ -1,5 +1,6 @@
 package application.adapters.out.persistence.mongodb.documents;
 
+import application.domain.enums.StockMovementType;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class StockMovementDocument {
     private String id;
     private String productId;
     private String warehouseId;
-    private String type;
+    private StockMovementType type;
     private int delta;
     private int resultingOnHand;
     private String reason;

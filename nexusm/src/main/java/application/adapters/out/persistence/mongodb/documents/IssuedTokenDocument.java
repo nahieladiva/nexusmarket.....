@@ -1,5 +1,6 @@
 package application.adapters.out.persistence.mongodb.documents;
 
+import application.domain.enums.TokenStatus;
 import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.Getter;
@@ -11,7 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * MongoDB document of an issued token (the "JWT database").
  * {@code expiresAt} is a {@link Date} so the TTL index removes it when it expires.
- * {@code status} stores the name of {@link application.domain.enums.TokenStatus}.
  */
 @Document(collection = IssuedTokenDocument.COLLECTION)
 @Getter
@@ -26,5 +26,5 @@ public class IssuedTokenDocument {
     private String userId;
     private LocalDateTime issuedAt;
     private Date expiresAt;
-    private String status;
+    private TokenStatus status;
 }

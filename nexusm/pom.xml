@@ -8,11 +8,11 @@
 		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>CS2</groupId>
+	<groupId>co.edu.tdea</groupId>
 	<artifactId>nexusmarket</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>nexusmarket</name>
-	<description>NexusMarket - marketplace con arquitectura hexagonal</description>
+	<description>NexusMarket - marketplace with a hexagonal architecture</description>
 	<url/>
 	<licenses>
 		<license/>

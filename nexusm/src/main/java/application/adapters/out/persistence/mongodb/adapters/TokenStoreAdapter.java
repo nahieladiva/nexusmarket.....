@@ -34,7 +34,7 @@ public class TokenStoreAdapter implements TokenStorePort {
         doc.setUserId(token.getUserId().toString());
         doc.setIssuedAt(token.getIssuedAt());
         doc.setExpiresAt(Date.from(token.getExpiresAt().atZone(zone).toInstant()));
-        doc.setStatus(token.getStatus().name());
+        doc.setStatus(token.getStatus());
         repository.save(doc);
         return token;
     }
@@ -49,8 +49,8 @@ public class TokenStoreAdapter implements TokenStorePort {
     @Override
     public void revokeAllForUser(UserId userId) {
         List<IssuedTokenDocument> active =
-            repository.findByUserIdAndStatus(userId.toString(), TokenStatus.ACTIVE.name());
-        active.forEach(doc -> doc.setStatus(TokenStatus.REVOKED.name()));
+            repository.findByUserIdAndStatus(userId.toString(), TokenStatus.ACTIVE);
+        active.forEach(doc -> doc.setStatus(TokenStatus.REVOKED));
         repository.saveAll(active);
     }
 
@@ -58,7 +58,7 @@ public class TokenStoreAdapter implements TokenStorePort {
      * Documents saved before the status field existed have no status; they are treated
      * as revoked so the user simply logs in again.
      */
-    private TokenStatus toStatus(String value) {
-        return value == null ? TokenStatus.REVOKED : TokenStatus.valueOf(value);
+    private TokenStatus toStatus(TokenStatus value) {
+        return value == null ? TokenStatus.REVOKED : value;
     }
 }

@@ -1,7 +1,31 @@
-# Logs y archivos temporales que no deben subirse
+# Build output
+target/
+build/
+*.class
+*.jar
+
+# Logs and temporary files
 *.log
-_sdd_list.txt
+*.tmp
+*.bak
+
+# Local environment
+.env
+
+# IDE
 .idea/
-.vscode/
 *.iml
-nexusm/target/
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Local Postman workspace
+.postman/

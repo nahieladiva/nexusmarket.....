@@ -51,7 +51,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 /**
- * Saves and reads the aggregates added in phase 3 through their adapters, on an in-memory database.
+ * Saves and reads the cart, invoice, shipment, return and refund through their adapters, on an in-memory database.
  * Each read happens after clearing the session, so it comes from the tables.
  */
 @DataJpaTest(properties = H2WithoutChecksDialect.PROPERTY)

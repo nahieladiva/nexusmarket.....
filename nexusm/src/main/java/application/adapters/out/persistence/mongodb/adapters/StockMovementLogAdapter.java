@@ -2,7 +2,6 @@ package application.adapters.out.persistence.mongodb.adapters;
 
 import application.adapters.out.persistence.mongodb.documents.StockMovementDocument;
 import application.adapters.out.persistence.mongodb.repositories.StockMovementMongoRepository;
-import application.domain.enums.StockMovementType;
 import application.domain.models.StockMovement;
 import application.domain.ports.out.StockMovementLogPort;
 import application.domain.valueobjects.ProductId;
@@ -71,7 +70,7 @@ public class StockMovementLogAdapter implements StockMovementLogPort {
         document.setId(movement.id());
         document.setProductId(movement.productId().toString());
         document.setWarehouseId(movement.warehouseId().toString());
-        document.setType(movement.type().name());
+        document.setType(movement.type());
         document.setDelta(movement.delta());
         document.setResultingOnHand(movement.resultingOnHand().getValue());
         document.setReason(movement.reason());
@@ -83,8 +82,7 @@ public class StockMovementLogAdapter implements StockMovementLogPort {
 
     private StockMovement toDomain(StockMovementDocument doc) {
         return new StockMovement(doc.getId(), ProductId.of(doc.getProductId()),
-            WarehouseId.of(doc.getWarehouseId()), StockMovementType.valueOf(doc.getType()),
-            doc.getDelta(), Quantity.of(doc.getResultingOnHand()), doc.getReason(),
+            WarehouseId.of(doc.getWarehouseId()), doc.getType(), doc.getDelta(), Quantity.of(doc.getResultingOnHand()), doc.getReason(),
             doc.getPerformedBy() == null ? null : UserId.of(doc.getPerformedBy()),
             doc.getReference(), doc.getOccurredAt());
     }

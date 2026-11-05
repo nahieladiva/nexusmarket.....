@@ -26,7 +26,7 @@ public final class Inventory {
     private final WarehouseId warehouseId;
     private Quantity onHand;
     private Quantity reorderThreshold;
-    private WarehouseLocation location;
+    private final WarehouseLocation location;
     /** Version of the stored row, used to detect concurrent updates. Null until it is saved. */
     private final Long version;
 
