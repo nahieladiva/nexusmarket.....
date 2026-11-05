@@ -39,7 +39,7 @@ class UserServicesTest {
     }
 
     private Seller registerSeller(String email) {
-        return (Seller) f.registerSeller.execute(admin, "Seller", Email.of(email), PHONE, "Clave2026", "Store");
+        return (Seller) f.registerSeller.execute(admin, "Seller", Email.of(email), PHONE, "Password2026", "Store");
     }
 
     private Address address(int number) {
@@ -48,11 +48,11 @@ class UserServicesTest {
 
     @Test
     void buyerRegistersPubliclyAndEmailsAreUnique() {
-        User buyer = f.registerBuyer.execute("Ana", Email.of("ana@mail.com"), PHONE, "Clave2026",
+        User buyer = f.registerBuyer.execute("Ana", Email.of("ana@mail.com"), PHONE, "Password2026",
             TestFixture.address());
         assertInstanceOf(Buyer.class, buyer);
         assertThrows(DuplicateResourceException.class, () -> f.registerBuyer.execute("Ana",
-            Email.of("ANA@mail.com"), PHONE, "Clave2026", TestFixture.address()));
+            Email.of("ANA@mail.com"), PHONE, "Password2026", TestFixture.address()));
     }
 
     @Test
@@ -65,19 +65,19 @@ class UserServicesTest {
     void onlyAnAdministratorRegistersSellersAndStaff() {
         User seller = registerSeller("seller@mail.com");
         assertThrows(ForbiddenActionException.class, () -> f.registerSeller.execute(seller, "Other",
-            Email.of("other@mail.com"), PHONE, "Clave2026", "Store"));
+            Email.of("other@mail.com"), PHONE, "Password2026", "Store"));
         assertThrows(ForbiddenActionException.class, () -> f.registerStaffUser.execute(seller,
-            UserRole.SUPERVISOR, "Other", Email.of("other@mail.com"), PHONE, "Clave2026"));
+            UserRole.SUPERVISOR, "Other", Email.of("other@mail.com"), PHONE, "Password2026"));
     }
 
     @Test
     void staffUserGetsTheSubclassOfItsRole() {
         assertInstanceOf(LogisticsOperator.class, f.registerStaffUser.execute(admin,
-            UserRole.LOGISTICS_OPERATOR, "Op", Email.of("op@mail.com"), PHONE, "Clave2026"));
+            UserRole.LOGISTICS_OPERATOR, "Op", Email.of("op@mail.com"), PHONE, "Password2026"));
         assertInstanceOf(Supervisor.class, f.registerStaffUser.execute(admin, UserRole.SUPERVISOR,
-            "Sup", Email.of("sup@mail.com"), PHONE, "Clave2026"));
+            "Sup", Email.of("sup@mail.com"), PHONE, "Password2026"));
         assertThrows(BusinessRuleException.class, () -> f.registerStaffUser.execute(admin, UserRole.BUYER,
-            "Buyer", Email.of("buyer@mail.com"), PHONE, "Clave2026"));
+            "Buyer", Email.of("buyer@mail.com"), PHONE, "Password2026"));
     }
 
     @Test

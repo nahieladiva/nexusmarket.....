@@ -30,13 +30,13 @@ class AuthorizationServicesTest {
     @BeforeEach
     void setUp() {
         f = new TestFixture();
-        buyer = f.registerBuyer.execute("Ana", EMAIL, PhoneNumber.of("+573001112233"), "Clave2026",
+        buyer = f.registerBuyer.execute("Ana", EMAIL, PhoneNumber.of("+573001112233"), "Password2026",
             TestFixture.address());
     }
 
     @Test
     void loginIssuesAValidToken() {
-        AuthSession session = f.login.execute(EMAIL, "Clave2026");
+        AuthSession session = f.login.execute(EMAIL, "Password2026");
         TokenClaims claims = f.validateToken.execute(session.token());
         assertEquals(buyer.getId(), claims.userId());
         assertEquals(UserRole.BUYER, claims.role());
@@ -46,12 +46,12 @@ class AuthorizationServicesTest {
     void wrongCredentialsAreRejected() {
         assertThrows(InvalidCredentialsException.class, () -> f.login.execute(EMAIL, "Wrong2026"));
         assertThrows(InvalidCredentialsException.class,
-            () -> f.login.execute(Email.of("nobody@mail.com"), "Clave2026"));
+            () -> f.login.execute(Email.of("nobody@mail.com"), "Password2026"));
     }
 
     @Test
     void logoutRevokesTheToken() {
-        String token = f.login.execute(EMAIL, "Clave2026").token();
+        String token = f.login.execute(EMAIL, "Password2026").token();
         f.logout.execute(token);
         assertThrows(InvalidTokenException.class, () -> f.validateToken.execute(token));
     }

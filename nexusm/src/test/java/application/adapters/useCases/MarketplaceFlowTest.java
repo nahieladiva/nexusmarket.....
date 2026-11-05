@@ -57,7 +57,7 @@ class MarketplaceFlowTest {
 
     private static final PortRecorder RECORDER = new PortRecorder();
     private static final PhoneNumber PHONE = PhoneNumber.of("+573001112233");
-    private static final String PASSWORD = "Clave2026";
+    private static final String PASSWORD = "Password2026";
     private static final WarehouseLocation LOCATION = WarehouseLocation.of("A", "1", "2");
     private static final Address ADDRESS = TestFixture.address();
 
@@ -203,8 +203,8 @@ class MarketplaceFlowTest {
         assertEquals("New name", account.updateProfile(seller, "New name", null).getFullName());
         assertEquals(1, account.addAddress(supervisor, ADDRESS).getAddresses().size());
         assertTrue(account.removeAddress(supervisor, ADDRESS).getAddresses().isEmpty());
-        account.changePassword(operator, PASSWORD, "Nueva2026");
-        assertEquals(operator, publicAccess.login(Email.of("operator@mail.com"), "Nueva2026").user().getId());
+        account.changePassword(operator, PASSWORD, "NewPassword2026");
+        assertEquals(operator, publicAccess.login(Email.of("operator@mail.com"), "NewPassword2026").user().getId());
         assertThrows(InvalidCredentialsException.class,
             () -> publicAccess.login(Email.of("operator@mail.com"), PASSWORD));
     }

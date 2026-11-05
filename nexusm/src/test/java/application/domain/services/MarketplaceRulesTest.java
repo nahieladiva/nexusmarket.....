@@ -49,18 +49,18 @@ class MarketplaceRulesTest {
     }
 
     private User registerBuyer() {
-        return f.registerBuyer.execute("Ana", EMAIL, PHONE, "Clave2026", TestFixture.address());
+        return f.registerBuyer.execute("Ana", EMAIL, PHONE, "Password2026", TestFixture.address());
     }
 
     @Test
     void passwordIsStoredHashed() {
-        assertEquals("hashed:Clave2026", registerBuyer().getPasswordHash());
+        assertEquals("hashed:Password2026", registerBuyer().getPasswordHash());
     }
 
     @Test
     void loginIssuesAOneHourTokenAndStoresIt() {
         registerBuyer();
-        AuthSession session = f.login.execute(EMAIL, "Clave2026");
+        AuthSession session = f.login.execute(EMAIL, "Password2026");
         assertEquals(TestFixture.NOW.plusHours(1), session.expiresAt());
         TokenClaims claims = f.validateToken.execute(session.token());
         assertTrue(f.tokenStore.findById(claims.tokenId()).isPresent());
@@ -69,7 +69,7 @@ class MarketplaceRulesTest {
     @Test
     void tokenExpiresAfterOneHour() {
         registerBuyer();
-        String token = f.login.execute(EMAIL, "Clave2026").token();
+        String token = f.login.execute(EMAIL, "Password2026").token();
         f.clock.advance(Duration.ofHours(1));
         assertThrows(InvalidTokenException.class, () -> f.validateToken.execute(token));
     }
