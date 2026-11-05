@@ -17,8 +17,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 /**
- * Crea el administrador inicial al arrancar, si no existe. Los administradores no se
- * registran por la API.
+ * Creates the initial administrator at startup if it does not exist. Administrators are not
+ * registered through the API.
  */
 @Component
 public class AdminSeeder implements ApplicationRunner {
@@ -50,9 +50,9 @@ public class AdminSeeder implements ApplicationRunner {
         if (userRepository.findByEmail(email).isPresent()) {
             return;
         }
-        userRepository.save(new Administrator(UserId.of(idGenerator.newId()), "Administrador",
+        userRepository.save(new Administrator(UserId.of(idGenerator.newId()), "Administrator",
             email, PhoneNumber.of("+570000000000"), passwordEncoder.encode(adminPassword),
             List.of(), clock.now()));
-        log.info("Administrador inicial creado: {}", email);
+        log.info("Initial administrator created: {}", email);
     }
 }

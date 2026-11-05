@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de {@link DomainEventPublisherPort} sobre los eventos de Spring.
+ * Adapter of {@link DomainEventPublisherPort} on Spring events.
  */
 @Component
 public class SpringDomainEventPublisherAdapter implements DomainEventPublisherPort {
@@ -15,7 +15,7 @@ public class SpringDomainEventPublisherAdapter implements DomainEventPublisherPo
     private final ApplicationEventPublisher publisher;
 
     public SpringDomainEventPublisherAdapter(ApplicationEventPublisher publisher) {
-        this.publisher = Objects.requireNonNull(publisher, "publisher es obligatorio");
+        this.publisher = Objects.requireNonNull(publisher, "publisher is required");
     }
 
     @Override

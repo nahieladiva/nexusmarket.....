@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de {@link IdGeneratorPort} con UUID aleatorios.
+ * Adapter of {@link IdGeneratorPort} with random UUIDs.
  */
 @Component
 public class UuidGeneratorAdapter implements IdGeneratorPort {

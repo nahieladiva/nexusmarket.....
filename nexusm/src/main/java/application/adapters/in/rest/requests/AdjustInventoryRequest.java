@@ -1,6 +1,6 @@
 package application.adapters.in.rest.requests;
 
-/** {@code delta} positivo suma, negativo resta. El motivo es obligatorio. */
+/** A positive {@code delta} adds and a negative one subtracts. The reason is required. */
 public record AdjustInventoryRequest(String productId, String warehouseId, int delta,
                                      String reason) {
 }

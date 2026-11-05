@@ -9,7 +9,7 @@ import java.util.Currency;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pruebas unitarias del value object {@link Money}.
+ * Unit tests of the {@link Money} value object.
  */
 class MoneyTest {
 

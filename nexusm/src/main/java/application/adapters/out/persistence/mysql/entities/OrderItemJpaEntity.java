@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de línea de orden.
+ * JPA entity of an order line.
  */
 @Entity
 @Table(name = "order_items")
@@ -49,7 +49,7 @@ public class OrderItemJpaEntity {
     @Column(name = "unit_price_currency", nullable = false, length = 3)
     private String unitPriceCurrency;
 
-    /** Bodega desde la que se despacha; nula mientras el pedido está pendiente. */
+    /** Warehouse that dispatches the item; null while the order is pending. */
     @Column(name = "warehouse_id", length = 36)
     private String warehouseId;
 }

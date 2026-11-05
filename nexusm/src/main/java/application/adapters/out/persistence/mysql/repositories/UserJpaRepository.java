@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repositorio JPA de usuarios.
+ * JPA repository of users.
  */
 public interface UserJpaRepository extends JpaRepository<UserJpaEntity, String> {
 

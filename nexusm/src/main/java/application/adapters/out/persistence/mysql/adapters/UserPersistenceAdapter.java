@@ -15,7 +15,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de salida que implementa {@link UserRepository} sobre MySQL.
+ * Output adapter that implements {@link UserRepository} on MySQL.
  */
 @Component
 public class UserPersistenceAdapter implements UserRepository {
@@ -24,8 +24,8 @@ public class UserPersistenceAdapter implements UserRepository {
     private final UserEntityMapper mapper;
 
     public UserPersistenceAdapter(UserJpaRepository jpaRepository, UserEntityMapper mapper) {
-        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

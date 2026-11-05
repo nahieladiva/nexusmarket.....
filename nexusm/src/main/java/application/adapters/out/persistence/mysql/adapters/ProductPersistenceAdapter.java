@@ -16,7 +16,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de salida que implementa {@link ProductRepository} sobre MySQL.
+ * Output adapter that implements {@link ProductRepository} on MySQL.
  */
 @Component
 public class ProductPersistenceAdapter implements ProductRepository {
@@ -26,8 +26,8 @@ public class ProductPersistenceAdapter implements ProductRepository {
 
     public ProductPersistenceAdapter(ProductJpaRepository jpaRepository,
                                      ProductEntityMapper mapper) {
-        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

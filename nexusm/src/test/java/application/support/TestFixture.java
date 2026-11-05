@@ -111,7 +111,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Arma todos los casos de uso con adaptadores en memoria, sin Spring ni bases de datos.
+ * Builds every use case with in-memory adapters, without Spring or databases.
  */
 public class TestFixture {
 
@@ -333,10 +333,10 @@ public class TestFixture {
             consultInventory, consultOrder, consultInvoice, consultShipment, consultReturn, consultRefund);
     }
 
-    // ---------- Datos de apoyo
+    // ---------- Support data
 
     public static Address address() {
-        return Address.of("Calle 10 # 43-20", "Medellín", "Antioquia", "050021", "Colombia");
+        return Address.of("10th Street # 43-20", "Springfield", "Oregon", "97477", "United States");
     }
 
     public User admin() {
@@ -345,15 +345,15 @@ public class TestFixture {
     }
 
     public Seller approvedSeller(String email) {
-        Seller seller = new Seller(UserId.of(ids.newId()), "Vendedor " + email, Email.of(email),
-            PhoneNumber.of("+573001234567"), "hashed:Clave123", "Tienda " + email, List.of(),
+        Seller seller = new Seller(UserId.of(ids.newId()), "Seller " + email, Email.of(email),
+            PhoneNumber.of("+573001234567"), "hashed:Password123", "Store " + email, List.of(),
             SellerStatus.APPROVED, NOW);
         return (Seller) users.save(seller);
     }
 
     public Buyer buyer(String email) {
-        Buyer buyer = new Buyer(UserId.of(ids.newId()), "Comprador " + email, Email.of(email),
-            PhoneNumber.of("+573009876543"), "hashed:Clave123", address(), List.of(), NOW);
+        Buyer buyer = new Buyer(UserId.of(ids.newId()), "Buyer " + email, Email.of(email),
+            PhoneNumber.of("+573009876543"), "hashed:Password123", address(), List.of(), NOW);
         return (Buyer) users.save(buyer);
     }
 
@@ -364,14 +364,14 @@ public class TestFixture {
 
     public LogisticsOperator logisticsOperator(String email) {
         LogisticsOperator operator = new LogisticsOperator(UserId.random(), "Operator", Email.of(email),
-            PhoneNumber.of("+573001234567"), "hashed:Clave123", List.of(), NOW);
+            PhoneNumber.of("+573001234567"), "hashed:Password123", List.of(), NOW);
         users.save(operator);
         return operator;
     }
 
     public Supervisor supervisor(String email) {
         Supervisor supervisor = new Supervisor(UserId.random(), "Supervisor", Email.of(email),
-            PhoneNumber.of("+573001234568"), "hashed:Clave123", List.of(), NOW);
+            PhoneNumber.of("+573001234568"), "hashed:Password123", List.of(), NOW);
         users.save(supervisor);
         return supervisor;
     }

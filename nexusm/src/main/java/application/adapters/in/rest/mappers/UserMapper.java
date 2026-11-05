@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Conversión entre DTOs REST y usuarios del dominio. Nunca expone el hash de la contraseña.
+ * Converts between REST DTOs and domain users. It never exposes the password hash.
  */
 @Component
 public class UserMapper {
@@ -46,7 +46,7 @@ public class UserMapper {
 
     public Address toDomain(AddressRequest address) {
         if (address == null) {
-            throw new IllegalArgumentException("La dirección es obligatoria");
+            throw new IllegalArgumentException("The address is required");
         }
         return Address.of(address.street(), address.city(), address.state(),
             address.zipCode(), address.country());

@@ -66,7 +66,7 @@ class ProductServicesTest {
     @Test
     void unapprovedSellerCannotPublish() {
         Seller pending = new Seller(UserId.random(), "Pending", Email.of("pending@mail.com"),
-            PhoneNumber.of("+573001112233"), "hashed:Clave123", "Pending Store", List.of(),
+            PhoneNumber.of("+573001112233"), "hashed:Password123", "Pending Store", List.of(),
             SellerStatus.PENDING_APPROVAL, TestFixture.NOW);
         f.users.save(pending);
         Product product = register(pending, "TEC-0002");

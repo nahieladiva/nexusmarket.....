@@ -7,7 +7,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de {@link ClockPort} sobre el reloj del sistema.
+ * Adapter of {@link ClockPort} on the system clock.
  */
 @Component
 public class SystemClockAdapter implements ClockPort {
@@ -15,7 +15,7 @@ public class SystemClockAdapter implements ClockPort {
     private final Clock clock;
 
     public SystemClockAdapter(Clock clock) {
-        this.clock = Objects.requireNonNull(clock, "clock es obligatorio");
+        this.clock = Objects.requireNonNull(clock, "clock is required");
     }
 
     @Override

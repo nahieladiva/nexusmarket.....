@@ -1,7 +1,7 @@
 package application.adapters.in.rest.responses;
 
 /**
- * DTO de inventario para respuestas REST.
+ * Inventory DTO for REST responses.
  */
 public record InventoryResponse(String id, String productId, String warehouseId,
                                 int onHand, int reorderThreshold,

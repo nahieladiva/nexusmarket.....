@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de usuario. Los roles Buyer/Seller se modelan en la misma tabla
- * (SINGLE_TABLE) mediante la columna {@code role}.
+ * JPA entity of a user. Every role is stored in the same table
+ * (SINGLE_TABLE) through the {@code role} column.
  */
 @Entity
 @Table(name = "users")
@@ -47,7 +47,7 @@ public class UserJpaEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    /** Solo aplica a vendedores. */
+    /** Sellers only. */
     @Column(name = "business_name")
     private String businessName;
 
@@ -55,23 +55,23 @@ public class UserJpaEntity {
     @Column(name = "seller_status", length = 20)
     private String sellerStatus;
 
-    /** Solo aplica a compradores. */
+    /** Buyers only. */
     @Column(name = "shipping_street")
     private String shippingStreet;
 
-    /** Solo aplica a compradores. */
+    /** Buyers only. */
     @Column(name = "shipping_city")
     private String shippingCity;
 
-    /** Solo aplica a compradores. */
+    /** Buyers only. */
     @Column(name = "shipping_state")
     private String shippingState;
 
-    /** Solo aplica a compradores. */
+    /** Buyers only. */
     @Column(name = "shipping_zip")
     private String shippingZip;
 
-    /** Solo aplica a compradores. */
+    /** Buyers only. */
     @Column(name = "shipping_country")
     private String shippingCountry;
 

@@ -8,8 +8,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Guarda en la bitácora (MongoDB) cada evento de dominio, solo cuando la transacción
- * de MySQL se confirmó; así no quedan auditados cambios que se revirtieron.
+ * Saves each domain event in the audit log (MongoDB), only after the MySQL transaction
+ * commits, so changes that were rolled back are not audited.
  */
 @Component
 public class DomainEventAuditListener {
@@ -17,7 +17,7 @@ public class DomainEventAuditListener {
     private final AuditLogPort auditLogPort;
 
     public DomainEventAuditListener(AuditLogPort auditLogPort) {
-        this.auditLogPort = Objects.requireNonNull(auditLogPort, "auditLogPort es obligatorio");
+        this.auditLogPort = Objects.requireNonNull(auditLogPort, "auditLogPort is required");
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)

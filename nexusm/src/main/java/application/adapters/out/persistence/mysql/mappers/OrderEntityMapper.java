@@ -18,7 +18,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapea entre la entidad JPA y el modelo de dominio de órdenes.
+ * Maps between the JPA entity and the order domain model.
  */
 @Component
 public class OrderEntityMapper {

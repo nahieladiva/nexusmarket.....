@@ -11,7 +11,7 @@ import application.domain.valueobjects.WarehouseLocation;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapea entre la entidad JPA y el modelo de dominio de inventario.
+ * Maps between the JPA entity and the inventory domain model.
  */
 @Component
 public class InventoryEntityMapper {

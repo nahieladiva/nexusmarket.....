@@ -10,7 +10,7 @@ import application.domain.events.ProductAddedEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * Convierte eventos de dominio en documentos de la bitácora de auditoría.
+ * Converts domain events into audit log documents.
  */
 @Component
 public class AuditLogMapper {
@@ -43,8 +43,8 @@ public class AuditLogMapper {
     }
 
     /**
-     * Los eventos son records: su toString() ya lista todos los campos con su valor.
-     * (Se evita depender de Jackson, que cambió de versión en Spring Boot 4.)
+     * Events are records: their toString() already lists every field with its value.
+     * (This avoids depending on Jackson, whose version changed in Spring Boot 4.)
      */
     private String serialize(DomainEvent event) {
         return event.toString();

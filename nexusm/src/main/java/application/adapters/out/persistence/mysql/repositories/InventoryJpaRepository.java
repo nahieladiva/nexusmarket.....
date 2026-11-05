@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repositorio JPA de inventario.
+ * JPA repository of inventories.
  */
 public interface InventoryJpaRepository extends JpaRepository<InventoryJpaEntity, String> {
 

@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Documento MongoDB de un movimiento de stock.
+ * MongoDB document of a stock movement.
  */
 @Document(collection = "stock_movements")
 @Getter

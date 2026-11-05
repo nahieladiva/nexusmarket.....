@@ -14,7 +14,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador MongoDB de {@link StockMovementLogPort}.
+ * MongoDB adapter of {@link StockMovementLogPort}.
  */
 @Component
 public class StockMovementLogAdapter implements StockMovementLogPort {
@@ -22,7 +22,7 @@ public class StockMovementLogAdapter implements StockMovementLogPort {
     private final StockMovementMongoRepository repository;
 
     public StockMovementLogAdapter(StockMovementMongoRepository repository) {
-        this.repository = Objects.requireNonNull(repository, "repository es obligatorio");
+        this.repository = Objects.requireNonNull(repository, "repository is required");
     }
 
     @Override

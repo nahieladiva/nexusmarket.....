@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de {@link TokenProviderPort} con la librería jjwt (HMAC-SHA256).
+ * Adapter of {@link TokenProviderPort} with the jjwt library (HMAC-SHA256).
  */
 @Component
 public class JjwtTokenProviderAdapter implements TokenProviderPort {
@@ -32,7 +32,7 @@ public class JjwtTokenProviderAdapter implements TokenProviderPort {
     public JjwtTokenProviderAdapter(@Value("${nexusmarket.jwt.secret}") String secret) {
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
-            throw new IllegalStateException("nexusmarket.jwt.secret debe tener al menos 32 caracteres");
+            throw new IllegalStateException("nexusmarket.jwt.secret must have at least 32 characters");
         }
         this.key = Keys.hmacShaKeyFor(bytes);
     }

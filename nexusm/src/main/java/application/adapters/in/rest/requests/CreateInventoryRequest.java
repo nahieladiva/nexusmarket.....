@@ -1,7 +1,7 @@
 package application.adapters.in.rest.requests;
 
 /**
- * DTO para crear un registro de inventario.
+ * DTO to create an inventory record.
  */
 public record CreateInventoryRequest(String productId, String warehouseId,
                                      int onHand, int reorderThreshold,

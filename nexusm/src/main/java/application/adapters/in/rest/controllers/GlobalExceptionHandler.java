@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * Traduce las excepciones del dominio a respuestas HTTP con formato uniforme.
+ * Translates domain exceptions into HTTP responses with a uniform format.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -63,27 +63,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ErrorResponse> handleMissingField(NullPointerException ex,
                                                             HttpServletRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : "Falta un campo obligatorio";
+        String message = ex.getMessage() != null ? ex.getMessage() : "A required field is missing";
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class,
         MissingServletRequestParameterException.class})
     public ResponseEntity<ErrorResponse> handleMalformed(Exception ex, HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "Petición mal formada: " + ex.getMessage(), request);
+        return build(HttpStatus.BAD_REQUEST, "Malformed request: " + ex.getMessage(), request);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoRoute(NoResourceFoundException ex,
                                                        HttpServletRequest request) {
-        return build(HttpStatus.NOT_FOUND, "Ruta no encontrada", request);
+        return build(HttpStatus.NOT_FOUND, "Route not found", request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        log.error("Error no controlado en {}", request.getRequestURI(), ex);
+        log.error("Unhandled error at {}", request.getRequestURI(), ex);
         return build(HttpStatus.INTERNAL_SERVER_ERROR,
-            "Ocurrió un error interno en el servidor", request);
+            "An internal server error occurred", request);
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message,

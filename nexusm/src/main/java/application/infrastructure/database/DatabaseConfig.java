@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
- * Configuración de MongoDB.
+ * MongoDB configuration.
  *
- * <p>Crea un índice TTL sobre {@code expiresAt} en la colección de tokens: MongoDB borra
- * solo cada token cuando expira, así la base de tokens no crece sin límite.</p>
+ * <p>Creates a TTL index on {@code expiresAt} in the token collection: MongoDB deletes each
+ * token when it expires, so the token database does not grow without limit.</p>
  */
 @Configuration
 public class DatabaseConfig {

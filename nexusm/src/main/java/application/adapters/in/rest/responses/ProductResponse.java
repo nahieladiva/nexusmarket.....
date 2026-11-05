@@ -3,7 +3,7 @@ package application.adapters.in.rest.responses;
 import java.time.LocalDateTime;
 
 /**
- * DTO de producto para respuestas REST.
+ * Product DTO for REST responses.
  */
 public record ProductResponse(String id, String code, String name, String description,
                               String priceAmount, String priceCurrency,

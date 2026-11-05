@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de inventario (stock de un producto en un almacén).
+ * JPA entity of an inventory (stock of a product in a warehouse).
  */
 @Entity
 @Table(name = "inventory")

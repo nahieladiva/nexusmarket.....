@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/** Emite tokens opacos "token-N" y los recuerda. No verifica expiración (eso lo hace el caso de uso). */
+/** Issues opaque "token-N" tokens and remembers them. It does not check expiration (the use case does). */
 public class FakeTokenProvider implements TokenProviderPort {
     private final Map<String, TokenClaims> issued = new HashMap<>();
     private int counter;

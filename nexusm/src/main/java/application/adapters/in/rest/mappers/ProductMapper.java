@@ -11,7 +11,7 @@ public class ProductMapper {
 
     public Money toDomain(PriceRequest price) {
         if (price == null || price.amount() == null || price.currency() == null) {
-            throw new IllegalArgumentException("El precio (amount y currency) es obligatorio");
+            throw new IllegalArgumentException("The price (amount and currency) is required");
         }
         return Money.of(price.amount(), price.currency());
     }

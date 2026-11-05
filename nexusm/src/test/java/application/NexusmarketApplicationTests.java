@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * Levanta el contexto completo de Spring. Necesita MySQL y MongoDB corriendo
- * ({@code docker compose up -d mysql mongo}); por eso está deshabilitada por defecto
- * y las reglas de negocio se prueban con los tests de {@code application.domain}.
- * Para correrla, quite {@code @Disabled} con las bases de datos arriba.
+ * Starts the full Spring context. It needs MySQL and MongoDB running
+ * ({@code docker compose up -d mysql mongo}), so it is disabled by default and the
+ * business rules are tested in {@code application.domain}.
+ * To run it, remove {@code @Disabled} with the databases up.
  */
-@Disabled("Requiere MySQL y MongoDB levantados con docker compose")
+@Disabled("Requires MySQL and MongoDB started with docker compose")
 @SpringBootTest
 class NexusmarketApplicationTests {
 

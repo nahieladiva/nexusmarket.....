@@ -15,7 +15,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de salida que implementa {@link InventoryRepository} sobre MySQL.
+ * Output adapter that implements {@link InventoryRepository} on MySQL.
  */
 @Component
 public class InventoryPersistenceAdapter implements InventoryRepository {
@@ -25,8 +25,8 @@ public class InventoryPersistenceAdapter implements InventoryRepository {
 
     public InventoryPersistenceAdapter(InventoryJpaRepository jpaRepository,
                                        InventoryEntityMapper mapper) {
-        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

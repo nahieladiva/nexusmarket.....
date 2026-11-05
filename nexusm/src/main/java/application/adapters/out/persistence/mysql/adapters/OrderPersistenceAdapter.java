@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Adaptador de salida que implementa {@link OrderRepository} sobre MySQL.
+ * Output adapter that implements {@link OrderRepository} on MySQL.
  */
 @Component
 public class OrderPersistenceAdapter implements OrderRepository {
@@ -25,8 +25,8 @@ public class OrderPersistenceAdapter implements OrderRepository {
     private final OrderEntityMapper mapper;
 
     public OrderPersistenceAdapter(OrderJpaRepository jpaRepository, OrderEntityMapper mapper) {
-        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

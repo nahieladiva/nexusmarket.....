@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Dirección embebida (tabla {@code user_addresses}).
+ * Embedded address ({@code user_addresses} table).
  */
 @Embeddable
 @Getter

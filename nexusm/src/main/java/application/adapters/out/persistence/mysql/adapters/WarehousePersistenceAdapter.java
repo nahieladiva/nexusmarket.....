@@ -13,7 +13,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de salida que implementa {@link WarehouseRepository} sobre MySQL.
+ * Output adapter that implements {@link WarehouseRepository} on MySQL.
  */
 @Component
 public class WarehousePersistenceAdapter implements WarehouseRepository {
@@ -23,8 +23,8 @@ public class WarehousePersistenceAdapter implements WarehouseRepository {
 
     public WarehousePersistenceAdapter(WarehouseJpaRepository jpaRepository,
                                        WarehouseEntityMapper mapper) {
-        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

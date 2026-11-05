@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de {@link NotificationPort} que escribe las notificaciones en el log.
- * Se puede reemplazar por uno de correo o SMS sin tocar el dominio.
+ * Adapter of {@link NotificationPort} that writes the notifications to the log.
+ * It can be replaced by an email or SMS adapter without touching the domain.
  */
 @Component
 public class LoggingNotificationAdapter implements NotificationPort {
@@ -17,6 +17,6 @@ public class LoggingNotificationAdapter implements NotificationPort {
 
     @Override
     public void notify(UserId recipient, String subject, String message) {
-        log.info("[NOTIFICACIÓN] para={} asunto=\"{}\" mensaje=\"{}\"", recipient, subject, message);
+        log.info("[NOTIFICATION] to={} subject=\"{}\" message=\"{}\"", recipient, subject, message);
     }
 }

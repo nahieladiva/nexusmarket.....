@@ -10,7 +10,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * Adaptador de salida que implementa {@link AuditLogPort} sobre MongoDB.
+ * Output adapter that implements {@link AuditLogPort} on MongoDB.
  */
 @Component
 public class AuditLogPersistenceAdapter implements AuditLogPort {
@@ -20,8 +20,8 @@ public class AuditLogPersistenceAdapter implements AuditLogPort {
 
     public AuditLogPersistenceAdapter(AuditLogMongoRepository repository,
                                       AuditLogMapper mapper) {
-        this.repository = Objects.requireNonNull(repository, "repository es obligatorio");
-        this.mapper = Objects.requireNonNull(mapper, "mapper es obligatorio");
+        this.repository = Objects.requireNonNull(repository, "repository is required");
+        this.mapper = Objects.requireNonNull(mapper, "mapper is required");
     }
 
     @Override

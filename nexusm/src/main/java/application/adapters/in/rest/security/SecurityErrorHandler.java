@@ -13,8 +13,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
- * Respuestas JSON para 401 (sin token o token inválido) y 403 (rol sin permiso),
- * con el mismo formato que {@code ErrorResponse}.
+ * JSON responses for 401 (missing or invalid token) and 403 (role without permission),
+ * with the same format as {@code ErrorResponse}.
  */
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
@@ -23,13 +23,13 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
                          AuthenticationException authException) throws IOException {
         Object detail = request.getAttribute("auth_error");
         write(response, request, HttpStatus.UNAUTHORIZED,
-            detail != null ? detail.toString() : "Se requiere un token válido (Authorization: Bearer ...)");
+            detail != null ? detail.toString() : "A valid token is required (Authorization: Bearer ...)");
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
-        write(response, request, HttpStatus.FORBIDDEN, "Su rol no tiene permiso para esta operación");
+        write(response, request, HttpStatus.FORBIDDEN, "Your role is not allowed to perform this operation");
     }
 
     private void write(HttpServletResponse response, HttpServletRequest request, HttpStatus status,

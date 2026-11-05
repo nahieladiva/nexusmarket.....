@@ -14,7 +14,7 @@ import application.domain.valueobjects.WarehouseLocation;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapea entre DTOs REST y el modelo de dominio de inventario.
+ * Maps between REST DTOs and the inventory domain model.
  */
 @Component
 public class InventoryMapper {

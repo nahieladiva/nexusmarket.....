@@ -4,8 +4,8 @@ import application.domain.enums.UserRole;
 import application.domain.valueobjects.UserId;
 
 /**
- * Usuario autenticado de la petición actual (sale del JWT).
- * Se recibe en los controladores con {@code @AuthenticationPrincipal}.
+ * Authenticated user of the current request (it comes from the JWT).
+ * Controllers receive it with {@code @AuthenticationPrincipal}.
  */
 public record AuthenticatedUser(UserId userId, UserRole role, String token) {
 }

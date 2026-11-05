@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repositorio JPA de almacenes.
+ * JPA repository of warehouses.
  */
 public interface WarehouseJpaRepository extends JpaRepository<WarehouseJpaEntity, String> {
 

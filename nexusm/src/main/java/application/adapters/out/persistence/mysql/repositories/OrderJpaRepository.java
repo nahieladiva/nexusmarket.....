@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repositorio JPA de órdenes.
+ * JPA repository of orders.
  */
 public interface OrderJpaRepository extends JpaRepository<OrderJpaEntity, String> {
 

@@ -1,7 +1,7 @@
 package application.adapters.in.rest.requests;
 
 /**
- * DTO de ubicación dentro de un almacén.
+ * DTO of a location inside a warehouse.
  */
 public record WarehouseLocationRequest(String aisle, String shelf, String bin) {
 }

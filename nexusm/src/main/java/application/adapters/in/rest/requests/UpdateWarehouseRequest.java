@@ -1,6 +1,6 @@
 package application.adapters.in.rest.requests;
 
-/** Campos opcionales: los que lleguen nulos no se cambian. */
+/** Optional fields: those sent as null are not changed. */
 public record UpdateWarehouseRequest(String name, AddressRequest address,
                                      WarehouseLocationRequest location) {
 }

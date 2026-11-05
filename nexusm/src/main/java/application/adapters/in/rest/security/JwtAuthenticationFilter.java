@@ -17,13 +17,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Lee el header {@code Authorization: Bearer <token>}, lo valida con el puerto de
- * autenticación (firma, expiración y que no esté revocado) y deja al usuario autenticado
- * en el contexto de seguridad. Si el token es inválido, la petición sigue como anónima y
- * Spring Security responde 401 en las rutas protegidas.
+ * Reads the {@code Authorization: Bearer <token>} header, validates it with the account port
+ * (signature, expiration and not revoked) and puts the authenticated user in the security
+ * context. If the token is invalid, the request continues as anonymous and Spring Security
+ * answers 401 on protected routes.
  *
- * <p>No es {@code @Component} a propósito: se registra solo dentro de la cadena de
- * seguridad, para que no se ejecute dos veces.</p>
+ * <p>It is not a {@code @Component} on purpose: it is registered only inside the security
+ * chain, so that it does not run twice.</p>
  */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

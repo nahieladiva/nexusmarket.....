@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pruebas unitarias del value object {@link Email}.
+ * Unit tests of the {@link Email} value object.
  */
 class EmailTest {
 
@@ -17,7 +17,7 @@ class EmailTest {
 
     @Test
     void rejectsInvalidEmail() {
-        assertThrows(IllegalArgumentException.class, () -> Email.of("sin-arroba"));
+        assertThrows(IllegalArgumentException.class, () -> Email.of("no-at-sign"));
         assertThrows(IllegalArgumentException.class, () -> Email.of("user@"));
         assertThrows(IllegalArgumentException.class, () -> Email.of(""));
         assertThrows(IllegalArgumentException.class, () -> Email.of(null));

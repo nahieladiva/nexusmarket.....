@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pruebas unitarias del value object {@link Quantity}.
+ * Unit tests of the {@link Quantity} value object.
  */
 class QuantityTest {
 

@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
 /**
- * Registra como beans los servicios de dominio. El dominio no conoce Spring, por eso no
- * llevan {@code @Service}: se crean aquí.
+ * Registers the domain services as beans. The domain does not know Spring, so they do not
+ * use {@code @Service}: they are created here.
  */
 @Configuration
 @ComponentScan(basePackages = "application.domain.services", useDefaultFilters = false,

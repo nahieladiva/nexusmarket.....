@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * Repositorio JPA de productos.
+ * JPA repository of products.
  */
 public interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, String> {
 

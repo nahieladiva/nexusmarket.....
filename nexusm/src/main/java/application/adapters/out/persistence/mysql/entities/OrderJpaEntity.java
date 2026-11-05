@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entidad JPA de orden (aggregate root).
+ * JPA entity of an order (aggregate root).
  */
 @Entity
 @Table(name = "orders")

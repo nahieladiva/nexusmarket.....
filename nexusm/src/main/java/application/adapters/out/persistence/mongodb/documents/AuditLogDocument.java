@@ -9,7 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Documento de MongoDB para la auditoría de eventos de dominio.
+ * MongoDB document for the audit of domain events.
  */
 @Document(collection = "audit_logs")
 @Getter

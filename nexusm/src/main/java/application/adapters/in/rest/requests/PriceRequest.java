@@ -1,7 +1,7 @@
 package application.adapters.in.rest.requests;
 
 /**
- * DTO de precio (monto + moneda) para transporte REST.
+ * Price DTO (amount and currency) for REST.
  */
 public record PriceRequest(String amount, String currency) {
 }
