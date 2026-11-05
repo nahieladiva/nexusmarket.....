@@ -43,6 +43,13 @@ import application.domain.services.returns.ConsultReturnService;
 import application.domain.services.returns.ReceiveReturnService;
 import application.domain.services.returns.RejectReturnService;
 import application.domain.services.returns.RequestReturnService;
+import application.domain.services.warehouse.ActivateWarehouseService;
+import application.domain.services.warehouse.ConsultWarehouseService;
+import application.domain.services.warehouse.CreateMarketplaceWarehouseService;
+import application.domain.services.warehouse.CreateSellerWarehouseService;
+import application.domain.services.warehouse.DeactivateWarehouseService;
+import application.domain.services.warehouse.UpdateWarehouseService;
+import application.domain.services.warehouse.ValidateWarehouseNameService;
 import application.domain.services.shipment.ApplyShipmentProgressService;
 import application.domain.services.shipment.ConfirmDeliveryService;
 import application.domain.services.shipment.ConsultShipmentService;
@@ -157,6 +164,13 @@ public class TestFixture {
     public final ChangeReorderThresholdService changeReorderThreshold;
     public final ConsultInventoryService consultInventory;
 
+    public final CreateMarketplaceWarehouseService createMarketplaceWarehouse;
+    public final CreateSellerWarehouseService createSellerWarehouse;
+    public final UpdateWarehouseService updateWarehouse;
+    public final ActivateWarehouseService activateWarehouse;
+    public final DeactivateWarehouseService deactivateWarehouse;
+    public final ConsultWarehouseService consultWarehouse;
+
     public TestFixture() {
         AccessRules accessRules = new AccessRules(users);
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
@@ -228,6 +242,14 @@ public class TestFixture {
         adjustStock = new AdjustStockService(inventories, inventoryAccess, recordStockMovement);
         changeReorderThreshold = new ChangeReorderThresholdService(inventories, inventoryAccess);
         consultInventory = new ConsultInventoryService(inventories, products, movements, inventoryAccess);
+
+        ValidateWarehouseNameService warehouseName = new ValidateWarehouseNameService(warehouses);
+        createMarketplaceWarehouse = new CreateMarketplaceWarehouseService(warehouses, warehouseName, ids);
+        createSellerWarehouse = new CreateSellerWarehouseService(warehouses, warehouseName, ids);
+        updateWarehouse = new UpdateWarehouseService(warehouses, warehouseName);
+        activateWarehouse = new ActivateWarehouseService(warehouses);
+        deactivateWarehouse = new DeactivateWarehouseService(warehouses);
+        consultWarehouse = new ConsultWarehouseService(warehouses);
     }
 
     // ---------- Datos de apoyo

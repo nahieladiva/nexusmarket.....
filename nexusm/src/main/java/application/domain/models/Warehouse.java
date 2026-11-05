@@ -1,8 +1,10 @@
 package application.domain.models;
 
+import application.domain.enums.UserRole;
 import application.domain.enums.WarehouseStatus;
 import application.domain.enums.WarehouseType;
 import application.domain.exceptions.BusinessRuleException;
+import application.domain.exceptions.ForbiddenActionException;
 import application.domain.valueobjects.Address;
 import application.domain.valueobjects.UserId;
 import application.domain.valueobjects.WarehouseId;
@@ -114,6 +116,20 @@ public final class Warehouse {
      */
     public boolean isOwnedBy(UserId sellerId) {
         return ownerSellerId != null && ownerSellerId.equals(sellerId);
+    }
+
+    /**
+     * Validates that the actor manages this warehouse (RG-03): its owner for a {@code SELLER}
+     * warehouse, an administrator for a {@code MARKETPLACE} warehouse.
+     *
+     * @throws ForbiddenActionException when the actor does not manage it
+     */
+    public void requireManagedBy(User actor) {
+        if (!type.requiresOwnerSeller()) {
+            actor.requireRole(UserRole.ADMINISTRATOR);
+        } else if (!isOwnedBy(actor.getId())) {
+            throw new ForbiddenActionException("Warehouse " + name + " belongs to another seller");
+        }
     }
 
     public WarehouseId getId() {
