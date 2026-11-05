@@ -1,7 +1,6 @@
 package application.domain.services.order;
 
 import application.domain.events.OrderCreatedEvent;
-import application.domain.exceptions.BusinessRuleException;
 import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Cart;
 import application.domain.models.CartItem;
@@ -16,6 +15,7 @@ import application.domain.ports.out.OrderRepository;
 import application.domain.ports.out.ProductRepository;
 import application.domain.services.DomainService;
 import application.domain.services.inventory.WarehouseAllocationService;
+import application.domain.services.product.ValidateProductAvailabilityService;
 import application.domain.services.cart.ConsultCartService;
 import application.domain.valueobjects.OrderId;
 
@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Turns the cart of a buyer into an order pending payment.
  *
- * <p>Every product must still be published, and an active warehouse must have stock. Stock is
+ * <p>Every product must still be available, and an active warehouse must have stock. Stock is
  * not reserved yet: that happens when the order is paid. The order keeps the prices of the cart.</p>
  */
 @DomainService
@@ -34,6 +34,7 @@ public class PlaceOrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final ConsultCartService consultCartService;
+    private final ValidateProductAvailabilityService validateProductAvailabilityService;
     private final WarehouseAllocationService warehouseAllocationService;
     private final DomainEventPublisherPort eventPublisher;
     private final ClockPort clock;
@@ -42,6 +43,7 @@ public class PlaceOrderService {
     public PlaceOrderService(CartRepository cartRepository, OrderRepository orderRepository,
                              ProductRepository productRepository,
                              ConsultCartService consultCartService,
+                             ValidateProductAvailabilityService validateProductAvailabilityService,
                              WarehouseAllocationService warehouseAllocationService,
                              DomainEventPublisherPort eventPublisher, ClockPort clock,
                              IdGeneratorPort idGenerator) {
@@ -49,6 +51,7 @@ public class PlaceOrderService {
         this.orderRepository = Objects.requireNonNull(orderRepository);
         this.productRepository = Objects.requireNonNull(productRepository);
         this.consultCartService = Objects.requireNonNull(consultCartService);
+        this.validateProductAvailabilityService = Objects.requireNonNull(validateProductAvailabilityService);
         this.warehouseAllocationService = Objects.requireNonNull(warehouseAllocationService);
         this.eventPublisher = Objects.requireNonNull(eventPublisher);
         this.clock = Objects.requireNonNull(clock);
@@ -72,8 +75,6 @@ public class PlaceOrderService {
         Product product = productRepository.findById(item.getProductId())
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Product", item.getProductId().toString()));
-        if (!product.isActive()) {
-            throw new BusinessRuleException("Product " + product.getName() + " is not available");
-        }
+        validateProductAvailabilityService.execute(product);
     }
 }

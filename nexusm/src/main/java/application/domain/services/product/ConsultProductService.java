@@ -12,21 +12,24 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Product queries. The public catalog shows only published products, a seller sees all of their
+ * Product queries. The public catalog shows only available products, a seller sees all of their
  * products, and internal staff see every product.
  */
 @DomainService
 public class ConsultProductService {
 
     private final ProductRepository productRepository;
+    private final ValidateProductAvailabilityService validateProductAvailabilityService;
 
-    public ConsultProductService(ProductRepository productRepository) {
+    public ConsultProductService(ProductRepository productRepository,
+                                 ValidateProductAvailabilityService validateProductAvailabilityService) {
         this.productRepository = Objects.requireNonNull(productRepository);
+        this.validateProductAvailabilityService = Objects.requireNonNull(validateProductAvailabilityService);
     }
 
     public Product findPublished(ProductId productId) {
         return productRepository.findById(productId)
-            .filter(Product::isActive)
+            .filter(validateProductAvailabilityService::isAvailable)
             .orElseThrow(() -> new ResourceNotFoundException("Product", productId.toString()));
     }
 
@@ -34,7 +37,7 @@ public class ConsultProductService {
         List<Product> candidates = (keyword == null || keyword.isBlank())
             ? productRepository.findAll()
             : productRepository.findByNameContaining(keyword.trim());
-        return candidates.stream().filter(Product::isActive).toList();
+        return candidates.stream().filter(validateProductAvailabilityService::isAvailable).toList();
     }
 
     public List<Product> findBySeller(User seller) {

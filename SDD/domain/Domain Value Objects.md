@@ -115,7 +115,7 @@ Fábricas comunes: `of(UUID)`, `of(String)` y `random()`.
 |---|---|
 | `UserRole` | `BUYER`, `SELLER`, `LOGISTICS_OPERATOR`, `ADMINISTRATOR`, `SUPERVISOR` |
 | `SellerStatus` | `PENDING_APPROVAL`, `APPROVED`, `SUSPENDED` |
-| `ProductStatus` | `DRAFT`, `PUBLISHED`, `SUSPENDED`, `DISCONTINUED` |
+| `ProductStatus` | `DRAFT`, `PUBLISHED`, `SUSPENDED`, `BLOCKED`, `DISCONTINUED` |
 | `ProductType` | `PHYSICAL`, `DIGITAL` |
 | `WarehouseStatus` | `ACTIVE`, `INACTIVE` |
 | `WarehouseType` | `MARKETPLACE`, `SELLER` |
@@ -164,16 +164,22 @@ stateDiagram-v2
     DRAFT --> PUBLISHED
     DRAFT --> DISCONTINUED
     PUBLISHED --> SUSPENDED
+    PUBLISHED --> BLOCKED
     PUBLISHED --> DISCONTINUED
     SUSPENDED --> PUBLISHED
+    SUSPENDED --> BLOCKED
+    BLOCKED --> SUSPENDED
     SUSPENDED --> DISCONTINUED
     DISCONTINUED --> [*]
 ```
 
 | Método | Regla |
 |---|---|
-| `isSellable()` | Solo `PUBLISHED` aparece en el catálogo y se puede comprar |
+| `isSellable()` | Solo `PUBLISHED` puede aparecer en el catálogo y comprarse; además, el vendedor debe estar `APPROVED` |
 | `isTerminal()` | `DISCONTINUED` ya no se edita ni se publica |
+
+`BLOCKED` lo aplica un administrador. El vendedor no puede publicar, suspender ni descontinuar un
+producto bloqueado. Al desbloquearlo queda en `SUSPENDED`, y el vendedor decide si lo publica de nuevo.
 
 ### 3.5 `ProductType`
 

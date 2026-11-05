@@ -27,13 +27,16 @@ import application.domain.services.order.ConsultOrderService;
 import application.domain.services.order.NotifyOrderStatusChangeService;
 import application.domain.services.order.PayOrderService;
 import application.domain.services.order.PlaceOrderService;
+import application.domain.services.product.BlockProductService;
 import application.domain.services.product.ChangeProductPriceService;
 import application.domain.services.product.ConsultProductService;
 import application.domain.services.product.DiscontinueProductService;
 import application.domain.services.product.PublishProductService;
 import application.domain.services.product.RegisterProductService;
 import application.domain.services.product.SuspendProductService;
+import application.domain.services.product.UnblockProductService;
 import application.domain.services.product.UpdateProductService;
+import application.domain.services.product.ValidateProductAvailabilityService;
 import application.domain.services.refund.ConsultRefundService;
 import application.domain.services.refund.CreateRefundService;
 import application.domain.services.refund.ProcessRefundService;
@@ -171,6 +174,8 @@ public class TestFixture {
     public final SuspendProductService suspendProduct;
     public final DiscontinueProductService discontinueProduct;
     public final ConsultProductService consultProduct;
+    public final BlockProductService blockProduct;
+    public final UnblockProductService unblockProduct;
 
     public final CreateInventoryService createInventory;
     public final RestockInventoryService restockInventory;
@@ -219,14 +224,16 @@ public class TestFixture {
             recorder, accessRules, events, notifier, clock, ids);
 
         consultCart = new ConsultCartService(carts, clock, ids);
-        addItemToCart = new AddItemToCartService(carts, products, consultCart);
+        ValidateProductAvailabilityService productAvailability = new ValidateProductAvailabilityService(users);
+        addItemToCart = new AddItemToCartService(carts, products, consultCart, productAvailability);
         changeCartItemQuantity = new ChangeCartItemQuantityService(carts, consultCart);
         removeItemFromCart = new RemoveItemFromCartService(carts, consultCart);
         clearCart = new ClearCartService(carts, consultCart);
 
         recordStockMovement = new RecordStockMovementService(movements, events, notifier, products, clock, ids);
         notifyOrderStatusChange = new NotifyOrderStatusChangeService(events, notifier, clock);
-        placeOrder = new PlaceOrderService(carts, orders, products, consultCart, allocation, events, clock, ids);
+        placeOrder = new PlaceOrderService(carts, orders, products, consultCart, productAvailability, allocation,
+            events, clock, ids);
         CreateRefundService createRefund = new CreateRefundService(refunds, clock, ids);
         issueInvoice = new IssueInvoiceService(invoices, clock, ids);
         voidInvoice = new VoidInvoiceService(invoices, clock);
@@ -262,7 +269,9 @@ public class TestFixture {
         publishProduct = new PublishProductService(products);
         suspendProduct = new SuspendProductService(products);
         discontinueProduct = new DiscontinueProductService(products);
-        consultProduct = new ConsultProductService(products);
+        consultProduct = new ConsultProductService(products, productAvailability);
+        blockProduct = new BlockProductService(products, notifier);
+        unblockProduct = new UnblockProductService(products, notifier);
 
         ValidateInventoryAccessService inventoryAccess = new ValidateInventoryAccessService(products, warehouses);
         createInventory = new CreateInventoryService(inventories, products, warehouses, inventoryAccess,

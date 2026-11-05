@@ -15,8 +15,8 @@ import application.domain.valueobjects.WarehouseId;
 import java.util.Objects;
 
 /**
- * Inventory access rules (RG-03). Logistics operators and administrators manage any warehouse. A
- * seller manages only their products in their own warehouses. Supervisors can only read.
+ * Inventory access rules (RG-03). Logistics operators manage stock in any warehouse, and a seller
+ * manages their products in their own warehouses. Administrators and supervisors can only read.
  */
 @DomainService
 public class ValidateInventoryAccessService {
@@ -32,7 +32,7 @@ public class ValidateInventoryAccessService {
 
     /** Validates that the actor can change the stock of a product in a warehouse. */
     public void requireManage(User actor, ProductId productId, WarehouseId warehouseId) {
-        actor.requireAnyRole(UserRole.LOGISTICS_OPERATOR, UserRole.ADMINISTRATOR, UserRole.SELLER);
+        actor.requireAnyRole(UserRole.LOGISTICS_OPERATOR, UserRole.SELLER);
         if (actor.isSeller()) {
             requireOwner(actor, productId, warehouseId);
         }

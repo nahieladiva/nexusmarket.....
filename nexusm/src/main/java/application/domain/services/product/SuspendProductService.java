@@ -11,8 +11,7 @@ import application.domain.valueobjects.ProductId;
 import java.util.Objects;
 
 /**
- * Temporarily removes a product from the catalog. The seller who owns it or an administrator can
- * do it.
+ * The seller who owns a product temporarily removes it from the catalog.
  */
 @DomainService
 public class SuspendProductService {
@@ -23,13 +22,11 @@ public class SuspendProductService {
         this.productRepository = Objects.requireNonNull(productRepository);
     }
 
-    public Product execute(User actor, ProductId productId) {
-        actor.requireAnyRole(UserRole.SELLER, UserRole.ADMINISTRATOR);
+    public Product execute(User seller, ProductId productId) {
+        seller.requireRole(UserRole.SELLER);
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException("Product", productId.toString()));
-        if (actor.isSeller()) {
-            product.requireOwnedBy(actor.getId());
-        }
+        product.requireOwnedBy(seller.getId());
         product.suspend();
         return productRepository.save(product);
     }

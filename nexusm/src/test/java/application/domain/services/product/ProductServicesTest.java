@@ -87,12 +87,12 @@ class ProductServicesTest {
     }
 
     @Test
-    void administratorCanSuspendAndDiscontinue() {
+    void sellerSuspendsAndAdministratorDiscontinues() {
         f.publishProduct.execute(seller, draft.getId());
         assertEquals(ProductStatus.SUSPENDED,
-            f.suspendProduct.execute(f.admin(), draft.getId()).getStatus());
+            f.suspendProduct.execute(seller, draft.getId()).getStatus());
         assertEquals(ProductStatus.DISCONTINUED,
-            f.discontinueProduct.execute(seller, draft.getId()).getStatus());
+            f.discontinueProduct.execute(f.admin(), draft.getId()).getStatus());
     }
 
     @Test

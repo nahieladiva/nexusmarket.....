@@ -111,6 +111,20 @@ class InventoryServicesTest {
     }
 
     @Test
+    void administratorReadsButDoesNotManage() {
+        create(marketplace, 3);
+        assertThrows(ForbiddenActionException.class, () -> f.createInventory.execute(f.admin(), product.getId(),
+            own.getId(), Quantity.of(1), Quantity.of(0), LOCATION));
+        assertThrows(ForbiddenActionException.class, () -> f.restockInventory.execute(f.admin(), product.getId(),
+            marketplace.getId(), Quantity.of(1), null));
+        assertThrows(ForbiddenActionException.class, () -> f.adjustStock.execute(f.admin(), product.getId(),
+            marketplace.getId(), -1, "Lost"));
+        assertThrows(ForbiddenActionException.class, () -> f.changeReorderThreshold.execute(f.admin(),
+            product.getId(), marketplace.getId(), Quantity.of(0)));
+        assertEquals(1, f.consultInventory.findAll(f.admin()).size());
+    }
+
+    @Test
     void supervisorReadsButDoesNotManage() {
         create(marketplace, 3);
         assertThrows(ForbiddenActionException.class, () -> f.adjustStock.execute(f.supervisor("s@mail.com"),

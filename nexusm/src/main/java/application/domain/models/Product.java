@@ -128,6 +128,29 @@ public final class Product {
      * Temporarily removes the product from the public catalog.
      */
     public void suspend() {
+        if (status == ProductStatus.BLOCKED) {
+            throw new BusinessRuleException("A blocked product can only be unblocked by an administrator");
+        }
+        changeStatus(ProductStatus.SUSPENDED);
+    }
+
+    /**
+     * Removes the product from the catalog by decision of an administrator. The seller cannot
+     * publish it again until it is unblocked.
+     */
+    public void block() {
+        changeStatus(ProductStatus.BLOCKED);
+    }
+
+    /**
+     * Lifts a block. The product stays {@code SUSPENDED} until the seller publishes it again.
+     *
+     * @throws BusinessRuleException when the product is not blocked
+     */
+    public void unblock() {
+        if (status != ProductStatus.BLOCKED) {
+            throw new BusinessRuleException("Product " + code + " is not blocked");
+        }
         changeStatus(ProductStatus.SUSPENDED);
     }
 

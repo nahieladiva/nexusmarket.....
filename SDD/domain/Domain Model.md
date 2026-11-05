@@ -294,6 +294,8 @@ entrega envíos. Lo registra un administrador.
 bodegas del marketplace y aprueba devoluciones y reembolsos.
 
 **Reglas.** El primer administrador no se registra por la API: `AdminSeeder` lo crea al arrancar.
+Consulta el inventario, pero no lo modifica (RG-03): eso corresponde al vendedor, en sus bodegas, y al
+operador logístico.
 
 ### 3.6 `Supervisor`
 
@@ -326,7 +328,9 @@ modifica datos del negocio. Lo registra un administrador.
 |---|---|
 | `register(...)` | Crea el producto en `DRAFT` |
 | `publish()` | Lo hace visible en el catálogo público |
-| `suspend()` | Lo retira temporalmente del catálogo |
+| `suspend()` | Lo retira temporalmente del catálogo; falla si está bloqueado |
+| `block()` | Lo retira del catálogo por decisión de un administrador |
+| `unblock()` | Levanta el bloqueo y lo deja en `SUSPENDED`; falla si no está bloqueado |
 | `discontinue()` | Lo retira definitivamente de la venta |
 | `changePrice(Money)` | Cambia el precio |
 | `rename(String)` | Cambia el nombre |
@@ -336,7 +340,8 @@ modifica datos del negocio. Lo registra un administrador.
 
 **Reglas.**
 - `price` debe ser mayor que cero y su moneda no cambia.
-- Solo se venden productos `PUBLISHED`.
+- Solo se venden productos `PUBLISHED` de vendedores `APPROVED`.
+- Solo un administrador bloquea y desbloquea un producto.
 - Un producto `DISCONTINUED` no se puede editar.
 - Las transiciones se validan en `ProductStatus`.
 

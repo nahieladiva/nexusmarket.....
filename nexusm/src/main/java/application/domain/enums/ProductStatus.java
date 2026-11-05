@@ -12,8 +12,9 @@ import java.util.Set;
  * <p>Allowed transitions:</p>
  * <ul>
  *   <li>{@code DRAFT} -> {@code PUBLISHED}, {@code DISCONTINUED}</li>
- *   <li>{@code PUBLISHED} -> {@code SUSPENDED}, {@code DISCONTINUED}</li>
- *   <li>{@code SUSPENDED} -> {@code PUBLISHED}, {@code DISCONTINUED}</li>
+ *   <li>{@code PUBLISHED} -> {@code SUSPENDED}, {@code BLOCKED}, {@code DISCONTINUED}</li>
+ *   <li>{@code SUSPENDED} -> {@code PUBLISHED}, {@code BLOCKED}, {@code DISCONTINUED}</li>
+ *   <li>{@code BLOCKED} -> {@code SUSPENDED}, only when an administrator unblocks it</li>
  *   <li>{@code DISCONTINUED} -> terminal status</li>
  * </ul>
  */
@@ -22,6 +23,7 @@ public enum ProductStatus {
     DRAFT,
     PUBLISHED,
     SUSPENDED,
+    BLOCKED,
     DISCONTINUED;
 
     private static final Map<ProductStatus, Set<ProductStatus>> ALLOWED_TRANSITIONS;
@@ -29,8 +31,9 @@ public enum ProductStatus {
     static {
         Map<ProductStatus, Set<ProductStatus>> transitions = new EnumMap<>(ProductStatus.class);
         transitions.put(DRAFT, Set.of(PUBLISHED, DISCONTINUED));
-        transitions.put(PUBLISHED, Set.of(SUSPENDED, DISCONTINUED));
-        transitions.put(SUSPENDED, Set.of(PUBLISHED, DISCONTINUED));
+        transitions.put(PUBLISHED, Set.of(SUSPENDED, BLOCKED, DISCONTINUED));
+        transitions.put(SUSPENDED, Set.of(PUBLISHED, BLOCKED, DISCONTINUED));
+        transitions.put(BLOCKED, Set.of(SUSPENDED));
         transitions.put(DISCONTINUED, Set.of());
         ALLOWED_TRANSITIONS = Map.copyOf(transitions);
     }
