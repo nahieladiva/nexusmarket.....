@@ -1,5 +1,19 @@
 package application.support;
 
+import application.adapters.useCases.AccountUseCase;
+import application.adapters.useCases.AdministratorUseCase;
+import application.adapters.useCases.BuyerUseCase;
+import application.adapters.useCases.LogisticsOperatorUseCase;
+import application.adapters.useCases.PublicAccessUseCase;
+import application.adapters.useCases.SellerUseCase;
+import application.adapters.useCases.SupervisorUseCase;
+import application.domain.ports.in.AccountPort;
+import application.domain.ports.in.AdministratorPort;
+import application.domain.ports.in.BuyerPort;
+import application.domain.ports.in.LogisticsOperatorPort;
+import application.domain.ports.in.PublicAccessPort;
+import application.domain.ports.in.SellerPort;
+import application.domain.ports.in.SupervisorPort;
 import application.domain.valueobjects.InventoryId;
 import application.domain.valueobjects.WarehouseId;
 import application.domain.models.Supervisor;
@@ -195,6 +209,14 @@ public class TestFixture {
     public final ValidateTokenService validateToken;
     public final LogoutService logout;
 
+    public final PublicAccessPort publicAccessPort;
+    public final AccountPort accountPort;
+    public final BuyerPort buyerPort;
+    public final SellerPort sellerPort;
+    public final LogisticsOperatorPort logisticsOperatorPort;
+    public final AdministratorPort administratorPort;
+    public final SupervisorPort supervisorPort;
+
     public TestFixture() {
         InventoryDomainService inventoryDomain = new InventoryDomainService(inventories);
         WarehouseAllocationService allocation = new WarehouseAllocationService(inventories, warehouses);
@@ -286,6 +308,29 @@ public class TestFixture {
         login = new LoginService(users, passwordEncoder, tokenProvider, tokenStore, clock, ids);
         validateToken = new ValidateTokenService(tokenProvider, tokenStore, clock);
         logout = new LogoutService(tokenStore, validateToken);
+
+        publicAccessPort = new PublicAccessUseCase(registerBuyer, login, consultProduct);
+        accountPort = new AccountUseCase(resolveActor, updateProfile, addAddress, removeAddress, changePassword,
+            validateToken, logout);
+        buyerPort = new BuyerUseCase(resolveActor, consultCart, addItemToCart, changeCartItemQuantity,
+            removeItemFromCart, clearCart, placeOrder, payOrder, cancelOrder, consultOrder, consultInvoice,
+            consultShipment, requestReturn, consultReturn, consultRefund);
+        sellerPort = new SellerUseCase(resolveActor, registerProduct, updateProduct, changeProductPrice,
+            publishProduct, suspendProduct, discontinueProduct, consultProduct, createSellerWarehouse,
+            updateWarehouse, activateWarehouse, deactivateWarehouse, consultWarehouse, createInventory,
+            restockInventory, adjustStock, changeReorderThreshold, consultInventory, consultOrder);
+        logisticsOperatorPort = new LogisticsOperatorUseCase(resolveActor, createInventory, restockInventory,
+            adjustStock, changeReorderThreshold, consultInventory, createShipment, packShipment,
+            dispatchShipment, confirmDelivery, consultShipment, receiveReturn, consultReturn, consultOrder,
+            consultProduct, consultWarehouse);
+        administratorPort = new AdministratorUseCase(resolveActor, registerSeller, registerStaffUser,
+            approveSeller, suspendSeller, consultUser, createMarketplaceWarehouse, updateWarehouse,
+            activateWarehouse, deactivateWarehouse, consultWarehouse, blockProduct, unblockProduct,
+            discontinueProduct, consultProduct, consultInventory, cancelOrder, consultOrder, consultInvoice,
+            consultShipment, approveReturn, rejectReturn, consultReturn, processRefund, rejectRefund,
+            consultRefund);
+        supervisorPort = new SupervisorUseCase(resolveActor, consultUser, consultProduct, consultWarehouse,
+            consultInventory, consultOrder, consultInvoice, consultShipment, consultReturn, consultRefund);
     }
 
     // ---------- Datos de apoyo
