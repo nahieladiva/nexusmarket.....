@@ -48,6 +48,7 @@ import application.domain.services.returns.RejectReturnService;
 import application.domain.services.returns.RequestReturnService;
 import application.domain.services.user.AddAddressService;
 import application.domain.services.user.ApproveSellerService;
+import application.domain.services.user.ChangePasswordService;
 import application.domain.services.user.ConsultUserService;
 import application.domain.services.user.RegisterBuyerService;
 import application.domain.services.user.RegisterSellerService;
@@ -199,6 +200,7 @@ public class TestFixture {
     public final AddAddressService addAddress;
     public final RemoveAddressService removeAddress;
     public final ConsultUserService consultUser;
+    public final ChangePasswordService changePassword;
 
     public final ResolveActorService resolveActor;
     public final LoginService login;
@@ -238,7 +240,8 @@ public class TestFixture {
         issueInvoice = new IssueInvoiceService(invoices, clock, ids);
         voidInvoice = new VoidInvoiceService(invoices, clock);
         consultInvoice = new ConsultInvoiceService(invoices);
-        payOrder = new PayOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
+        payOrder = new PayOrderService(orders, products, productAvailability, fulfillment, recordStockMovement,
+            notifyOrderStatusChange,
             issueInvoice, clock);
         cancelOrder = new CancelOrderService(orders, fulfillment, recordStockMovement, notifyOrderStatusChange,
             voidInvoice, shipments, createRefund);
@@ -301,6 +304,7 @@ public class TestFixture {
         addAddress = new AddAddressService(users);
         removeAddress = new RemoveAddressService(users);
         consultUser = new ConsultUserService(users);
+        changePassword = new ChangePasswordService(users, passwordPolicy, passwordEncoder);
 
         resolveActor = new ResolveActorService(users);
         login = new LoginService(users, passwordEncoder, tokenProvider, tokenStore, clock, ids);

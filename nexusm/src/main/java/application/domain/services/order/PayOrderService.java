@@ -7,25 +7,31 @@ import application.domain.exceptions.ResourceNotFoundException;
 import application.domain.models.Inventory;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
+import application.domain.models.Product;
 import application.domain.models.User;
 import application.domain.ports.out.ClockPort;
 import application.domain.ports.out.OrderRepository;
+import application.domain.ports.out.ProductRepository;
 import application.domain.services.DomainService;
 import application.domain.services.inventory.RecordStockMovementService;
 import application.domain.services.invoice.IssueInvoiceService;
+import application.domain.services.product.ValidateProductAvailabilityService;
 import application.domain.valueobjects.OrderId;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Registers the payment of an order: the buyer who owns it pays, its stock is reserved, the invoice
+ * Registers the payment of an order: the buyer who owns it pays, every product must still be
+ * available, its stock is reserved, the invoice
  * is issued and, when no item requires shipment, the order is delivered right away.
  */
 @DomainService
 public class PayOrderService {
 
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final ValidateProductAvailabilityService validateProductAvailabilityService;
     private final OrderFulfillmentDomainService orderFulfillmentDomainService;
     private final RecordStockMovementService recordStockMovementService;
     private final NotifyOrderStatusChangeService notifyOrderStatusChangeService;
@@ -33,11 +39,15 @@ public class PayOrderService {
     private final ClockPort clock;
 
     public PayOrderService(OrderRepository orderRepository,
+                           ProductRepository productRepository,
+                           ValidateProductAvailabilityService validateProductAvailabilityService,
                            OrderFulfillmentDomainService orderFulfillmentDomainService,
                            RecordStockMovementService recordStockMovementService,
                            NotifyOrderStatusChangeService notifyOrderStatusChangeService,
                            IssueInvoiceService issueInvoiceService, ClockPort clock) {
         this.orderRepository = Objects.requireNonNull(orderRepository);
+        this.productRepository = Objects.requireNonNull(productRepository);
+        this.validateProductAvailabilityService = Objects.requireNonNull(validateProductAvailabilityService);
         this.orderFulfillmentDomainService = Objects.requireNonNull(orderFulfillmentDomainService);
         this.recordStockMovementService = Objects.requireNonNull(recordStockMovementService);
         this.notifyOrderStatusChangeService = Objects.requireNonNull(notifyOrderStatusChangeService);
@@ -50,6 +60,7 @@ public class PayOrderService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException("Order", orderId.toString()));
         order.requireBelongsTo(buyer.getId());
+        order.getItems().forEach(this::requireAvailable);
         OrderStatus previous = order.getStatus();
         List<Inventory> reserved = orderFulfillmentDomainService.confirm(order, clock.now());
         Order saved = orderRepository.save(order);
@@ -63,5 +74,12 @@ public class PayOrderService {
         issueInvoiceService.execute(saved);
         notifyOrderStatusChangeService.execute(saved, previous);
         return saved;
+    }
+
+    private void requireAvailable(OrderItem item) {
+        Product product = productRepository.findById(item.getProductId())
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Product", item.getProductId().toString()));
+        validateProductAvailabilityService.execute(product);
     }
 }
