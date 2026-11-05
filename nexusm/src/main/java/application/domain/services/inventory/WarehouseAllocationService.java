@@ -54,17 +54,6 @@ public class WarehouseAllocationService {
         return allocation;
     }
 
-    /** Total stock of the product, counting only active warehouses. */
-    public Quantity availableInActiveWarehouses(ProductId productId) {
-        Set<WarehouseId> activeWarehouses = warehouseRepository.findAll().stream()
-            .filter(Warehouse::isActive)
-            .map(Warehouse::getId)
-            .collect(Collectors.toSet());
-        return totalAvailable(inventoryRepository.findByProductId(productId).stream()
-            .filter(inv -> activeWarehouses.contains(inv.getWarehouseId()))
-            .toList());
-    }
-
     private WarehouseId allocateForProduct(OrderItem item, Set<WarehouseId> activeWarehouses) {
         List<Inventory> inventories = inventoryRepository.findByProductId(item.getProductId())
             .stream()

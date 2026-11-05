@@ -41,16 +41,16 @@ frameworks, bases de datos ni protocolos.
 flowchart LR
     Client[Cliente HTTP] --> In[adapters.in.rest]
     In --> PortsIn[domain.ports.in]
-    Services[services] -. implementa .-> PortsIn
-    Services --> Domain[domain: models, enums, valueobjects, services]
-    Services --> PortsOut[domain.ports.out]
+    UseCases[adapters.useCases] -. implementa .-> PortsIn
+    UseCases --> Domain[domain: services, models, enums, valueobjects]
+    Domain --> PortsOut[domain.ports.out]
     Out[adapters.out] -. implementa .-> PortsOut
     Out --> Db[(MySQL y MongoDB)]
-    Infra[infrastructure] -. configura .-> Services
+    Infra[infrastructure] -. configura .-> Domain
 ```
 
 Las dependencias siempre apuntan hacia el dominio. `application.domain` no importa Spring, Lombok,
-Jakarta ni ninguna clase de `adapters`, `infrastructure` o `services`.
+Jakarta ni ninguna clase de `adapters` o `infrastructure`.
 
 ## 5. Estructura de paquetes
 
@@ -64,26 +64,26 @@ nexusm/src/main/java/application/
 │   │   ├── requests/
 │   │   ├── responses/
 │   │   └── security/
-│   └── out/
-│       ├── events/
-│       ├── persistence/
-│       │   ├── mongodb/{adapters,documents,mappers,repositories}/
-│       │   └── mysql/{adapters,entities,mappers,repositories}/
-│       ├── security/
-│       └── system/
+│   ├── out/
+│   │   ├── events/
+│   │   ├── persistence/
+│   │   │   ├── mongodb/{adapters,documents,mappers,repositories}/
+│   │   │   └── mysql/{adapters,entities,mappers,repositories}/
+│   │   ├── security/
+│   │   └── system/
+│   └── useCases/
 ├── domain/
 │   ├── enums/
 │   ├── events/
 │   ├── exceptions/
 │   ├── models/
 │   ├── ports/{in,out}/
-│   ├── services/
+│   ├── services/{authorization,cart,inventory,invoice,order,product,refund,returns,shipment,user,warehouse}/
 │   └── valueobjects/
-├── infrastructure/
-│   ├── config/
-│   ├── database/
-│   └── security/
-└── services/
+└── infrastructure/
+    ├── config/
+    ├── database/
+    └── security/
 ```
 
 ## 6. Responsabilidades
@@ -97,24 +97,29 @@ Es el núcleo del sistema y contiene las reglas de negocio.
 | `models` | Entidades, agregados y registros del dominio | [Domain Model](../domain/Domain%20Model.md) |
 | `valueobjects` | Objetos inmutables que se validan solos | [Domain Value Objects](../domain/Domain%20Value%20Objects.md) |
 | `enums` | Valores acotados y sus transiciones | [Domain Value Objects](../domain/Domain%20Value%20Objects.md) |
-| `services` | Reglas que abarcan varias entidades | [Domain Model](../domain/Domain%20Model.md) |
+| `services` | Un servicio por caso de uso, en subpaquetes por tema | [Services](../domain/Services.md) |
 | `events` | Hechos relevantes del negocio | [Domain Model](../domain/Domain%20Model.md) |
 | `exceptions` | Errores del negocio | [Domain Model](../domain/Domain%20Model.md) |
-| `ports.in` | Operaciones que el sistema ofrece | [Use Cases and Ports](../domain/Use%20Cases%20and%20Ports.md) |
-| `ports.out` | Lo que el dominio necesita del exterior | [Use Cases and Ports](../domain/Use%20Cases%20and%20Ports.md) |
+| `ports.in` | Operaciones que el sistema ofrece | [Input-ports](../domain/Input-ports.md) |
+| `ports.out` | Lo que el dominio necesita del exterior | [Output-ports](../domain/Output-ports.md) |
 
-Los servicios de dominio no usan anotaciones de Spring. Se registran como beans en
-`infrastructure/config/ApplicationConfig`.
+Los servicios de dominio usan `DomainService`, una anotación propia del dominio escrita en Java puro.
+`infrastructure/config/ApplicationConfig` la escanea y registra cada servicio como bean. Reciben al
+usuario como actor y validan su rol y la propiedad de los datos (RG-03).
 
-### 6.2 `services`
+### 6.2 `adapters.useCases`
 
-Contiene los casos de uso actuales, que implementan los puertos de entrada. Orquestan repositorios,
-servicios de dominio, eventos y notificaciones. La capa es transitoria: en la Fase 2 su lógica pasa a
-servicios de dominio por caso de uso y a `adapters/useCases`.
+Hay una clase por puerto de entrada: `PublicAccessUseCase`, `AccountUseCase`, `BuyerUseCase`,
+`SellerUseCase`, `LogisticsOperatorUseCase`, `AdministratorUseCase` y `SupervisorUseCase`. Cada una
+obtiene al actor con `ResolveActorService` y delega en los servicios de dominio. Además, definen la
+transacción con `Transactional`: las escrituras usan una transacción normal y las consultas una de solo
+lectura.
 
 ### 6.3 `adapters.in.rest`
 
-Expone la API HTTP. Los controladores no contienen reglas de negocio.
+Expone la API HTTP. Los controladores no contienen reglas de negocio y solo llaman a puertos de entrada.
+Hoy solo existe `AuthController`, con el registro de comprador, el login y el logout. Los controladores
+por rol llegan en la Fase 4.
 
 | Paquete | Responsabilidad |
 |---|---|
@@ -161,7 +166,7 @@ tienen tablas ni adaptadores. Se agregan en la Fase 3.
 |---|---|---|
 | RG-01 | Toda operación requiere un usuario autenticado, salvo el catálogo público y el registro de comprador | `SecurityConfig` y filtro JWT |
 | RG-02 | Cada usuario tiene un solo rol | `User.role` es inmutable y `UserRole` define los 5 roles |
-| RG-03 | Nadie maneja información fuera de su rol | Métodos de propiedad como `Product.isOwnedBy` y `Order.belongsTo` |
+| RG-03 | Nadie maneja información fuera de su rol | `User.requireRole` y métodos de propiedad como `Order.requireBelongsTo` y `Product.requireOwnedBy` |
 
 Autenticación:
 
@@ -172,7 +177,7 @@ Autenticación:
 
 ## 9. Eventos de dominio
 
-Los casos de uso publican eventos mediante `DomainEventPublisherPort`. `DomainEventAuditListener` los
+Los servicios de dominio publican eventos mediante `DomainEventPublisherPort`. `DomainEventAuditListener` los
 escucha y los guarda en la bitácora mediante `AuditLogPort`. Así, la auditoría queda desacoplada de la
 lógica de negocio.
 
@@ -195,7 +200,6 @@ Este documento describe el código actual. Estos cambios ya están planeados:
 
 | Fase | Cambio |
 |---|---|
-| 2 | Puertos de entrada por rol y `adapters/useCases`; desaparecen `application.services` y los puertos por entidad |
 | 3 | Persistencia de `Cart`, `Invoice`, `Shipment`, `ReturnRequest` y `Refund` |
 | 4 | Un controlador por rol bajo `/api/v1` |
-| 5 | Transacciones y bloqueo optimista |
+| 5 | Bloqueo optimista y escrituras en MongoDB después del commit |

@@ -31,7 +31,7 @@ cd nexusm
 ./mvnw test
 ```
 
-Las pruebas de `application.services` usan repositorios en memoria y no necesitan bases
+Las pruebas de `application.domain.services` usan repositorios en memoria y no necesitan bases
 de datos. `NexusmarketApplicationTests` (contexto completo) está deshabilitada porque
 necesita MySQL y MongoDB arriba.
 
@@ -44,16 +44,16 @@ nexusm/src/main/java/application
 │   ├── services          ← reglas que involucran varios agregados
 │   └── ports
 │       ├── in   (7)      ← lo que el sistema ofrece (casos de uso)
-│       └── out  (15)     ← lo que el sistema necesita del exterior
-├── services              ← implementación de los casos de uso (puertos de entrada)
+│       └── out  (19)     ← lo que el sistema necesita del exterior
 ├── adapters
 │   ├── in/rest           ← controladores, DTOs, filtro JWT
-│   └── out               ← MySQL, MongoDB, JWT, BCrypt, reloj, IDs, eventos, notificaciones
+│   ├── out               ← MySQL, MongoDB, JWT, BCrypt, reloj, IDs, eventos, notificaciones
+│   └── useCases          ← implementación de los casos de uso (puertos de entrada)
 └── infrastructure        ← configuración de Spring, seguridad, Mongo
 ```
 
-El detalle de puertos, casos de uso y reglas de negocio está en
-`SDD/domain/Use Cases and Ports.md`.
+El detalle de servicios, puertos y reglas de negocio está en `SDD/domain/Services.md`,
+`SDD/domain/Input-ports.md` y `SDD/domain/Output-ports.md`.
 
 ## Flujo de prueba rápido
 

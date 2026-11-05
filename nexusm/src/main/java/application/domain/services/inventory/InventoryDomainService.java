@@ -25,16 +25,6 @@ public class InventoryDomainService {
     }
 
     /**
-     * Checks the availability of a quantity of a product in a warehouse.
-     */
-    public boolean checkAvailability(ProductId productId, WarehouseId warehouseId,
-                                     Quantity requested) {
-        return inventoryRepository.findByProductIdAndWarehouseId(productId, warehouseId)
-            .map(inventory -> inventory.isAvailable(requested))
-            .orElse(false);
-    }
-
-    /**
      * Reserves stock of a product in a warehouse (decreases the available stock).
      */
     public Inventory reserve(ProductId productId, WarehouseId warehouseId, Quantity quantity) {

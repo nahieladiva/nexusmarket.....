@@ -73,7 +73,7 @@ transiciones están permitidas, mediante `canTransitionTo` y `requireCanTransiti
 
 - Se normaliza a mayúsculas.
 - Formato: 2 a 5 letras, guion y 4 a 8 dígitos, como `ELE-000123`. Patrón: `^[A-Z]{2,5}-\d{4,8}$`.
-- `generate(categoryCode, sequence)` lo arma a partir de una categoría de 2 a 5 letras y una secuencia
+- `generate(String, int)` lo arma a partir de una categoría de 2 a 5 letras y una secuencia
   no negativa.
 
 ### 2.7 `Address`
@@ -280,6 +280,7 @@ stateDiagram-v2
 |---|---|
 | `entitlesRefund()` | Solo `RECEIVED` da derecho a reembolso |
 | `isOpen()` | `REQUESTED` y `APPROVED` son devoluciones abiertas |
+| `countsAsReturned()` | Toda devolución que no esté `REJECTED` cuenta contra lo comprado |
 
 ### 3.13 `RefundStatus`
 

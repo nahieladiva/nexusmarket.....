@@ -227,6 +227,8 @@ classDiagram
 | `removeAddress(Address)` | Elimina una dirección; falla si no está registrada |
 | `hasAddress(Address)` | Indica si la dirección está registrada |
 | `hasRole(UserRole)` | Indica si el usuario tiene el rol dado |
+| `requireRole(UserRole)` | Falla con `ForbiddenActionException` si el usuario tiene otro rol (RG-03) |
+| `requireAnyRole(UserRole...)` | Falla si el usuario no tiene ninguno de los roles dados (RG-03) |
 | `isBuyer()`, `isSeller()`, `isLogisticsOperator()`, `isAdministrator()`, `isSupervisor()` | Consultas de rol |
 
 **Reglas.**
@@ -336,6 +338,7 @@ modifica datos del negocio. Lo registra un administrador.
 | `rename(String)` | Cambia el nombre |
 | `changeDescription(String)` | Cambia la descripción |
 | `isOwnedBy(UserId)` | Indica si pertenece al vendedor dado (RG-03) |
+| `requireOwnedBy(UserId)` | Falla con `ForbiddenActionException` si pertenece a otro vendedor |
 | `isActive()` | Consulta derivada: indica si se puede mostrar y comprar |
 
 **Reglas.**
@@ -370,6 +373,7 @@ modifica datos del negocio. Lo registra un administrador.
 | `activate()`, `deactivate()` | Cambian el estado; fallan si ya está en ese estado |
 | `isActive()` | Consulta derivada: indica si puede guardar y despachar inventario |
 | `isOwnedBy(UserId)` | Indica si pertenece al vendedor dado (RG-03) |
+| `requireManagedBy(User)` | Exige al dueño en una bodega `SELLER` y a un administrador en una `MARKETPLACE` |
 
 **Reglas.**
 - Una bodega `SELLER` siempre tiene dueño.
@@ -513,6 +517,8 @@ agregar el producto.
 | `wasPaid()` | Indica si el pedido se pagó, aunque después se haya cancelado |
 | `hasReservedStock()` | Indica si mantiene stock reservado |
 | `belongsTo(UserId)` | Indica si pertenece al usuario (RG-03) |
+| `requireBelongsTo(UserId)` | Falla con `ForbiddenActionException` si pertenece a otro comprador |
+| `warehouseOf(ProductId)` | Bodega que despachó el producto |
 | `containsAnyProduct(Set)` | Indica si contiene alguno de los productos |
 | `unitsByProduct()` | Unidades totales por producto |
 
@@ -523,7 +529,7 @@ agregar el producto.
   `OrderStateTransitionException`.
 - Solo se cancela desde `PENDING_PAYMENT` o `PAID`.
 - Cada bodega del pedido tiene su propio `Shipment`.
-- Pasa a `SHIPPED` cuando existe un envío por cada bodega y todos cumplen `hasLeftWarehouse()`.
+- Pasa a `SHIPPED` cuando existe un envío por cada bodega y todos cumplen `ShipmentStatus.hasLeftWarehouse()`.
 - Pasa a `DELIVERED` cuando todos sus envíos están `DELIVERED`.
 - Un pedido sin ítems que requieran envío pasa de `PAID` a `DELIVERED` directamente.
 
@@ -572,12 +578,12 @@ pago. Los ítems que no requieren envío nunca tienen bodega.
 
 | Comportamiento | Descripción |
 |---|---|
-| `issueFor(Order, InvoiceId, String, LocalDateTime)` | Emite la factura; exige un pedido `PAID` |
+| `issueFor(Order, InvoiceId, String, LocalDateTime)` | Emite la factura; exige un pedido pagado y no cancelado |
 | `voidInvoice(LocalDateTime)` | Anula la factura |
 | `belongsTo(UserId)` | Indica si pertenece al usuario (RG-03) |
 
 **Reglas.**
-- Solo se factura un pedido `PAID`, y un pedido tiene una sola factura.
+- Solo se factura un pedido pagado y no cancelado, y un pedido tiene una sola factura.
 - `total` es el total del pedido.
 - Una factura `VOIDED` no cambia más.
 
@@ -730,14 +736,8 @@ Las demás entidades son agregados de un solo objeto.
 
 ## 10. Servicios de dominio
 
-Resumen de los servicios actuales. Su detalle se documenta en la Fase 2.
-
-| Servicio | Responsabilidad |
-|---|---|
-| `InventoryDomainService` | Verifica disponibilidad, reserva stock y reabastece |
-| `WarehouseAllocationService` | Elige, entre las bodegas activas con stock suficiente, la que tiene más unidades |
-| `OrderFulfillmentDomainService` | Coordina el stock con el ciclo del pedido: `confirm` y `cancel` |
-| `PasswordPolicy` | Exige `MIN_LENGTH` (8) caracteres, con al menos una letra y un número |
+Los servicios de dominio están en `application.domain.services`, en un subpaquete por tema. La matriz
+de trazabilidad está en [Services](Services.md), y el detalle de cada uno en `SDD/domain/services`.
 
 ## 11. Eventos de dominio
 
