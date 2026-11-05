@@ -12,7 +12,8 @@ public final class ApiDocumentation {
     public static final String UNAUTHORIZED = "The token is missing, invalid, expired or revoked";
     public static final String FORBIDDEN = "The role cannot use this route, or the resource belongs to another user";
     public static final String NOT_FOUND = "The resource does not exist";
-    public static final String CONFLICT = "The resource is duplicated, or its state or stock does not allow the operation";
+    public static final String CONFLICT = "The resource is duplicated, its state or stock does not allow the operation, "
+        + "or another request changed it first";
     public static final String BUSINESS_RULE = "The operation breaks a business rule";
 
     private ApiDocumentation() {

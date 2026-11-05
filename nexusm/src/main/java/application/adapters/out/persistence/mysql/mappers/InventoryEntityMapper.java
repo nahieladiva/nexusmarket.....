@@ -26,6 +26,7 @@ public class InventoryEntityMapper {
         entity.setAisle(inventory.getLocation().getAisle());
         entity.setShelf(inventory.getLocation().getShelf());
         entity.setBin(inventory.getLocation().getBin());
+        entity.setVersion(inventory.getVersion());
         return entity;
     }
 
@@ -36,6 +37,7 @@ public class InventoryEntityMapper {
             WarehouseId.of(entity.getWarehouseId()),
             Quantity.of(entity.getOnHand()),
             Quantity.of(entity.getReorderThreshold()),
-            new WarehouseLocation(entity.getAisle(), entity.getShelf(), entity.getBin()));
+            new WarehouseLocation(entity.getAisle(), entity.getShelf(), entity.getBin()),
+            entity.getVersion());
     }
 }

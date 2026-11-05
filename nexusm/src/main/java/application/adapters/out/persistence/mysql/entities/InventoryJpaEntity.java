@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,4 +44,9 @@ public class InventoryJpaEntity {
 
     @Column(name = "bin", nullable = false)
     private String bin;
+
+    /** Optimistic lock: an update with an old version fails instead of overwriting newer data. */
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT NOT NULL DEFAULT 0")
+    private Long version;
 }

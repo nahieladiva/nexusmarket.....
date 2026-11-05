@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -128,6 +129,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex,
                                                             HttpServletRequest request) {
         return build(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), request);
+    }
+
+    /** Two requests changed the same row at once: the second one lost and can try again. */
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentUpdate(ConcurrencyFailureException ex,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT,
+            "The resource was changed by another request; read it and try again", request);
     }
 
     /** The client closed the connection: it is not a server error and nobody can read an answer. */

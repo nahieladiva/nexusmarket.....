@@ -35,8 +35,14 @@ public final class Cart {
     private final UserId buyerId;
     private final Map<ProductId, CartItem> items;
     private LocalDateTime updatedAt;
+    /** Version of the stored row, used to detect concurrent updates. Null until it is saved. */
+    private final Long version;
 
     public Cart(CartId id, UserId buyerId, List<CartItem> items, LocalDateTime updatedAt) {
+        this(id, buyerId, items, updatedAt, null);
+    }
+
+    public Cart(CartId id, UserId buyerId, List<CartItem> items, LocalDateTime updatedAt, Long version) {
         this.id = Objects.requireNonNull(id, "Cart id is required");
         this.buyerId = Objects.requireNonNull(buyerId, "Buyer is required");
         this.items = new LinkedHashMap<>();
@@ -44,6 +50,7 @@ public final class Cart {
             items.forEach(this::merge);
         }
         this.updatedAt = updatedAt == null ? LocalDateTime.now() : updatedAt;
+        this.version = version;
     }
 
     /**
@@ -141,6 +148,10 @@ public final class Cart {
 
     private void touch() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public CartId getId() {

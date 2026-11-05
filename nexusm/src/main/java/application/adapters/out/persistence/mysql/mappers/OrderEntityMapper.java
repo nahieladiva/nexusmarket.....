@@ -31,6 +31,7 @@ public class OrderEntityMapper {
         entity.setPaidAt(order.getPaidAt().orElse(null));
         entity.setCreatedAt(order.getCreatedAt());
         entity.setUpdatedAt(order.getUpdatedAt());
+        entity.setVersion(order.getVersion());
         order.getItems().forEach(item -> {
             OrderItemJpaEntity itemEntity = new OrderItemJpaEntity();
             itemEntity.setProductId(item.getProductId().toString());
@@ -57,7 +58,8 @@ public class OrderEntityMapper {
             entity.getStatus(),
             entity.getPaidAt(),
             entity.getCreatedAt(),
-            entity.getUpdatedAt());
+            entity.getUpdatedAt(),
+            entity.getVersion());
     }
 
     private OrderItem toOrderItem(OrderItemJpaEntity entity) {

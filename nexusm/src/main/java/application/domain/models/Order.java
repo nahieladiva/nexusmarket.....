@@ -48,9 +48,16 @@ public final class Order {
     private LocalDateTime paidAt;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    /** Version of the stored row, used to detect concurrent updates. Null until it is saved. */
+    private final Long version;
 
     public Order(OrderId id, UserId buyerId, List<OrderItem> items, OrderStatus status,
                  LocalDateTime paidAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this(id, buyerId, items, status, paidAt, createdAt, updatedAt, null);
+    }
+
+    public Order(OrderId id, UserId buyerId, List<OrderItem> items, OrderStatus status,
+                 LocalDateTime paidAt, LocalDateTime createdAt, LocalDateTime updatedAt, Long version) {
         this.id = Objects.requireNonNull(id, "Order id is required");
         this.buyerId = Objects.requireNonNull(buyerId, "Buyer is required");
         this.items = new ArrayList<>(items == null ? List.of() : items);
@@ -62,6 +69,7 @@ public final class Order {
         this.paidAt = paidAt;
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
         this.updatedAt = updatedAt == null ? this.createdAt : updatedAt;
+        this.version = version;
     }
 
     /** Creates an order pending payment with a new id. */
@@ -262,6 +270,10 @@ public final class Order {
             result = (result == null) ? item.subtotal() : result.add(item.subtotal());
         }
         return result;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public OrderId getId() {

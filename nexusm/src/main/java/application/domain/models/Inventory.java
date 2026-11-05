@@ -27,9 +27,17 @@ public final class Inventory {
     private Quantity onHand;
     private Quantity reorderThreshold;
     private WarehouseLocation location;
+    /** Version of the stored row, used to detect concurrent updates. Null until it is saved. */
+    private final Long version;
 
     public Inventory(InventoryId id, ProductId productId, WarehouseId warehouseId,
                      Quantity onHand, Quantity reorderThreshold, WarehouseLocation location) {
+        this(id, productId, warehouseId, onHand, reorderThreshold, location, null);
+    }
+
+    public Inventory(InventoryId id, ProductId productId, WarehouseId warehouseId,
+                     Quantity onHand, Quantity reorderThreshold, WarehouseLocation location,
+                     Long version) {
         this.id = Objects.requireNonNull(id, "Inventory id is required");
         this.productId = Objects.requireNonNull(productId, "Product is required");
         this.warehouseId = Objects.requireNonNull(warehouseId, "Warehouse is required");
@@ -37,6 +45,7 @@ public final class Inventory {
         this.reorderThreshold =
             Objects.requireNonNull(reorderThreshold, "Reorder threshold is required");
         this.location = Objects.requireNonNull(location, "Location is required");
+        this.version = version;
     }
 
     public static Inventory create(ProductId productId, WarehouseId warehouseId,
@@ -86,6 +95,10 @@ public final class Inventory {
     public void changeReorderThreshold(Quantity newThreshold) {
         this.reorderThreshold =
             Objects.requireNonNull(newThreshold, "Reorder threshold is required");
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public InventoryId getId() {

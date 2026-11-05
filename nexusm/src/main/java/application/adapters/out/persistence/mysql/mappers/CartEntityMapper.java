@@ -23,6 +23,7 @@ public class CartEntityMapper {
         entity.setId(cart.getId().toString());
         entity.setBuyerId(cart.getBuyerId().toString());
         entity.setUpdatedAt(cart.getUpdatedAt());
+        entity.setVersion(cart.getVersion());
         cart.getItems().forEach(item -> entity.getItems().add(toItemEntity(item, entity)));
         return entity;
     }
@@ -32,7 +33,8 @@ public class CartEntityMapper {
             CartId.of(entity.getId()),
             UserId.of(entity.getBuyerId()),
             entity.getItems().stream().map(this::toCartItem).toList(),
-            entity.getUpdatedAt());
+            entity.getUpdatedAt(),
+            entity.getVersion());
     }
 
     private CartItemJpaEntity toItemEntity(CartItem item, CartJpaEntity cart) {

@@ -109,7 +109,8 @@ class NewAggregatesPersistenceTest {
         carts.save(cart);
         flushAndClear();
 
-        carts.save(new Cart(cart.getId(), buyer, List.of(item(kept, 5)), NOW.plusHours(1)));
+        Long version = carts.findByBuyerId(buyer).orElseThrow().getVersion();
+        carts.save(new Cart(cart.getId(), buyer, List.of(item(kept, 5)), NOW.plusHours(1), version));
         flushAndClear();
 
         Cart stored = carts.findByBuyerId(buyer).orElseThrow();
@@ -125,7 +126,8 @@ class NewAggregatesPersistenceTest {
         carts.save(cart);
         flushAndClear();
 
-        carts.save(new Cart(cart.getId(), buyer, List.of(), NOW));
+        Long version = carts.findByBuyerId(buyer).orElseThrow().getVersion();
+        carts.save(new Cart(cart.getId(), buyer, List.of(), NOW, version));
         flushAndClear();
 
         assertTrue(carts.findByBuyerId(buyer).orElseThrow().getItems().isEmpty());
