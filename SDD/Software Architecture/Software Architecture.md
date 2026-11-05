@@ -187,7 +187,7 @@ MySQL y el MongoDB reales.
 
 Cada operación de un puerto de entrada es una transacción de MySQL, definida en `adapters.useCases`. Si algo
 falla a mitad, MySQL revierte todo: un pago que falla no deja stock reservado, factura ni cambio de estado.
-`ConsistencyIT` lo comprueba sobre el MySQL real.
+Una prueba `*IT` lo comprueba sobre el MySQL real.
 
 ### 7.2 Bloqueo optimista
 
