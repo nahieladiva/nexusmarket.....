@@ -36,6 +36,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**")
+                .permitAll()
                 .requestMatchers("/api/v1/account/**").authenticated()
                 .requestMatchers("/api/v1/buyer/**").hasRole(UserRole.BUYER.name())
                 .requestMatchers("/api/v1/seller/**").hasRole(UserRole.SELLER.name())

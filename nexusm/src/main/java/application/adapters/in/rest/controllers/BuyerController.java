@@ -1,5 +1,10 @@
 package application.adapters.in.rest.controllers;
 
+import application.adapters.in.rest.documentation.ApiDocumentation;
+import application.adapters.in.rest.documentation.CreateResponses;
+import application.adapters.in.rest.documentation.ListResponses;
+import application.adapters.in.rest.documentation.ReadResponses;
+import application.adapters.in.rest.documentation.WriteResponses;
 import application.adapters.in.rest.mappers.CartMapper;
 import application.adapters.in.rest.mappers.InvoiceMapper;
 import application.adapters.in.rest.mappers.OrderMapper;
@@ -20,6 +25,9 @@ import application.domain.ports.in.BuyerPort;
 import application.domain.valueobjects.OrderId;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +46,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST adapter of {@link BuyerPort}. The buyer always comes from the token.
  */
+@Tag(name = "Buyer", description = "Cart, orders, invoices, shipments, returns and refunds of the authenticated buyer")
+@SecurityRequirement(name = ApiDocumentation.BEARER_AUTH)
 @RestController
 @RequestMapping("/api/v1/buyer")
 @RequiredArgsConstructor
@@ -51,11 +61,15 @@ public class BuyerController {
     private final ReturnMapper returnMapper;
     private final RefundMapper refundMapper;
 
+    @Operation(summary = "Find one cart")
+    @ReadResponses
     @GetMapping("/cart")
     public CartResponse findCart(@AuthenticationPrincipal AuthenticatedUser me) {
         return cartMapper.toResponse(port.findCart(me.userId()));
     }
 
+    @Operation(summary = "Add cart item")
+    @WriteResponses
     @PostMapping("/cart/items")
     public CartResponse addCartItem(@AuthenticationPrincipal AuthenticatedUser me,
                                     @Valid @RequestBody CartItemRequest request) {
@@ -63,6 +77,8 @@ public class BuyerController {
             Quantity.of(request.quantity())));
     }
 
+    @Operation(summary = "Change cart item quantity")
+    @WriteResponses
     @PatchMapping("/cart/items/{productId}")
     public CartResponse changeCartItemQuantity(@AuthenticationPrincipal AuthenticatedUser me,
                                                @PathVariable ProductId productId,
@@ -71,52 +87,70 @@ public class BuyerController {
             Quantity.of(request.quantity())));
     }
 
+    @Operation(summary = "Remove cart item")
+    @WriteResponses
     @DeleteMapping("/cart/items/{productId}")
     public CartResponse removeCartItem(@AuthenticationPrincipal AuthenticatedUser me,
                                        @PathVariable ProductId productId) {
         return cartMapper.toResponse(port.removeCartItem(me.userId(), productId));
     }
 
+    @Operation(summary = "Clear cart")
+    @WriteResponses
     @DeleteMapping("/cart")
     public CartResponse clearCart(@AuthenticationPrincipal AuthenticatedUser me) {
         return cartMapper.toResponse(port.clearCart(me.userId()));
     }
 
+    @Operation(summary = "Turn the cart into an order")
+    @CreateResponses
     @PostMapping("/orders")
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse placeOrder(@AuthenticationPrincipal AuthenticatedUser me) {
         return orderMapper.toResponse(port.placeOrder(me.userId()));
     }
 
+    @Operation(summary = "Pay order")
+    @WriteResponses
     @PostMapping("/orders/{orderId}/pay")
     public OrderResponse payOrder(@AuthenticationPrincipal AuthenticatedUser me,
                                   @PathVariable OrderId orderId) {
         return orderMapper.toResponse(port.payOrder(me.userId(), orderId));
     }
 
+    @Operation(summary = "Cancel order")
+    @WriteResponses
     @PostMapping("/orders/{orderId}/cancel")
     public OrderResponse cancelOrder(@AuthenticationPrincipal AuthenticatedUser me,
                                      @PathVariable OrderId orderId) {
         return orderMapper.toResponse(port.cancelOrder(me.userId(), orderId));
     }
 
+    @Operation(summary = "Find one order")
+    @ReadResponses
     @GetMapping("/orders/{orderId}")
     public OrderResponse findOrder(@AuthenticationPrincipal AuthenticatedUser me,
                                    @PathVariable OrderId orderId) {
         return orderMapper.toResponse(port.findOrder(me.userId(), orderId));
     }
 
+    @Operation(summary = "List orders")
+    @ListResponses
     @GetMapping("/orders")
     public List<OrderResponse> findOrders(@AuthenticationPrincipal AuthenticatedUser me) {
         return port.findOrders(me.userId()).stream().map(orderMapper::toResponse).toList();
     }
 
+    @Operation(summary = "Find one invoice")
+    @ReadResponses
     @GetMapping("/orders/{orderId}/invoice")
     public InvoiceResponse findInvoice(@AuthenticationPrincipal AuthenticatedUser me,
                                        @PathVariable OrderId orderId) {
         return invoiceMapper.toResponse(port.findInvoice(me.userId(), orderId));
     }
 
+    @Operation(summary = "List shipments")
+    @ReadResponses
     @GetMapping("/orders/{orderId}/shipments")
     public List<ShipmentResponse> findShipments(@AuthenticationPrincipal AuthenticatedUser me,
                                                 @PathVariable OrderId orderId) {
@@ -124,6 +158,8 @@ public class BuyerController {
             .map(shipmentMapper::toResponse).toList();
     }
 
+    @Operation(summary = "Request return")
+    @CreateResponses
     @PostMapping("/orders/{orderId}/returns")
     @ResponseStatus(HttpStatus.CREATED)
     public ReturnResponse requestReturn(@AuthenticationPrincipal AuthenticatedUser me,
@@ -133,12 +169,16 @@ public class BuyerController {
             ProductId.of(request.productId()), Quantity.of(request.quantity()), request.reason()));
     }
 
+    @Operation(summary = "List returns")
+    @ReadResponses
     @GetMapping("/orders/{orderId}/returns")
     public List<ReturnResponse> findReturns(@AuthenticationPrincipal AuthenticatedUser me,
                                             @PathVariable OrderId orderId) {
         return port.findReturns(me.userId(), orderId).stream().map(returnMapper::toResponse).toList();
     }
 
+    @Operation(summary = "List refunds")
+    @ReadResponses
     @GetMapping("/orders/{orderId}/refunds")
     public List<RefundResponse> findRefunds(@AuthenticationPrincipal AuthenticatedUser me,
                                             @PathVariable OrderId orderId) {

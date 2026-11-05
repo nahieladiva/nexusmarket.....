@@ -1,5 +1,10 @@
 package application.adapters.in.rest.controllers;
 
+import application.adapters.in.rest.documentation.ApiDocumentation;
+import application.adapters.in.rest.documentation.CreateResponses;
+import application.adapters.in.rest.documentation.ListResponses;
+import application.adapters.in.rest.documentation.ReadResponses;
+import application.adapters.in.rest.documentation.WriteResponses;
 import application.adapters.in.rest.mappers.InventoryMapper;
 import application.adapters.in.rest.mappers.OrderMapper;
 import application.adapters.in.rest.mappers.ProductMapper;
@@ -26,6 +31,9 @@ import application.domain.valueobjects.ProductCode;
 import application.domain.valueobjects.ProductId;
 import application.domain.valueobjects.Quantity;
 import application.domain.valueobjects.WarehouseId;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +52,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST adapter of {@link SellerPort}. The seller always comes from the token.
  */
+@Tag(name = "Seller", description = "Products, warehouses, stock and orders of the authenticated seller")
+@SecurityRequirement(name = ApiDocumentation.BEARER_AUTH)
 @RestController
 @RequestMapping("/api/v1/seller")
 @RequiredArgsConstructor
@@ -56,6 +66,8 @@ public class SellerController {
     private final InventoryMapper inventoryMapper;
     private final OrderMapper orderMapper;
 
+    @Operation(summary = "Register product")
+    @CreateResponses
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse registerProduct(@AuthenticationPrincipal AuthenticatedUser me,
@@ -65,6 +77,8 @@ public class SellerController {
             productMapper.toDomain(request.price())));
     }
 
+    @Operation(summary = "Update product")
+    @WriteResponses
     @PatchMapping("/products/{productId}")
     public ProductResponse updateProduct(@AuthenticationPrincipal AuthenticatedUser me,
                                          @PathVariable ProductId productId,
@@ -73,6 +87,8 @@ public class SellerController {
             request.description()));
     }
 
+    @Operation(summary = "Change product price")
+    @WriteResponses
     @PutMapping("/products/{productId}/price")
     public ProductResponse changeProductPrice(@AuthenticationPrincipal AuthenticatedUser me,
                                               @PathVariable ProductId productId,
@@ -81,29 +97,39 @@ public class SellerController {
             productMapper.toDomain(request.price())));
     }
 
+    @Operation(summary = "Publish product")
+    @WriteResponses
     @PostMapping("/products/{productId}/publish")
     public ProductResponse publishProduct(@AuthenticationPrincipal AuthenticatedUser me,
                                           @PathVariable ProductId productId) {
         return productMapper.toResponse(port.publishProduct(me.userId(), productId));
     }
 
+    @Operation(summary = "Suspend product")
+    @WriteResponses
     @PostMapping("/products/{productId}/suspend")
     public ProductResponse suspendProduct(@AuthenticationPrincipal AuthenticatedUser me,
                                           @PathVariable ProductId productId) {
         return productMapper.toResponse(port.suspendProduct(me.userId(), productId));
     }
 
+    @Operation(summary = "Discontinue product")
+    @WriteResponses
     @PostMapping("/products/{productId}/discontinue")
     public ProductResponse discontinueProduct(@AuthenticationPrincipal AuthenticatedUser me,
                                               @PathVariable ProductId productId) {
         return productMapper.toResponse(port.discontinueProduct(me.userId(), productId));
     }
 
+    @Operation(summary = "List products")
+    @ListResponses
     @GetMapping("/products")
     public List<ProductResponse> findProducts(@AuthenticationPrincipal AuthenticatedUser me) {
         return port.findProducts(me.userId()).stream().map(productMapper::toResponse).toList();
     }
 
+    @Operation(summary = "Create warehouse")
+    @CreateResponses
     @PostMapping("/warehouses")
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseResponse createWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
@@ -112,6 +138,8 @@ public class SellerController {
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }
 
+    @Operation(summary = "Update warehouse")
+    @WriteResponses
     @PutMapping("/warehouses/{warehouseId}")
     public WarehouseResponse updateWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                              @PathVariable WarehouseId warehouseId,
@@ -120,29 +148,39 @@ public class SellerController {
             userMapper.toDomain(request.address()), warehouseMapper.toDomain(request.location())));
     }
 
+    @Operation(summary = "Activate warehouse")
+    @WriteResponses
     @PostMapping("/warehouses/{warehouseId}/activate")
     public WarehouseResponse activateWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                                @PathVariable WarehouseId warehouseId) {
         return warehouseMapper.toResponse(port.activateWarehouse(me.userId(), warehouseId));
     }
 
+    @Operation(summary = "Deactivate warehouse")
+    @WriteResponses
     @PostMapping("/warehouses/{warehouseId}/deactivate")
     public WarehouseResponse deactivateWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                                  @PathVariable WarehouseId warehouseId) {
         return warehouseMapper.toResponse(port.deactivateWarehouse(me.userId(), warehouseId));
     }
 
+    @Operation(summary = "Find one warehouse")
+    @ReadResponses
     @GetMapping("/warehouses/{warehouseId}")
     public WarehouseResponse findWarehouse(@AuthenticationPrincipal AuthenticatedUser me,
                                            @PathVariable WarehouseId warehouseId) {
         return warehouseMapper.toResponse(port.findWarehouse(me.userId(), warehouseId));
     }
 
+    @Operation(summary = "List warehouses")
+    @ListResponses
     @GetMapping("/warehouses")
     public List<WarehouseResponse> findWarehouses(@AuthenticationPrincipal AuthenticatedUser me) {
         return port.findWarehouses(me.userId()).stream().map(warehouseMapper::toResponse).toList();
     }
 
+    @Operation(summary = "Create inventory")
+    @CreateResponses
     @PostMapping("/inventory")
     @ResponseStatus(HttpStatus.CREATED)
     public InventoryResponse createInventory(@AuthenticationPrincipal AuthenticatedUser me,
@@ -153,6 +191,8 @@ public class SellerController {
             warehouseMapper.toDomain(request.location())));
     }
 
+    @Operation(summary = "Register an inbound of stock")
+    @WriteResponses
     @PostMapping("/inventory/restock")
     public InventoryResponse restock(@AuthenticationPrincipal AuthenticatedUser me,
                                      @Valid @RequestBody RestockRequest request) {
@@ -160,6 +200,8 @@ public class SellerController {
             WarehouseId.of(request.warehouseId()), Quantity.of(request.quantity()), request.reason()));
     }
 
+    @Operation(summary = "Adjust stock manually")
+    @WriteResponses
     @PostMapping("/inventory/adjust")
     public InventoryResponse adjustStock(@AuthenticationPrincipal AuthenticatedUser me,
                                          @Valid @RequestBody AdjustInventoryRequest request) {
@@ -167,6 +209,8 @@ public class SellerController {
             WarehouseId.of(request.warehouseId()), request.delta(), request.reason()));
     }
 
+    @Operation(summary = "Change the reorder threshold")
+    @WriteResponses
     @PutMapping("/inventory/threshold")
     public InventoryResponse changeReorderThreshold(@AuthenticationPrincipal AuthenticatedUser me,
                                                     @Valid @RequestBody ThresholdRequest request) {
@@ -175,6 +219,8 @@ public class SellerController {
             Quantity.of(request.reorderThreshold())));
     }
 
+    @Operation(summary = "Find one inventory")
+    @ReadResponses
     @GetMapping("/inventory/{productId}/{warehouseId}")
     public InventoryResponse findInventory(@AuthenticationPrincipal AuthenticatedUser me,
                                            @PathVariable ProductId productId,
@@ -182,11 +228,15 @@ public class SellerController {
         return inventoryMapper.toResponse(port.findInventory(me.userId(), productId, warehouseId));
     }
 
+    @Operation(summary = "List inventories")
+    @ListResponses
     @GetMapping("/inventory")
     public List<InventoryResponse> findInventories(@AuthenticationPrincipal AuthenticatedUser me) {
         return port.findInventories(me.userId()).stream().map(inventoryMapper::toResponse).toList();
     }
 
+    @Operation(summary = "List the stock movements of an inventory")
+    @ReadResponses
     @GetMapping("/inventory/{productId}/{warehouseId}/movements")
     public List<StockMovementResponse> findMovements(@AuthenticationPrincipal AuthenticatedUser me,
                                                      @PathVariable ProductId productId,
@@ -195,12 +245,16 @@ public class SellerController {
             .map(inventoryMapper::toResponse).toList();
     }
 
+    @Operation(summary = "Find one order")
+    @ReadResponses
     @GetMapping("/orders/{orderId}")
     public OrderResponse findOrder(@AuthenticationPrincipal AuthenticatedUser me,
                                    @PathVariable OrderId orderId) {
         return orderMapper.toResponse(port.findOrder(me.userId(), orderId));
     }
 
+    @Operation(summary = "List orders")
+    @ListResponses
     @GetMapping("/orders")
     public List<OrderResponse> findOrders(@AuthenticationPrincipal AuthenticatedUser me) {
         return port.findOrders(me.userId()).stream().map(orderMapper::toResponse).toList();
