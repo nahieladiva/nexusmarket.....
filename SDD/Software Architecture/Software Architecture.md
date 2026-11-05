@@ -36,6 +36,7 @@ frameworks, bases de datos ni protocolos.
 | Documentación de la API | springdoc-openapi 3 (Swagger UI y OpenAPI 3) |
 | Validación | Jakarta Bean Validation en los DTO |
 | Pruebas de API | MockMvc y colección de Postman ejecutada con newman |
+| Cobertura | JaCoCo |
 
 ## 4. Capas y regla de dependencias
 
@@ -258,4 +259,17 @@ lógica de negocio.
 
 La API espera a que ambas bases estén saludables. Sus datos de conexión, la clave JWT y las
 credenciales del administrador inicial se pasan por variables de entorno.
+
+## 11. Pruebas
+
+| Nivel | Qué comprueba | Cómo se ejecuta |
+|---|---|---|
+| Dominio | Reglas de entidades, enums, value objects y servicios, con repositorios en memoria | `mvnw clean test` |
+| Persistencia | Adaptadores JPA sobre H2 | `mvnw clean test` |
+| API | Contexto real de Spring con MockMvc: seguridad, controladores, errores y OpenAPI | `mvnw clean test` |
+| Integración | Persistencia, transacciones y concurrencia sobre el MySQL y el MongoDB reales | `mvnw test -Dtest=*IT` |
+| Extremo a extremo | Flujo completo por la API desplegada en Docker | Colección de Postman con newman |
+| Documentación | El SDD coincide con el código compilado | `tools/VerifySdd.java` |
+
+`mvnw clean test` genera también el informe de cobertura de JaCoCo.
 
